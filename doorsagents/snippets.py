@@ -8,10 +8,10 @@ class SnippetsAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        # self.appFolder = 'c:/work/snippets/parser'  # папка с приложением
-        # self.snippetsFolder = 'c:/work/snippets'  # папка с готовыми сниппетами
-        self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets/parser'  # папка с приложением
-        self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'  # папка с готовыми сниппетами
+        self.appFolder = 'c:/work/snippets/parser'  # папка с приложением
+        self.snippetsFolder = 'c:/work/snippets'  # папка с готовыми сниппетами
+        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets/parser'  # папка с приложением
+        # self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'  # папка с готовыми сниппетами
         self.appKeysFile = os.path.join(self.appFolder, 'keys.txt')  # где приложение берет файл с кеями
         self.appTextFile = os.path.join(self.appFolder, 'text.txt')  # куда приложение пишет сниппеты
         self.localFile = os.path.join(self.snippetsFolder, self.currentTask['localFile'])  # куда поместить конечный файл
@@ -24,7 +24,7 @@ class SnippetsAgent(agent.BaseAgent):
             fd.write('\n'.join(self.currentTask['keywordsList']))
         with open(self.stopwordsFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['stopwordsList']))
-        self._RunApp(os.path.join(self.appFolder, 'parse.bat'))
+        self._RunApp('start ' + os.path.join(self.appFolder, 'parse.bat'))
         return True
     
     def _ActionOff(self):
@@ -34,9 +34,9 @@ class SnippetsAgent(agent.BaseAgent):
         self.currentTask['keywordsList'] = []
         self.currentTask['stopwordsList'] = []
         self.currentTask['phrasesList'] = []
-        for line in open(self.appTextFile, 'r'):
+        for line in open(self.localFile, 'r'):
             self.currentTask['phrasesList'].append(line.strip())
         return True
 
 if __name__ == '__main__':
-    agent = SnippetsAgent('http://127.0.0.1:8000/doorsadmin', 2)
+    agent = SnippetsAgent('http://searchpro.name/doorscenter/doorsadmin', 2)
