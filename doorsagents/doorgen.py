@@ -4,7 +4,7 @@ import os, sys, agent
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: settings, templateFolder, keywordsList, domain, domainFolder, 
-    netLinksList, documentRoot, ftpLogin, ftpPassword, ftpPort.
+    netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
     В настройках доргена принудительно устанавливаем параметры, см. ниже. Кейворды 
@@ -21,6 +21,7 @@ class DoorgenAgent(agent.BaseAgent):
         self.appLinksPattern1File = os.path.join(self.appFolder, 'links/pattern1.txt')  # шаблон ссылок 1
         self.appLinksPattern2File = os.path.join(self.appFolder, 'links/pattern2.txt')  # шаблон ссылок 2
         self.appLinksPattern3File = os.path.join(self.appFolder, 'links/pattern3.txt')  # шаблон ссылок 3
+        self.appMacrosFile = os.path.join(self.appFolder, 'system/macrosvalue.txt')  # значения кастомных макросов
         self.appDoorwayFolder = os.path.join(self.appFolder, 'doorway/')  # папка, куда генерится дорвей - с конечным слэшем
         self.appTemplatesFolder = os.path.join(self.appFolder, 'pattern')  # папка с шаблонами 
         self.appKeywordsFile = os.path.join(self.appFolder, 'keys/keywords.txt')  # файл с кеями 
@@ -113,6 +114,7 @@ Top=80
     def _ActionOn(self):
         print('Starting task #%s' % self._GetCurrentTaskId())
         self._Settings()
+        '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
             for line in self.currentTask['settings']:
                 if line.find('=') >= 0:
@@ -129,21 +131,40 @@ Top=80
             fd.write(self.appLinksPattern2Content)
         with open(self.appLinksPattern3File, 'w') as fd:
             fd.write(self.appLinksPattern3Content)
+        '''Кейворды и ссылки сетки'''
         with open(self.appKeywordsFile, 'w') as fd:
             fd.write(self.currentTask['keywordsList'][0])
             fd.write('|%s|%s|%s|%s%s|\n' % (self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.currentTask['documentRoot'], self.currentTask['domainFolder']))
             fd.write('\n'.join(self.currentTask['keywordsList'])[1:])
         with open(self.appNetLinksFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['netLinksList']))
+        '''Запись analyticsId и piwikId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
+        with open(self.appMacrosFile, 'r') as fd:
+            lines = fd.readlines()
+        if self.currentTask['analyticsId']:
+            lines[2] = '%s\n' % self.currentTask['analyticsId']
+        if self.currentTask['piwikId']:
+            lines[4] = '%d\n' % self.currentTask['piwikId']
+        with open(self.appMacrosFile, 'w') as fd:
+            fd.writelines(lines)
+        '''Запись cyclicId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
+        cyclikConfigFile = os.path.join(self.appTemplatesFolder, self.currentTask['templateFolder'], 'cyclik_config.php') 
+        if os.path.isfile(cyclikConfigFile) and self.currentTask['cyclikId']:
+            with open(cyclikConfigFile, 'r') as fd:
+                lines = fd.readlines()
+            lines[4] = ' $id = "%d"; // Client ID\n' % self.currentTask['cyclikId']
+            with open(cyclikConfigFile, 'w') as fd:
+                fd.writelines(lines)
+        '''Запуск приложения'''
         self._RunApp(os.path.join(self.appFolder, 'aggressdoorgen.exe'))
         return True
     
     def _ActionOff(self):
         print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
-        self.currentTask['settings'] = ''
-        self.currentTask['keywordsList'] = ''
-        self.currentTask['netLinksList'] = ''
+        self.currentTask['settings'] = []
+        self.currentTask['keywordsList'] = []
+        self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())

@@ -74,3 +74,9 @@ def GetFirstObject(objects):
         if object:
             return object
     return None
+
+def MakeListUnique(seq):
+    '''Удаляет неуникальные элементы списка'''
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if x not in seen and not seen_add(x)]

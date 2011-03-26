@@ -4,7 +4,7 @@ import os, agent, kwk8
 class SnippetsAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, stopwordsList, language.
-    Выходные: phraseCount.'''
+    Выходные: phrasesList.'''
     
     def _Settings(self):
         '''Настройки'''
@@ -30,10 +30,12 @@ class SnippetsAgent(agent.BaseAgent):
     def _ActionOff(self):
         print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
-        count = kwk8.ProcessKeys(self.appTextFile, self.localFile, self.stopwordsFile)
-        self.currentTask['phraseCount'] = count
-        self.currentTask['keywordsList'] = ''
-        self.currentTask['stopwordsList'] = ''
+        kwk8.ProcessKeys(self.appTextFile, self.localFile, self.stopwordsFile)
+        self.currentTask['keywordsList'] = []
+        self.currentTask['stopwordsList'] = []
+        self.currentTask['phrasesList'] = []
+        for line in open(self.appTextFile, 'r'):
+            self.currentTask['phrasesList'].append(line.strip())
         return True
 
 if __name__ == '__main__':

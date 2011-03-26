@@ -13,8 +13,13 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'doorscenter',                      # Or path to database file if using sqlite3.
+<<<<<<< HEAD
         'USER': 'doorscenter',                      # Not used with sqlite3.
         'PASSWORD': 'xDctd2DmZD2ANepA',                  # Not used with sqlite3.
+=======
+        'USER': 'root',                      # Not used with sqlite3.
+        'PASSWORD': '111111',                  # Not used with sqlite3.
+>>>>>>> 7cdc268f2350a27e1df283ce5fecbc2cbac7e886
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
@@ -57,7 +62,7 @@ MEDIA_URL = ''
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/doorscentermedia/'
+ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ')qi8tli5&#n^it__xf_^y$+9vm!j9j3h_t264lsfdkajrt)o@v'

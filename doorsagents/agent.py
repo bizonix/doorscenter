@@ -184,9 +184,9 @@ class SomeAgent(BaseAgent):
         return True
     def _ActionOff(self):
         print('Ending task #%s' % self._GetCurrentTaskId())
-        self.currentTask['keywordsList'] = ''
-        self.currentTask['stopwordsList'] = ''
-        self.currentTask['spamLinksList'] = ''
+        self.currentTask['keywordsList'] = []
+        self.currentTask['stopwordsList'] = []
+        self.currentTask['spamLinksList'] = []
         return True
 
 if __name__ == '__main__':

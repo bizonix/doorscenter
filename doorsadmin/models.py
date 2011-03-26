@@ -29,7 +29,10 @@ def EventLog(type, text, object=None, error=None):
         object.lastError = text
         object.save()
         objectName = object.__class__.__name__ + ' ' + str(object)
-    Event.objects.create(date=datetime.datetime.now(), type=type, object=objectName, text=text).save()
+    Event.objects.create(date=datetime.datetime.now(), 
+                         type=type, 
+                         object=objectName, 
+                         text=text).save()
     transaction.commit()
 
 def ObjectLog(object, changeMessage):
@@ -154,6 +157,8 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     class Meta:
         verbose_name = 'Niche'
         verbose_name_plural = '3.1. Niches'
+    def __unicode__(self):
+        return '#%s %s (%s)' % (self.pk, self.description, self.language)
     def GetDoorsCount(self):
         return self.doorway_set.count()
     GetDoorsCount.short_description = 'Doors'
@@ -303,10 +308,19 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             if self.remarks.startswith(keyword):
                 self.remarks = self.remarks[len(keyword):]
                 for domainName in self.remarks.splitlines():
-                    Domain.objects.create(name=domainName, niche=self.niche, host=self.host, registrator=self.registrator, 
-                                          dateRegistered=self.dateRegistered, dateExpires=self.dateExpires, 
-                                          ipAddress=self.ipAddress, nameServer1=self.nameServer1, nameServer2=self.nameServer2, 
-                                          remarks='').save()
+                    try:
+                        Domain.objects.create(name=domainName, 
+                                              niche=self.niche, 
+                                              host=self.host, 
+                                              registrator=self.registrator, 
+                                              dateRegistered=self.dateRegistered, 
+                                              dateExpires=self.dateExpires, 
+                                              ipAddress=self.ipAddress, 
+                                              nameServer1=self.nameServer1, 
+                                              nameServer2=self.nameServer2, 
+                                              remarks='').save()
+                    except Exception as error:
+                        EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
         except Exception as error:
             EventLog('error', 'Cannot add additional domains', self, error)
         super(Domain, self).save(*args, **kwargs)
@@ -328,6 +342,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     
 class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Сетка доров'''
+    netLinksList = models.TextField('Links', default='', blank=True)  # ссылки сетки для линковки и спама
     class Meta:
         verbose_name = 'Net'
         verbose_name_plural = '3.4. Nets'
@@ -337,9 +352,13 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GetPagesCount(self):
         return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
-    def GetNetLinksList(self):
-        '''Набор ссылок для спама сетки TODO'''
-        return ''
+    def _AddSpamLinks(self, doorway):
+        '''Добавление собственных ссылок дорвея в ссылки сетки'''
+        links = self.netLinksList.split('\n')
+        links.extend(doorway.spamLinksList.split('\n'))
+        links = MakeListUnique(links)
+        self.netLinksList = '\n'.join(links)
+        self.save()
     
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов. Folder-based.'''
@@ -384,8 +403,8 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Keywords Set', null=True, blank=True)
     minPagesCount = models.IntegerField('Min Pages', null=True)
     maxPagesCount = models.IntegerField('Max Pages', null=True)
-    minSpamLinksCount = models.IntegerField('Min Sp.Links', null=True)
-    maxSpamLinksCount = models.IntegerField('Max Sp.Links', null=True)
+    minSpamLinksPercent = models.FloatField('Min Spam Links, %', default=1)
+    maxSpamLinksPercent = models.FloatField('Max Spam Links, %', default=2.5)
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
     doorsPerDay = models.IntegerField('Doors/Day', null=True)
@@ -410,10 +429,16 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
         '''Генерируем дорвей'''
         if count > 0:
             for _ in range(0, count):
-                Doorway.objects.create(net=self.net, niche=self.niche, template=self.template, keywordsSet=self.keywordsSet, 
-                                       pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), domainFolder='', 
-                                       spamLinksCount=min(random.randint(self.minSpamLinksCount, self.maxSpamLinksCount), self.minPagesCount), 
-                                       doorwaySchedule=self).save()
+                p = Doorway.objects.create(net=self.net, 
+                                           niche=self.niche, 
+                                           template=self.template, 
+                                           keywordsSet=self.keywordsSet, 
+                                           pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
+                                           domainFolder='', 
+                                           spamLinksCount=0, 
+                                           doorwaySchedule=self)
+                p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)
+                p.save()
             EventLog('info', 'Doorways generated: %d' % count, self)
         
     def GenerateDoorways(self, count = None):
@@ -425,7 +450,7 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
                         self._GenerateDoorwaysPrivate(self.doorsPerDay - self.doorsThisDay)
                     self.doorsThisDay = 0  # обнуляем число сгенерированных за сегодня дорвеев
                 d = datetime.datetime.now()
-                count = int(self.doorsPerDay * (d.hour * 60 + d.minute) / (24 * 60)) - self.doorsThisDay
+                count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsThisDay
             elif self._NewDateCome():  # если число задано и настал новый день
                 self.doorsThisDay = 0  # обнуляем число сгенерированных за сегодня дорвеев
             self._GenerateDoorwaysPrivate(count)  # генерим дорвеи за сегодня
@@ -444,24 +469,21 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     pagesCount = models.IntegerField('Pages', null=True)
     domain = models.ForeignKey(Domain, verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
-    spamLinksCount = models.IntegerField('Sp. Links', null=True)
+    spamLinksCount = models.IntegerField('Self Links', null=True)
     doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Doorgen Profile', null=True)
     doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
-    spamLinksList = models.TextField('Spam Links', default='', blank=True)  # ссылки дорвея для спама и линковки с сеткой
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
+    spamLinksList = models.TextField('Self Links', default='', blank=True)  # ссылки дорвея для спама и линковки с сеткой
     class Meta:
         verbose_name = 'Doorway'
         verbose_name_plural = '3. Doorways - @big @managed'
-    def GetLanguage(self):
-        return self.niche.language
-    GetLanguage.short_description = 'Lang'
     def GetTemplateType(self):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
     def GetSpamTasksCount(self):
         return self.spamtask_set.count()
-    GetSpamTasksCount.short_description = 'Sp.Tasks'
+    GetSpamTasksCount.short_description = 'Spam Tasks'
     def GetUrl(self):
         return '<a href="http://www.%s">link</a>' % os.path.join(self.domain.name, self.domainFolder) 
     GetUrl.short_description = 'Link'
@@ -478,6 +500,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
                 'netLinksList': codecs.encode(self.netLinksList, 'cp1251').split('\n'),
+                'analyticsId': self.analyticsId,
+                'piwikId': self.piwikId,
+                'cyclikId': self.cyclikId,
                 'documentRoot': self.domain.GetDocumentRoot(), 
                 'ftpLogin': self.domain.host.ftpLogin, 
                 'ftpPassword': self.domain.host.ftpPassword, 
@@ -499,7 +524,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount))
         '''Если нет ссылок сетки, то берем из сетки'''
         if self.netLinksList == '':
-            self.netLinksList = self.net.GetNetLinksList()
+            self.netLinksList = self.net.netLinksList
+        '''Если есть свои ссылки, то добавляем их в сетку'''
+        if self.spamLinksList != '':
+            self.net._AddSpamLinks(self)
         '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
         if self.analyticsId == '':
             self.analyticsId = self.net.analyticsId
@@ -586,7 +614,8 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     keywordsCount = models.IntegerField('Keywords', null=True, default=1000)
     interval = models.IntegerField('Parsing Interval, h.', null=True, default=24)
     dateLastParsed = models.DateTimeField('Last Parsed', null=True, blank=True)
-    phraseCount = models.IntegerField('Phrases', null=True, blank=True)
+    phrasesList = models.TextField('Phrases', default='', blank=True)
+    phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
         verbose_name_plural = '4.4. Snippets Sets - @managed'
@@ -598,6 +627,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
                 'language': self.niche.language})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.phraseCount = data['phraseCount'] 
+        phrases = codecs.decode('\n'.join(data['phrasesList']), 'cp1251')
+        self.phrasesList = phrases
+        self.phrasesCount = len(phrases) 
         self.dateLastParsed = datetime.datetime.now()
-        
