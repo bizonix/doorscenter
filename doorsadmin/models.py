@@ -629,5 +629,5 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         '''Обработка данных агента'''
         phrases = codecs.decode('\n'.join(data['phrasesList']), 'cp1251')
         self.phrasesList = phrases
-        self.phrasesCount = len(phrases) 
+        self.phrasesCount = len(data['phrasesList']) 
         self.dateLastParsed = datetime.datetime.now()
