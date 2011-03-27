@@ -1,31 +1,42 @@
 from django.contrib import admin
 from doorsadmin.models import *
+from django.contrib.admin.actions import delete_selected
+delete_selected.short_description = '9. Delete selected items'
 
 class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20
+
+def GetMessageBit(rows_updated):
+    if rows_updated == 1:
+        return "1 item was"
+    else:
+        return "%s items were" % rows_updated
+
+class BaseAdminActivatable(BaseAdmin):
+    actions = ['MakeActive', 'MakeInactive']
+    def MakeActive(self, request, queryset):
+        rows_updated = queryset.update(active=True)
+        self.message_user(request, "%s successfully enabled." % GetMessageBit(rows_updated))
+    MakeActive.short_description = "1. Enable selected items"
+    def MakeInactive(self, request, queryset):
+        rows_updated = queryset.update(active=False)
+        self.message_user(request, "%s successfully disabled." % GetMessageBit(rows_updated))
+    MakeInactive.short_description = "2. Disable selected items"
 
 class BaseAdminManaged(BaseAdmin):
     actions = ['MakeStateManagedNew', 'MakeStateManagedDone']
     def MakeStateManagedNew(self, request, queryset):
         rows_updated = queryset.update(stateManaged='new')
-        if rows_updated == 1:
-            message_bit = "1 item was"
-        else:
-            message_bit = "%s items were" % rows_updated
-        self.message_user(request, "%s successfully marked as new." % message_bit)
-    MakeStateManagedNew.short_description = "1. Mark selected items as new"
+        self.message_user(request, "%s successfully marked as new." % GetMessageBit(rows_updated))
+    MakeStateManagedNew.short_description = "3. Mark selected items as new"
     def MakeStateManagedDone(self, request, queryset):
         rows_updated = queryset.update(stateManaged='done')
-        if rows_updated == 1:
-            message_bit = "1 item was"
-        else:
-            message_bit = "%s items were" % rows_updated
-        self.message_user(request, "%s successfully marked as done." % message_bit)
-    MakeStateManagedDone.short_description = "2. Mark selected items as done"
+        self.message_user(request, "%s successfully marked as done." % GetMessageBit(rows_updated))
+    MakeStateManagedDone.short_description = "4. Mark selected items as done"
 
 '''Agents'''
 
-class AgentAdmin(BaseAdmin):
+class AgentAdmin(BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'currentTask', 'dateLastPing', 'interval', 'active', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['type', 'description', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
@@ -43,7 +54,7 @@ class EventAdmin(BaseAdmin):
 
 '''Domains group'''
 
-class DomainAdmin(BaseAdmin):
+class DomainAdmin(BaseAdminActivatable):
     list_display = ('pk', 'name', 'niche', 'host', 'dateRegistered', 'dateExpires', 'maxDoorsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'dateExpires']
     fieldsets = [
@@ -75,10 +86,10 @@ class IPAddressAdmin(BaseAdmin):
 '''Doorways group'''
     
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'net', 'niche', 'template', 'keywordsSet', 'pagesCount', 'GetDomainAndUrl', 'spamLinksCount', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['niche', 'net', 'stateManaged']
     fieldsets = [
-        (None, {'fields': [('net', 'niche'), ('template', 'keywordsSet', 'pagesCount'), ('domain', 'domainFolder'), ('doorgenProfile', 'spamLinksCount'), 'doorwaySchedule']}),
+        (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList', 'spamLinksList'], 'classes': ['collapse']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -86,7 +97,7 @@ class DoorwayAdmin(BaseAdminManaged):
     ]
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
 
-class NicheAdmin(BaseAdmin):
+class NicheAdmin(BaseAdminActivatable):
     list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'GetSnippetsSetsCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'language', 'active']}),
@@ -97,7 +108,7 @@ class NicheAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class KeywordsSetAdmin(BaseAdmin):
+class KeywordsSetAdmin(BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'niche', ('localFolder', 'encoding'), 'active']}),
@@ -106,7 +117,7 @@ class KeywordsSetAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class TemplateAdmin(BaseAdmin):
+class TemplateAdmin(BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'type', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'type'), 'localFolder', 'active']}),
@@ -115,7 +126,7 @@ class TemplateAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class NetAdmin(BaseAdmin):
+class NetAdmin(BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'netLinksList', 'active']}),
@@ -125,7 +136,7 @@ class NetAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class DoorgenProfileAdmin(BaseAdmin):
+class DoorgenProfileAdmin(BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'settings', 'active']}),
@@ -134,10 +145,10 @@ class DoorgenProfileAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class DoorwayScheduleAdmin(BaseAdmin):
-    list_display = ('pk', 'net', 'niche', 'template', 'keywordsSet', 'minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent', 'dateStart', 'dateEnd', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+class DoorwayScheduleAdmin(BaseAdminActivatable):
+    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent', 'dateStart', 'dateEnd', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
-        (None, {'fields': [('net', 'niche'), ('template', 'keywordsSet'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
+        (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsThisDay')], 'classes': ['expand']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -162,7 +173,7 @@ class SpamTaskAdmin(BaseAdminManaged):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     inlines = [XrumerProjectInline]
 
-class XrumerBaseRawAdmin(BaseAdminManaged):
+class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'baseNumber', 'GetXrumerBasesRCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['baseNumber', 'localFile', 'active']}),
@@ -171,7 +182,7 @@ class XrumerBaseRawAdmin(BaseAdminManaged):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseRAdmin(BaseAdmin):
+class XrumerBaseRAdmin(BaseAdminActivatable):
     list_display = ('pk', 'baseNumber', 'niche', 'xrumerBaseRaw', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['baseNumber', ('niche', 'xrumerBaseRaw'), 'localFile', 'active']}),
@@ -191,7 +202,7 @@ class XrumerProjectAdmin(BaseAdmin):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     inlines = [XrumerProjectInline]
 
-class SnippetsSetAdmin(BaseAdminManaged):
+class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'dateLastParsed', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),

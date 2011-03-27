@@ -84,8 +84,9 @@ class BaseAgent(object):
         '''Получить данные о текущем задании из локального хранилища'''
         self.currentTask = None
         try:
-            with open(self.currentTaskFileName, 'r') as fd:
-                self.currentTask = pickle.load(fd)
+            if os.path.isfile(self.currentTaskFileName):
+                with open(self.currentTaskFileName, 'r') as fd:
+                    self.currentTask = pickle.load(fd)
         except Exception as error:
             print('Error in _LoadCurrentTaskData: %s' % error)
     
