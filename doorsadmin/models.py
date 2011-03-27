@@ -493,12 +493,13 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     GetUrl.allow_tags = True
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        return({'settings': codecs.encode(self.doorgenProfile.settings, 'cp1251').split('\n'), 
+        return({
+                'keywordsList': EncodeListForAgent(self.keywordsList),
                 'templateFolder': self.template.localFolder, 
-                'keywordsList': codecs.encode(self.keywordsList, 'cp1251').split('\n'),
+                'doorgenSettings': EncodeListForAgent(self.doorgenProfile.settings), 
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
-                'netLinksList': codecs.encode(self.netLinksList, 'cp1251').split('\n'),
+                'netLinksList': EncodeListForAgent(self.netLinksList),
                 'analyticsId': self.analyticsId,
                 'piwikId': self.piwikId,
                 'cyclikId': self.cyclikId,
@@ -508,7 +509,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'ftpPort': self.domain.host.ftpPort})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.spamLinksList = codecs.decode('\n'.join(data['spamLinksList']), 'cp1251')
+        self.spamLinksList = DecodeListFromAgent(data['spamLinksList'])
         pass
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон, набор кеев или домен - берем случайные по нише'''
@@ -621,12 +622,12 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'localFile': self.localFile, 
-                'keywordsList': codecs.encode('\n'.join(self.niche.GenerateKeywordsList(self.keywordsCount)), 'cp1251').split('\n'), 
-                'stopwordsList': codecs.encode(self.niche.stopwordsList, 'cp1251').split('\n'), 
+                'keywordsList': EncodeListForAgent('\n'.join(self.niche.GenerateKeywordsList(self.keywordsCount))), 
+                'stopwordsList': EncodeListForAgent(self.niche.stopwordsList), 
                 'language': self.niche.language})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        phrases = codecs.decode('\n'.join(data['phrasesList']), 'cp1251')
+        phrases = DecodeListFromAgent(data['phrasesList'])
         self.phrasesList = phrases
         self.phrasesCount = len(data['phrasesList']) 
         self.dateLastParsed = datetime.datetime.now()
