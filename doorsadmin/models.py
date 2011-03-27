@@ -488,7 +488,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return self.spamtask_set.count()
     GetSpamTasksCount.short_description = 'Spam'
     def GetUrl(self):
-        return '<a href="http://www.%s">%s</a>' % (os.path.join(self.domain.name, self.domainFolder), self.domain.name) 
+        return '<a href="http://www.%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
     def GetTaskDetails(self):
@@ -509,7 +509,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'ftpPort': self.domain.host.ftpPort})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.spamLinksList = DecodeListFromAgent(data['spamLinksList'])
+        self.spamLinksList = DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount])
         pass
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон, набор кеев или домен - берем случайные по нише'''
