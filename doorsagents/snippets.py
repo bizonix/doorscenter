@@ -24,7 +24,7 @@ class SnippetsAgent(agent.BaseAgent):
             fd.write('\n'.join(self.currentTask['keywordsList']))
         with open(self.stopwordsFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['stopwordsList']))
-        self._RunApp('start ' + os.path.join(self.appFolder, 'parse.bat'))
+        self._RunApp(os.path.join(self.appFolder, 'parse.bat'))
         return True
     
     def _ActionOff(self):

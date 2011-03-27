@@ -1,5 +1,5 @@
 # coding=utf8
-import os, sys, agent
+import os, sys, urllib, agent
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -14,30 +14,31 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'c:/work/aggress'  # папка с приложением
+        self.appFolder = 'c:\\work\\aggress'  # папка с приложением
         # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/doorgen'  # папка с приложением
-        self.appSettingsFile = os.path.join(self.appFolder, 'tunings/auto.ini')  # настройки 1
-        self.appTuningsFile = os.path.join(self.appFolder, 'system/seting.ini')  # настройки 2
-        self.appLinksPattern1File = os.path.join(self.appFolder, 'links/pattern1.txt')  # шаблон ссылок 1
-        self.appLinksPattern2File = os.path.join(self.appFolder, 'links/pattern2.txt')  # шаблон ссылок 2
-        self.appLinksPattern3File = os.path.join(self.appFolder, 'links/pattern3.txt')  # шаблон ссылок 3
-        self.appMacrosFile = os.path.join(self.appFolder, 'system/macrosvalue.txt')  # значения кастомных макросов
-        self.appDoorwayFolder = os.path.join(self.appFolder, 'doorway/')  # папка, куда генерится дорвей - с конечным слэшем
+        self.appSettingsFile = os.path.join(self.appFolder, 'tunings' + os.sep + 'auto.ini')  # настройки 1
+        self.appTuningsFile = os.path.join(self.appFolder, 'system' + os.sep + 'seting.ini')  # настройки 2
+        self.appLinksPattern1File = os.path.join(self.appFolder, 'links' + os.sep + 'pattern1.txt')  # шаблон ссылок 1
+        self.appLinksPattern2File = os.path.join(self.appFolder, 'links' + os.sep + 'pattern2.txt')  # шаблон ссылок 2
+        self.appLinksPattern3File = os.path.join(self.appFolder, 'links' + os.sep + 'pattern3.txt')  # шаблон ссылок 3
+        self.appMacrosFile = os.path.join(self.appFolder, 'system' + os.sep + 'macrosvalue.txt')  # значения кастомных макросов
+        self.appDoorwayFolder = 'doorway\\'  # папка, куда генерится дорвей - относительный путь с конечным слэшем
         self.appTemplatesFolder = os.path.join(self.appFolder, 'pattern')  # папка с шаблонами 
-        self.appKeywordsFile = os.path.join(self.appFolder, 'keys/keywords.txt')  # файл с кеями 
-        self.appNetLinksFile = os.path.join(self.appFolder, 'links/netlinks.txt')  # файл со ссылками для перелинковки 
-        self.appSpamLinks1File = os.path.join(self.appFolder, 'links/alinks.txt')  # файл со сгенерированными ссылками для спама 
-        self.appSpamLinks2File = os.path.join(self.appFolder, 'links/blinks.txt')  # файл со сгенерированными ссылками для спама 
-        self.appSpamLinks3File = os.path.join(self.appFolder, 'links/clinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.appKeywordsFile = os.path.join(self.appFolder, 'keys' + os.sep + 'keywords.txt')  # файл с кеями 
+        self.appNetLinksFile = os.path.join(self.appFolder, 'links' + os.sep + 'netlinks.txt')  # файл со ссылками для перелинковки 
+        self.appSpamLinks1File = os.path.join(self.appFolder, 'links' + os.sep + 'alinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.doorwayUrl = 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder']
         '''Содержимое файлов настроек'''
         self.appSettingsDict = {'OverturBeforeGen': '0',
-            'MyLinkHTML': '0',  # HTML-1, URL-0
+            'MyLinkHTML': '1',  # HTML-1, URL-0
             'TypePattern': self.currentTask['templateFolder'],
             'RandomPattern': '0',
             'Redirect': '0',
             'PathSaveDoorway': self.appDoorwayFolder,
             'RUEN': '1',  # RU-1, EN-0
-            'UrlDoorway': 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder'],
+            'UrlDoorway': self.doorwayUrl,
             'SaveCountLinksForSpam': '0',
             'ClearFileLinksBeforeGenerate': '1',
             'LinksForSpam1': '1',
@@ -62,7 +63,7 @@ class DoorgenAgent(agent.BaseAgent):
             'DownloadPastGenerate': '1',
             'CreateNewFolder': '0',
             'FindFolderForFTP': '0',
-            'DownloadFTPThreade': '1',
+            'DownloadFTPThreade': '0',
             'SaveFTPError': '0',
             'PathFileSaveFTPError': '',
             'MaxFTPAttempt': '3',
@@ -76,7 +77,7 @@ class DoorgenAgent(agent.BaseAgent):
             'AutoDownloadMyLinks': '1',
             'AutoDownloadMyLinksPath': self.appNetLinksFile,
             'BeginFileExecute': '1',
-            'PathFileBeginFileExecute': sys.executable + ' ' + os.path.abspath(__file__) + ' done',
+            'PathFileBeginFileExecute': 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat',
             'DisableDoorgenPastGen': '1',
             'IncludeGenBegin': '1',
             'SendEmailEndGen': '0',
@@ -168,6 +169,9 @@ Top=80
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
+        fd = urllib.urlopen(self.doorwayUrl + '/cmd.php')
+        fd.read()
+        fd.close()
         return True
 
 if __name__ == '__main__':
