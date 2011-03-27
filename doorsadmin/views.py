@@ -22,7 +22,6 @@ def get(request, agentId):
             if taskList:
                 task = taskList[0]
                 '''Обновляем задание'''
-                EventLog('trace', 'Found task %s' % task)
                 task.agent = agent
                 task.stateManaged = 'inproc'
                 task.save()

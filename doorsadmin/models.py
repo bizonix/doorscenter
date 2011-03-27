@@ -401,15 +401,16 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     template = models.ForeignKey(Template, verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Keywords Set', null=True, blank=True)
-    minPagesCount = models.IntegerField('Min Pages', null=True)
-    maxPagesCount = models.IntegerField('Max Pages', null=True)
-    minSpamLinksPercent = models.FloatField('Min Spam Links, %', default=1)
-    maxSpamLinksPercent = models.FloatField('Max Spam Links, %', default=2.5)
+    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Drg Prof.', null=True)
+    minPagesCount = models.IntegerField('Min Pgs', null=True)
+    maxPagesCount = models.IntegerField('Max Pgs', null=True)
+    minSpamLinksPercent = models.FloatField('Min Lnk, %', default=1)
+    maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=2.5)
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
-    doorsPerDay = models.IntegerField('Doors/Day', null=True)
+    doorsPerDay = models.IntegerField('Drs/Day', null=True)
     lastRun = models.DateTimeField('Last Run Date', null=True)
-    doorsThisDay = models.IntegerField('Doors this Day', null=True, default=0)
+    doorsThisDay = models.IntegerField('Drs ths Day', null=True, default=0)
     class Meta:
         verbose_name = 'Doorway Schedule'
         verbose_name_plural = '3.6. Doorway Schedule'
@@ -433,13 +434,15 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
                                            niche=self.niche, 
                                            template=self.template, 
                                            keywordsSet=self.keywordsSet, 
+                                           doorgenProfile=self.doorgenProfile, 
                                            pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domainFolder='', 
                                            spamLinksCount=0, 
                                            doorwaySchedule=self)
-                p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)
+                '''Число ссылок для спама задается в процентах, 
+                а в абсолютных числах должно быть не меньше трех и не больше страниц дора'''
+                p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
                 p.save()
-            EventLog('info', 'Doorways generated: %d' % count, self)
         
     def GenerateDoorways(self, count = None):
         '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
@@ -465,12 +468,12 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     net = models.ForeignKey(Net, verbose_name='Net', null=True)
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     template = models.ForeignKey(Template, verbose_name='Template', null=True, blank=True)
-    keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Keywords Set', null=True, blank=True)
-    pagesCount = models.IntegerField('Pages', null=True)
+    keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Kwrds Set', null=True, blank=True)
+    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Drg Prof.', null=True)
+    pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey(Domain, verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
-    spamLinksCount = models.IntegerField('Self Links', null=True)
-    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Doorgen Profile', null=True)
+    spamLinksCount = models.IntegerField('Lnks', null=True)
     doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
@@ -483,23 +486,20 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     GetTemplateType.short_description = 'Template Type'
     def GetSpamTasksCount(self):
         return self.spamtask_set.count()
-    GetSpamTasksCount.short_description = 'Spam Tasks'
+    GetSpamTasksCount.short_description = 'Spam'
     def GetUrl(self):
-        return '<a href="http://www.%s">link</a>' % os.path.join(self.domain.name, self.domainFolder) 
+        return '<a href="http://www.%s">%s</a>' % (os.path.join(self.domain.name, self.domainFolder), self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
-    def GetDomainAndUrl(self):
-        return '<a href="http://www.%s">%s</a>' % (os.path.join(self.domain.name, self.domainFolder), self.domain.name) 
-    GetDomainAndUrl.short_description = 'Domain'
-    GetDomainAndUrl.allow_tags = True
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        return({'settings': codecs.encode(self.doorgenProfile.settings, 'cp1251').split('\n'), 
+        return({
+                'keywordsList': EncodeListForAgent(self.keywordsList),
                 'templateFolder': self.template.localFolder, 
-                'keywordsList': codecs.encode(self.keywordsList, 'cp1251').split('\n'),
+                'doorgenSettings': EncodeListForAgent(self.doorgenProfile.settings), 
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
-                'netLinksList': codecs.encode(self.netLinksList, 'cp1251').split('\n'),
+                'netLinksList': EncodeListForAgent(self.netLinksList),
                 'analyticsId': self.analyticsId,
                 'piwikId': self.piwikId,
                 'cyclikId': self.cyclikId,
@@ -509,7 +509,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'ftpPort': self.domain.host.ftpPort})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.spamLinksList = codecs.decode('\n'.join(data['spamLinksList']), 'cp1251')
+        self.spamLinksList = DecodeListFromAgent(data['spamLinksList'])
         pass
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон, набор кеев или домен - берем случайные по нише'''
@@ -622,12 +622,12 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'localFile': self.localFile, 
-                'keywordsList': codecs.encode('\n'.join(self.niche.GenerateKeywordsList(self.keywordsCount)), 'cp1251').split('\n'), 
-                'stopwordsList': codecs.encode(self.niche.stopwordsList, 'cp1251').split('\n'), 
+                'keywordsList': EncodeListForAgent('\n'.join(self.niche.GenerateKeywordsList(self.keywordsCount))), 
+                'stopwordsList': EncodeListForAgent(self.niche.stopwordsList), 
                 'language': self.niche.language})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        phrases = codecs.decode('\n'.join(data['phrasesList']), 'cp1251')
+        phrases = DecodeListFromAgent(data['phrasesList'])
         self.phrasesList = phrases
         self.phrasesCount = len(data['phrasesList']) 
         self.dateLastParsed = datetime.datetime.now()

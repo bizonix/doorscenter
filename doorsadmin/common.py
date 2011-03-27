@@ -80,3 +80,14 @@ def MakeListUnique(seq):
     seen = set()
     seen_add = seen.add
     return [ x for x in seq if x not in seen and not seen_add(x)]
+
+def EncodeListForAgent(s):
+    '''Перекодирует строку в win1251 и разделяет в список по переводам строки.
+    Переводы могут быть как windows-style, так и unix-style.'''
+    return codecs.encode(s.replace('\r\n', '\n'), 'cp1251').split('\n')
+
+def DecodeListFromAgent(l):
+    '''Преобразует список строк в строку с переводами строки unix-style 
+    и декодирует ее из win1251 и разделяет ее на списки по переводам строки.'''
+    return codecs.decode('\n'.join(l), 'cp1251')
+

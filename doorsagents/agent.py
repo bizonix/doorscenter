@@ -20,7 +20,7 @@ if __name__ == '__main__':
 Передача параметров в/из агента:
 Список входных/выходных параметров см. в методах агента GetTaskDetails и 
 SetTaskDetails. Все строки должны передаваться в кодировке win-1251. Списки 
-строк должны передаваться в виде списков, в конце строк не должно быть 
+строк должны передаваться в виде list of strings, в конце строк не должно быть 
 переводов строки. Ссылки передаются в формате html.
 
 Настройка: 
@@ -84,8 +84,9 @@ class BaseAgent(object):
         '''Получить данные о текущем задании из локального хранилища'''
         self.currentTask = None
         try:
-            with open(self.currentTaskFileName, 'r') as fd:
-                self.currentTask = pickle.load(fd)
+            if os.path.isfile(self.currentTaskFileName):
+                with open(self.currentTaskFileName, 'r') as fd:
+                    self.currentTask = pickle.load(fd)
         except Exception as error:
             print('Error in _LoadCurrentTaskData: %s' % error)
     

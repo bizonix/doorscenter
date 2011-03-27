@@ -3,7 +3,7 @@ import os, sys, agent
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: settings, templateFolder, keywordsList, domain, domainFolder, 
+    Входные: keywordsList, templateFolder, doorgenSettings, domain, domainFolder, 
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
@@ -116,7 +116,7 @@ Top=80
         self._Settings()
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
-            for line in self.currentTask['settings']:
+            for line in self.currentTask['doorgenSettings']:
                 if line.find('=') >= 0:
                     key, _, value = line.partition('=')
                     if key in self.appSettingsDict:
@@ -162,7 +162,7 @@ Top=80
     def _ActionOff(self):
         print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
-        self.currentTask['settings'] = []
+        self.currentTask['doorgenSettings'] = []
         self.currentTask['keywordsList'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
