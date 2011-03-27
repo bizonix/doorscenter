@@ -14,8 +14,8 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        # self.appFolder = 'c:/work/aggress'  # папка с приложением
-        self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/doorgen'  # папка с приложением
+        self.appFolder = 'c:/work/aggress'  # папка с приложением
+        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/doorgen'  # папка с приложением
         self.appSettingsFile = os.path.join(self.appFolder, 'tunings/auto.ini')  # настройки 1
         self.appTuningsFile = os.path.join(self.appFolder, 'system/seting.ini')  # настройки 2
         self.appLinksPattern1File = os.path.join(self.appFolder, 'links/pattern1.txt')  # шаблон ссылок 1
@@ -71,14 +71,14 @@ class DoorgenAgent(agent.BaseAgent):
             'NoDivideGroupKeywords': '0',
             'UseSelectKeywords': '0',
             'UseDoorwayLink': '0',
-            'AutoDownloadKeywords': '0',
+            'AutoDownloadKeywords': '1',
             'AutoDownloadKeywordsPath': self.appKeywordsFile,
-            'AutoDownloadMyLinks': '0',
+            'AutoDownloadMyLinks': '1',
             'AutoDownloadMyLinksPath': self.appNetLinksFile,
-            'BeginFileExecute': '0',
+            'BeginFileExecute': '1',
             'PathFileBeginFileExecute': sys.executable + ' ' + os.path.abspath(__file__) + ' done',
-            'DisableDoorgenPastGen': '0',
-            'IncludeGenBegin': '0',
+            'DisableDoorgenPastGen': '1',
+            'IncludeGenBegin': '1',
             'SendEmailEndGen': '0',
             'SendEmailStopGen': '0',
             'html': 'html',
@@ -171,7 +171,7 @@ Top=80
         return True
 
 if __name__ == '__main__':
-    agent = DoorgenAgent('http://127.0.0.1:8000/doorsadmin', 1)
+    agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 1)
 
 '''Описание жестко устанавливаемых параметров доргена:
     страница "Генерация":
