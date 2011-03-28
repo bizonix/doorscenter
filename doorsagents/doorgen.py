@@ -1,5 +1,5 @@
 # coding=utf8
-import os, sys, urllib, agent
+import os, sys, shutil, urllib, ftplib, agent
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -32,6 +32,8 @@ class DoorgenAgent(agent.BaseAgent):
         self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
         self.doorwayUrl = 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        if not self.doorwayUrl.endswith('/'):
+            self.doorwayUrl += '/'
         '''Содержимое файлов настроек'''
         self.appSettingsDict = {'OverturBeforeGen': '0',
             'MyLinkHTML': '1',  # HTML-1, URL-0
@@ -115,7 +117,6 @@ Top=80
 '''
         
     def _ActionOn(self):
-        print('Starting task #%s' % self._GetCurrentTaskId())
         self._Settings()
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
@@ -138,7 +139,7 @@ Top=80
         with open(self.appKeywordsFile, 'w') as fd:
             fd.write(self.currentTask['keywordsList'][0])
             fd.write('|%s|%s|%s|%s%s|\n' % (self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.currentTask['documentRoot'], self.currentTask['domainFolder']))
-            fd.write('\n'.join(self.currentTask['keywordsList'])[1:])
+            fd.write('\n'.join(self.currentTask['keywordsList'][1:]))
         with open(self.appNetLinksFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['netLinksList']))
         '''Запись analyticsId и piwikId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
@@ -163,7 +164,6 @@ Top=80
         return True
     
     def _ActionOff(self):
-        print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
         '''Выходные параметры'''
         self.currentTask['doorgenSettings'] = []
@@ -172,10 +172,23 @@ Top=80
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
+        '''Меняем разрешения на папку на FTP'''
+        try:
+            ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.currentTask['documentRoot'])
+            ftp.sendcmd('SITE CHMOD 02775 %s%s' % (self.currentTask['documentRoot'], self.currentTask['domainFolder']))
+            ftp.quit()
+        except Exception as error:
+            print('Error: %s' % error)
+        '''Удаляем локальную папку'''
+        try:
+            shutil.rmtree(self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId())
+        except Exception as error:
+            print('Error: %s' % error)
         '''Дергаем командный урл на доре'''
-        fd = urllib.urlopen(self.doorwayUrl + '/cmd.php')
-        fd.read()
-        fd.close()
+        try:
+            urllib.urlopen(self.doorwayUrl + '/cmd.php')
+        except Exception as error:
+            print('Error: %s' % error)
         return True
 
 if __name__ == '__main__':

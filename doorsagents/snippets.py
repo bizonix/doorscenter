@@ -18,7 +18,6 @@ class SnippetsAgent(agent.BaseAgent):
         self.stopwordsFile = os.path.join(self.appFolder, 'stopwords.txt')  # файл со стоп-словами
         
     def _ActionOn(self):
-        print('Starting task #%s' % self._GetCurrentTaskId())
         self._Settings()
         with open(self.appKeysFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['keywordsList']))
@@ -28,7 +27,6 @@ class SnippetsAgent(agent.BaseAgent):
         return True
     
     def _ActionOff(self):
-        print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
         kwk8.ProcessKeys(self.appTextFile, self.localFile, self.stopwordsFile)
         self.currentTask['keywordsList'] = []
