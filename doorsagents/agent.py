@@ -128,6 +128,7 @@ class BaseAgent(object):
             if not self._HasTask():
                 self._GetNextTask()
                 if self._HasTask():
+                    print('Starting task #%s' % self._GetCurrentTaskId())
                     try:
                         self.currentTask['timeStart'] = datetime.datetime.now()
                         self._SaveCurrentTaskData()
@@ -181,10 +182,8 @@ class BaseAgent(object):
 class SomeAgent(BaseAgent):
     '''Пример агента'''
     def _ActionOn(self):
-        print('Starting task #%s' % self._GetCurrentTaskId())
         return True
     def _ActionOff(self):
-        print('Ending task #%s' % self._GetCurrentTaskId())
         self.currentTask['keywordsList'] = []
         self.currentTask['stopwordsList'] = []
         self.currentTask['spamLinksList'] = []
