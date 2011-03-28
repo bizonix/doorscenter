@@ -10,6 +10,8 @@ class DoorgenAgent(agent.BaseAgent):
     В настройках доргена принудительно устанавливаем параметры, см. ниже. Кейворды 
     пишем в файл так:
     keyword1|[domain]|[ftpLogin]|[ftpPassword]|[documentRoot](os.path.join)[domainFolder]|
+    
+    Параметр domainFolder всегда должен начинаться на прямой слэш.
 '''
     
     def _Settings(self):
@@ -163,12 +165,14 @@ Top=80
     def _ActionOff(self):
         print('Ending task #%s' % self._GetCurrentTaskId())
         self._Settings()
+        '''Выходные параметры'''
         self.currentTask['doorgenSettings'] = []
         self.currentTask['keywordsList'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
+        '''Дергаем командный урл на доре'''
         fd = urllib.urlopen(self.doorwayUrl + '/cmd.php')
         fd.read()
         fd.close()
