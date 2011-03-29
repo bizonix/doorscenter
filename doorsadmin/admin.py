@@ -157,50 +157,16 @@ class DoorwayScheduleAdmin(BaseAdminActivatable):
 
 '''Spam group'''
 
-class XrumerProjectInline(admin.TabularInline):
-    model = XrumerProject
-    fields = ['xrumerBaseR', 'spamTask', 'localFile']
-    
 class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'xrumerBaseR', 'GetDoorsCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
-    list_filter = ['niche', 'stateManaged']
+    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'GetDoorsCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_filter = ['stateManaged']
     fieldsets = [
-        (None, {'fields': ['niche', 'xrumerBaseR']}),
-        ('Lists', {'fields': ['spamText', 'spamLinksList', 'doorways'], 'classes': ['collapse']}),
+        (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
+        ('Lists', {'fields': ['spamLinksList', 'doorways'], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    inlines = [XrumerProjectInline]
-
-class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('pk', 'baseNumber', 'GetXrumerBasesRCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
-    fieldsets = [
-        (None, {'fields': ['baseNumber', 'localFile', 'active']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-class XrumerBaseRAdmin(BaseAdminActivatable):
-    list_display = ('pk', 'baseNumber', 'niche', 'xrumerBaseRaw', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
-    fieldsets = [
-        (None, {'fields': ['baseNumber', ('niche', 'xrumerBaseRaw'), 'localFile', 'active']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    inlines = [XrumerProjectInline]
-
-class XrumerProjectAdmin(BaseAdmin):
-    list_display = ('pk', 'xrumerBaseR', 'spamTask', 'stateSimple', 'dateAdded')
-    fieldsets = [
-        (None, {'fields': ['xrumerBaseR', 'spamTask', 'localFile']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    inlines = [XrumerProjectInline]
+    readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'dateLastParsed', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
@@ -211,6 +177,24 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
+
+class XrumerBaseRawAdmin(BaseAdminActivatable):
+    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['description', ('baseNumber', 'linksCount'), 'active']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['linksCount', 'lastError', 'dateAdded', 'dateChanged']
+
+class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailPopServer'), ('emailLogin', 'emailPassword'), 'active']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['linksCount', 'nickName', 'realName', 'password', 'lastError', 'dateAdded', 'dateChanged']
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
@@ -227,8 +211,7 @@ admin.site.register(Net, NetAdmin)
 admin.site.register(DoorgenProfile, DoorgenProfileAdmin)
 admin.site.register(DoorwaySchedule, DoorwayScheduleAdmin)
 
-admin.site.register(SpamTask, SpamTaskAdmin)
+admin.site.register(SnippetsSet, SnippetsSetAdmin)
 admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
 admin.site.register(XrumerBaseR, XrumerBaseRAdmin)
-admin.site.register(XrumerProject, XrumerProjectAdmin)
-admin.site.register(SnippetsSet, SnippetsSetAdmin)
+admin.site.register(SpamTask, SpamTaskAdmin)

@@ -91,3 +91,6 @@ def DecodeListFromAgent(l):
     и декодирует ее из win1251 и разделяет ее на списки по переводам строки.'''
     return codecs.decode('\n'.join(l), 'cp1251')
 
+def GenerateRandomWord(length):
+    '''Генерация случайного набора букв заданной длины'''
+    return ''.join(random.choice(string.letters) for _ in xrange(length))
