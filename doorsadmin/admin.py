@@ -34,10 +34,17 @@ class BaseAdminManaged(BaseAdmin):
         self.message_user(request, "%s successfully marked as done." % GetMessageBit(rows_updated))
     MakeStateManagedDone.short_description = "4. Mark selected items as done"
 
+class BaseAdminSimple(BaseAdmin):
+    actions = ['MakeStateSimpleOk']
+    def MakeStateSimpleOk(self, request, queryset):
+        rows_updated = queryset.update(stateSimple='ok')
+        self.message_user(request, "%s successfully marked as ok." % GetMessageBit(rows_updated))
+    MakeStateSimpleOk.short_description = "3. Mark selected items as ok"
+
 '''Agents'''
 
-class AgentAdmin(BaseAdminActivatable):
-    list_display = ('pk', 'type', 'description', 'currentTask', 'dateLastPing', 'interval', 'active', 'dateAdded')
+class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'type', 'description', 'currentTask', 'dateLastPing', 'interval', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['type', 'description', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -54,7 +61,7 @@ class EventAdmin(BaseAdmin):
 
 '''Domains group'''
 
-class DomainAdmin(BaseAdminActivatable):
+class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'name', 'niche', 'host', 'dateRegistered', 'dateExpires', 'maxDoorsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'dateExpires']
     fieldsets = [
@@ -64,7 +71,7 @@ class DomainAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     
-class HostAdmin(BaseAdmin):
+class HostAdmin(BaseAdminSimple):
     list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl')]}),
@@ -74,7 +81,7 @@ class HostAdmin(BaseAdmin):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class IPAddressAdmin(BaseAdmin):
+class IPAddressAdmin(BaseAdminSimple):
     list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['address', 'host']}),
@@ -97,7 +104,7 @@ class DoorwayAdmin(BaseAdminManaged):
     ]
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
 
-class NicheAdmin(BaseAdminActivatable):
+class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'GetSnippetsSetsCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'language', 'active']}),
@@ -108,7 +115,7 @@ class NicheAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class KeywordsSetAdmin(BaseAdminActivatable):
+class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'niche', ('localFolder', 'encoding'), 'active']}),
@@ -117,7 +124,7 @@ class KeywordsSetAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class TemplateAdmin(BaseAdminActivatable):
+class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'type', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'type'), 'localFolder', 'active']}),
@@ -126,7 +133,7 @@ class TemplateAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class NetAdmin(BaseAdminActivatable):
+class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'netLinksList', 'active']}),
@@ -136,7 +143,7 @@ class NetAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class DoorgenProfileAdmin(BaseAdminActivatable):
+class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'settings', 'active']}),
@@ -145,7 +152,7 @@ class DoorgenProfileAdmin(BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class DoorwayScheduleAdmin(BaseAdminActivatable):
+class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent', 'dateStart', 'dateEnd', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
@@ -178,7 +185,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     ]
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseRawAdmin(BaseAdminActivatable):
+class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount'), 'active']}),

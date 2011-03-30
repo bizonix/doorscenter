@@ -2,23 +2,6 @@
 from django.template.defaultfilters import slugify
 import os, glob, math, random, urllib, string, codecs
 
-def AddDomainToControlPanel(domainName, controlPanelType, controlPanelUrl):
-    '''Добавить домен в панель управления'''
-    if controlPanelType == 'ispconfig':
-        try:
-            data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
-            fd = urllib.urlopen(r'http://searchpro.name/tools/isp-add-domain.php', urllib.urlencode(data))
-            reply = fd.read()
-            fd.close()
-            if reply == 'ok':
-                return ''
-            else:
-                return 'unknown error'
-        except Exception as error:
-            return str(error)
-    else:
-        return ''
-
 def SelectKeywords(path, encoding='utf-8', count=10):
     ''' Создание списка кеев для доров по Бабулеру.
     Для каждого дора из каждого файла в папке берется заданный процент кеев.'''
@@ -44,9 +27,26 @@ def SelectKeywords(path, encoding='utf-8', count=10):
             outKeysList.extend(keys[0:keysCount])  # добавляем в результирующий список
         count -= keysCount
         percentsCount -= percent
-    '''Перемешиваем'''
+    '''Перемешиваем готовый список'''
     random.shuffle(outKeysList)
     return outKeysList
+
+def AddDomainToControlPanel(domainName, controlPanelType, controlPanelUrl):
+    '''Добавить домен в панель управления'''
+    if controlPanelType == 'ispconfig':
+        try:
+            data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
+            fd = urllib.urlopen(r'http://searchpro.name/tools/isp-add-domain.php', urllib.urlencode(data))
+            reply = fd.read()
+            fd.close()
+            if reply == 'ok':
+                return ''
+            else:
+                return 'unknown error'
+        except Exception as error:
+            return str(error)
+    else:
+        return ''
 
 validChars = "-%s%s" % (string.ascii_letters, string.digits)
 conversion = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',

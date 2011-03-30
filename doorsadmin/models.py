@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from doorsadmin.common import *
+from doorsadmin.common import SelectKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, MakeListUnique, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord
 import datetime, random
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -20,10 +20,10 @@ templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 '''Helper functions'''
 
 @transaction.commit_manually
-def EventLog(type, text, object=None, error=None):
+def EventLog(type, text, object=None, addErrorMessage=None):
     '''Запись события в лог'''
-    if error:
-        text += ': ' + str(error)
+    if addErrorMessage:
+        text += ': ' + str(addErrorMessage)
     objectName = ''
     if object:
         object.lastError = text
@@ -160,28 +160,28 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def __unicode__(self):
         return '#%s %s (%s)' % (self.pk, self.description, self.language)
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def GetTemplatesCount(self):
-        return self.template_set.count()
+        return self.template_set.filter(active=True).count()
     GetTemplatesCount.short_description = 'Templates'
     def GetKeywordsSetsCount(self):
-        return self.keywordsset_set.count()
+        return self.keywordsset_set.filter(active=True).count()
     GetKeywordsSetsCount.short_description = 'Keywords Sets'
     def GetDomainsCount(self):
-        return self.domain_set.count()
+        return self.domain_set.filter(active=True).count()
     GetDomainsCount.short_description = 'Domains'
     def GetXrumerBasesRCount(self):
-        return self.xrumerbaser_set.count()
-    GetXrumerBasesRCount.short_description = 'R Bases'
+        return self.xrumerbaser_set.filter(Q(active=True), Q(stateManaged='done')).count()
+    GetXrumerBasesRCount.short_description = 'Bases R'
     def GetSpamTasksCount(self):
-        return self.spamtask_set.count()
+        return self.spamtask_set.filter(stateManaged='done').count()
     GetSpamTasksCount.short_description = 'Spam Tasks'
     def GetSnippetsSetsCount(self):
-        return self.snippetsset_set.count()
+        return self.snippetsset_set.filter(active=True).count()
     GetSnippetsSetsCount.short_description = 'Snippets Sets'
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
@@ -237,10 +237,10 @@ class Host(BaseDoorObject):
         return self.ipaddress_set.count()
     GetIPAddressesCount.short_description = 'IP Addresses'
     def GetDomainsCount(self):
-        return self.domain_set.count()
+        return self.domain_set.filter(active=True).count()
     GetDomainsCount.short_description = 'Domains'
     def GetDoorsCount(self):
-        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']  # !!! здесь и ниже считается неверно
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
         return self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx']
@@ -256,7 +256,7 @@ class IPAddress(BaseDoorObject):
     def __unicode__(self):
         return self.address
     def GetDomainsCount(self):
-        return self.domain_set.count()
+        return self.domain_set.filter(active=True).count()
     GetDomainsCount.short_description = 'Domains'
     def GetDoorsCount(self):
         return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
@@ -283,10 +283,10 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     def __unicode__(self):
         return self.name
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def GetDocumentRoot(self):
         '''Путь к корню сайта на сервере'''
@@ -340,10 +340,10 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name = 'Template'
         verbose_name_plural = 'III.4 Templates - [act]'
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     
 class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
@@ -353,10 +353,10 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         verbose_name = 'Net'
         verbose_name_plural = 'III.5 Nets - [act]'
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def _AddSpamLinks(self, doorway):
         '''Добавление собственных ссылок дорвея в ссылки сетки'''
@@ -376,10 +376,10 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name = 'Keywords Set'
         verbose_name_plural = 'III.3 Keywords Sets - [act]'
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def GenerateKeywordsList(self, count):
         '''Сгенерировать набор ключевых слов по теме'''
@@ -395,10 +395,10 @@ class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name = 'Doorgen Profile'
         verbose_name_plural = 'III.6 Profiles - [act]'
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     
 class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
@@ -421,10 +421,10 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name = 'Doorway Schedule'
         verbose_name_plural = 'III.7 Schedules - [act]'
     def GetDoorsCount(self):
-        return self.doorway_set.count()
+        return self.doorway_set.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
-        return self.doorway_set.aggregate(x=Sum('pagesCount'))['x']
+        return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def _NewDateCome(self):
         '''Настали новые сутки по сравнению с lastRun?'''
@@ -491,7 +491,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
     def GetSpamTasksCount(self):
-        return self.spamtask_set.count()
+        return self.spamtask_set.filter(stateManaged='done').count()
     GetSpamTasksCount.short_description = 'Spam'
     def GetUrl(self):
         return '<a href="http://www.%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
@@ -516,7 +516,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         self.spamLinksList = DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount])
-        pass
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон, набор кеев или домен - берем случайные по нише'''
         if self.template == None:
@@ -578,10 +577,11 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
                 'language': self.niche.language})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        phrases = DecodeListFromAgent(data['phrasesList'])
-        self.phrasesList = 'see the file'
+        self.phrasesList = 'see the file'  # DecodeListFromAgent(data['phrasesList'])
         self.phrasesCount = len(data['phrasesList']) 
         self.dateLastParsed = datetime.datetime.now()
+        if self.phrasesCount <= 1000:
+            EventLog('warning', 'Too few snippets found (%d)' % self.phrasesCount, self)
 
 class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера. File-based.'''
@@ -589,8 +589,8 @@ class XrumerBaseRaw(BaseXrumerBase):
         verbose_name = 'Xrumer Base Raw'
         verbose_name_plural = 'IV.3 Xrumer Bases Raw'
     def GetXrumerBasesRCount(self):
-        return self.xrumerbaser_set.count()
-    GetXrumerBasesRCount.short_description = 'R Bases'
+        return self.xrumerbaser_set.filter(Q(active=True), Q(stateManaged='done')).count()
+    GetXrumerBasesRCount.short_description = 'Bases R'
 
 class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
     '''База R для Хрумера. File-based.'''
@@ -608,8 +608,17 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
         verbose_name = 'Xrumer Base R'
         verbose_name_plural = 'IV.4 Xrumer Bases R - [managed]'
     def GetSpamTasksCount(self):
-        return self.spamtask_set.count()
+        return self.spamtask_set.filter(stateManaged='done').count()
     GetSpamTasksCount.short_description = 'Spam Tasks'
+    def GetDomainPosition(self, domain):
+        '''Как давно домен спамился по этой базе'''
+        n = 0
+        for spamTask in self.spamtask_set.order_by('-pk').all():
+            for doorway in spamTask.doorways.all():
+                if doorway.domain == domain:
+                    return n
+            n += 1
+        return 1000
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         pass
@@ -632,7 +641,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
 class SpamTask(BaseDoorObject, BaseDoorObjectManaged):
     '''Задание на спам'''
     xrumerBaseR = models.ForeignKey(XrumerBaseR, verbose_name='Base R', null=True)
-    snippetsSet = models.ForeignKey(SnippetsSet, verbose_name='Snippets', null=True)
+    snippetsSet = models.ForeignKey(SnippetsSet, verbose_name='Snippets', null=True, blank=True)
     doorways = models.ManyToManyField(Doorway, verbose_name='Doorways', null=True, blank=True)
     spamLinksList = models.TextField('Spam Links', default='', blank=True)
     successCount = models.IntegerField('Success', null=True, blank=True)
@@ -643,12 +652,17 @@ class SpamTask(BaseDoorObject, BaseDoorObjectManaged):
         verbose_name = 'Spam Task'
         verbose_name_plural = 'IV. Spam Tasks - [large, managed]'
     def GetDoorsCount(self):
-        return self.doorways.count()
+        return self.doorways.filter(stateManaged='done').count()
     GetDoorsCount.short_description = 'Doors'
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         pass
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        pass
-    
+        if self.successCount / (self.successCount + self.halfSuccessCount + self.failsCount) < 0.3:
+            EventLog('warning', 'Too few successful posts (%d)' % self.successCount, self)
+    def save(self, *args, **kwargs):
+        '''Если не указан набор сниппетов - берем случайные по нише базы'''
+        if self.snippetsSet == None:
+            self.snippetsSet = self.xrumerBaseR.niche.GetRandomSnippetsSet()
+        super(SpamTask, self).save(*args, **kwargs)
