@@ -195,13 +195,13 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['linksCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailPopServer'), ('emailLogin', 'emailPassword'), 'active']}),
+        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailPopServer'), ('emailLogin', 'emailPassword'), 'subject', ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['linksCount', 'nickName', 'realName', 'password', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['linksCount', 'nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)

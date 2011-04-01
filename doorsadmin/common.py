@@ -94,3 +94,11 @@ def DecodeListFromAgent(l):
 def GenerateRandomWord(length):
     '''Генерация случайного набора букв заданной длины'''
     return ''.join(random.choice(string.letters) for _ in xrange(length))
+
+def HtmlLinksToBBCodes(l):
+    '''<a href="xxx">yyy</a> --> [url="xxx"]yyy[/url]'''
+    pass
+
+def BBCodesToHtmlLinks(l):
+    '''[url="xxx"]yyy[/url] --> <a href="xxx">yyy</a>'''
+    pass

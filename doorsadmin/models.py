@@ -12,7 +12,7 @@ stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
 stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
 languages = (('ru', 'ru'), ('en', 'en'))
 encodings = (('utf-8', 'utf-8'), ('cp1251', 'cp1251'))
-agentTypes = (('doorgen', 'doorgen'), ('xrumer', 'xrumer'), ('snippets', 'snippets'))
+agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrumer'))
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('real', 'real'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
@@ -43,14 +43,14 @@ def ObjectLog(object, changeMessage):
 
 def GetObjectByTaskType(taskType):
     '''Преобразуем имя класса в класс. Только классы-очереди для агентов'''
-    if taskType == 'Doorway':
+    if taskType == 'SnippetsSet':
+        return SnippetsSet
+    elif taskType == 'Doorway':
         return Doorway
-    elif taskType == 'XrumerBaseRaw':
+    elif taskType == 'XrumerBaseR':
         return XrumerBaseRaw
     elif taskType == 'SpamTask':
         return SpamTask
-    elif taskType == 'SnippetsSet':
-        return SnippetsSet
 
 '''Abstract models'''
 
@@ -106,12 +106,12 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name_plural = 'I. Agents - [act]'
     def GetQueues(self):
         '''Очереди каких объектов обрабатывает агент?'''
-        if self.type == 'doorgen':
+        if self.type == 'snippets':
+            return [SnippetsSet]
+        elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [SpamTask, XrumerBaseRaw]
-        elif self.type == 'snippets':
-            return [SnippetsSet]
+            return [XrumerBaseR, SpamTask]
     
 '''Abstract models'''
 
@@ -134,6 +134,23 @@ class BaseDoorObjectManaged(models.Model):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         pass
+
+class BaseDoorObjectSpammable(BaseDoorObjectManaged):
+    '''Объект, по которому спамят'''
+    successCount = models.IntegerField('Success', null=True, blank=True)
+    halfSuccessCount = models.IntegerField('H/Success', null=True, blank=True)
+    failsCount = models.IntegerField('Fails', null=True, blank=True)
+    profilesCount = models.IntegerField('Profiles', null=True, blank=True)
+    class Meta:
+        abstract = True
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        self.successCount = data['successCount']
+        self.halfSuccessCount = data['halfSuccessCount']
+        self.failsCount = data['failsCount']
+        self.profilesCount = data['profilesCount']
+        if self.successCount / (self.successCount + self.halfSuccessCount + self.failsCount + 1) < 0.3:
+            EventLog('warning', 'Too few successful posts (%d)' % self.successCount, self)
 
 '''Real models'''
 
@@ -160,13 +177,13 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def __unicode__(self):
         return '#%s %s (%s)' % (self.pk, self.description, self.language)
     def GetDoorsCount(self):
-        return self.doorway_set.filter(stateManaged='done').count()
+        return '%d/%d' % (self.doorway_set.filter(stateManaged='done').count(), self.doorway_set.count())
     GetDoorsCount.short_description = 'Doors'
     def GetPagesCount(self):
         return self.doorway_set.filter(stateManaged='done').aggregate(x=Sum('pagesCount'))['x']
     GetPagesCount.short_description = 'Pages'
     def GetTemplatesCount(self):
-        return self.template_set.filter(active=True).count()
+        return '%d/%d' % (self.template_set.filter(active=True).count(), self.template_set.count())
     GetTemplatesCount.short_description = 'Templates'
     def GetKeywordsSetsCount(self):
         return self.keywordsset_set.filter(active=True).count()
@@ -552,7 +569,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.domain.niche = self.niche
             self.domain.save()
         '''Если на домене превышено максимальное количество доров, то отключаем домен'''
-        if self.domain.GetDoorsCount() >= self.domain.maxDoorsCount:
+        if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
             self.domain.active = False
             self.domain.save()
         super(Doorway, self).save(*args, **kwargs)
@@ -592,7 +609,7 @@ class XrumerBaseRaw(BaseXrumerBase):
         return self.xrumerbaser_set.filter(Q(active=True), Q(stateManaged='done')).count()
     GetXrumerBasesRCount.short_description = 'Bases R'
 
-class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
+class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     '''База R для Хрумера. File-based.'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey(XrumerBaseRaw, verbose_name='Base Raw', null=True)
@@ -604,6 +621,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
     emailLogin = models.CharField('E.Login', max_length=200, default='')
     emailPassword = models.CharField('E.Password', max_length=200, default='')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='')
+    subject = models.CharField('Subject', max_length=200, default='')
     class Meta:
         verbose_name = 'Xrumer Base R'
         verbose_name_plural = 'IV.4 Xrumer Bases R - [managed]'
@@ -621,10 +639,16 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
         return 1000
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        pass
-    def SetTaskDetails(self, data):
-        '''Обработка данных агента'''
-        pass
+        return {'baseNumber': self.baseNumber, 
+                'nickName': self.nickName, 
+                'realName': self.realName, 
+                'password': self.password, 
+                'emailAddress': self.emailAddress, 
+                'emailPassword': self.emailPassword, 
+                'emailLogin': self.emailLogin, 
+                'emailPopServer': self.emailPopServer, 
+                'subject': self.subject, 
+                'snippetsFile': self.snippetsSet.localFile}
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -638,16 +662,12 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectManaged):
             self.password = GenerateRandomWord(12)
         super(XrumerBaseR, self).save(*args, **kwargs)
     
-class SpamTask(BaseDoorObject, BaseDoorObjectManaged):
+class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
     xrumerBaseR = models.ForeignKey(XrumerBaseR, verbose_name='Base R', null=True)
     snippetsSet = models.ForeignKey(SnippetsSet, verbose_name='Snippets', null=True, blank=True)
     doorways = models.ManyToManyField(Doorway, verbose_name='Doorways', null=True, blank=True)
     spamLinksList = models.TextField('Spam Links', default='', blank=True)
-    successCount = models.IntegerField('Success', null=True, blank=True)
-    halfSuccessCount = models.IntegerField('H/Success', null=True, blank=True)
-    failsCount = models.IntegerField('Fails', null=True, blank=True)
-    profilesCount = models.IntegerField('Profiles', null=True, blank=True)
     class Meta:
         verbose_name = 'Spam Task'
         verbose_name_plural = 'IV. Spam Tasks - [large, managed]'
@@ -656,11 +676,10 @@ class SpamTask(BaseDoorObject, BaseDoorObjectManaged):
     GetDoorsCount.short_description = 'Doors'
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        pass
-    def SetTaskDetails(self, data):
-        '''Обработка данных агента'''
-        if self.successCount / (self.successCount + self.halfSuccessCount + self.failsCount) < 0.3:
-            EventLog('warning', 'Too few successful posts (%d)' % self.successCount, self)
+        result = self.xrumerBaseR.GetTaskDetails()
+        result['snippetsFile'] = self.snippetsSet.localFile
+        result['spamLinksList'] = EncodeListForAgent(self.spamLinksList)
+        return result
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише базы'''
         if self.snippetsSet == None:

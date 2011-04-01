@@ -40,7 +40,7 @@ def GenerateSpamTasks():
             doorwaysList = []  # доры для задания
             spamLinksList = []  # ссылки доров для задания
             domainsList = []  # домены задания
-            domainsCount = random.randint(2, 4)  # сколько разных доменов будем включать в это задание
+            domainsCount = random.randint(3, 5)  # сколько разных доменов будем включать в это задание
             '''Цикл по готовым дорвеям, у которых ниша совпадает с нишей базы'''
             for doorway in Doorway.objects.filter(Q(niche=xrumerBaseR.niche), Q(stateManaged='done')).order_by('pk').all(): 
                 if doorway.spamtask_set.count() > spamCounter:  # отсекаем доры по количеству заданий
@@ -53,7 +53,7 @@ def GenerateSpamTasks():
                 doorwaysList.append(doorway) 
                 doorwayLinksList = doorway.spamLinksList.split('\n')  # берем случайный список страниц дора для спама
                 random.shuffle(doorwayLinksList)
-                spamLinksList.extend(doorwayLinksList[:random.randint(3, 5)])
+                spamLinksList.extend(doorwayLinksList[:random.randint(1, 3)])
                 domainsList.append(doorway.domain)
                 '''Создаем задание'''
                 if len(domainsList) >= domainsCount:
