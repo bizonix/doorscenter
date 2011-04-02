@@ -186,7 +186,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -195,7 +195,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('baseNumber', 'description', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailPopServer'), ('emailLogin', 'emailPassword'), 'subject', ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
