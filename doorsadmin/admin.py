@@ -44,7 +44,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Agents'''
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'type', 'description', 'currentTask', 'dateLastPing', 'interval', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'type', 'description', 'currentTask', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['type', 'description', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -62,7 +62,7 @@ class EventAdmin(BaseAdmin):
 '''Domains group'''
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'name', 'niche', 'host', 'dateRegistered', 'dateExpires', 'maxDoorsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'name', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'dateExpires']
     fieldsets = [
         (None, {'fields': ['name', ('niche', 'host'), ('dateRegistered', 'dateExpires'), ('ipAddress', 'nameServer1', 'nameServer2'), 'maxDoorsCount', 'active']}),
@@ -105,7 +105,7 @@ class DoorwayAdmin(BaseAdminManaged):
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'GetSnippetsSetsCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['description', 'language', 'active']}),
         ('Lists', {'fields': ['stopwordsList'], 'classes': ['collapse']}),
@@ -153,14 +153,14 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent', 'dateStart', 'dateEnd', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
-        ('Run', {'fields': [('lastRun', 'doorsThisDay')], 'classes': ['expand']}),
+        ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastRun', 'doorsThisDay', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
 
 '''Spam group'''
 
@@ -176,7 +176,7 @@ class SpamTaskAdmin(BaseAdminManaged):
     readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'dateLastParsed', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),
         ('Lists', {'fields': ['phrasesList'], 'classes': ['collapse']}),

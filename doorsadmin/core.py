@@ -34,6 +34,7 @@ def GenerateSpamTasks():
     4. в одном задании может быть только одна база р, соответственно только одна ниша.
     5. в одном задании может быть несколько доров. должно быть 2-4 разных домена, от каждого дора 3-5 ссылок.'''
     '''Сначала спамим не проспамленные доры, затем проспамленные 1 раз и т.д.'''
+    dt = datetime.datetime.now() - datetime.timedelta(15)
     for spamCounter in range(1): 
         '''Цикл по активным готовым базам'''
         for xrumerBaseR in XrumerBaseR.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('?').all(): 
@@ -41,8 +42,8 @@ def GenerateSpamTasks():
             spamLinksList = []  # ссылки доров для задания
             domainsList = []  # домены задания
             domainsCount = random.randint(3, 5)  # сколько разных доменов будем включать в это задание
-            '''Цикл по готовым дорвеям, у которых ниша совпадает с нишей базы'''
-            for doorway in Doorway.objects.filter(Q(niche=xrumerBaseR.niche), Q(stateManaged='done')).order_by('pk').all(): 
+            '''Цикл по готовым дорвеям, у которых ниша совпадает с нишей базы и измененным за последние 2 недели (для ограничения выборки)'''
+            for doorway in Doorway.objects.filter(Q(niche=xrumerBaseR.niche), Q(stateManaged='done'), Q(dateChanged__gt=dt)).order_by('pk').all(): 
                 if doorway.spamtask_set.count() > spamCounter:  # отсекаем доры по количеству заданий
                     continue
                 if doorway.domain in domainsList:  # отсекаем доры, чьи домены уже есть в задании

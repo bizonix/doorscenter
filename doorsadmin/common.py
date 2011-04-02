@@ -1,6 +1,7 @@
 # coding=utf8
 from django.template.defaultfilters import slugify
-import os, glob, math, random, urllib, string, codecs
+from django.db.models import Sum
+import os, glob, math, random, urllib, string, codecs, datetime
 
 def SelectKeywords(path, encoding='utf-8', count=10):
     ''' Создание списка кеев для доров по Бабулеру.
@@ -79,7 +80,7 @@ def MakeListUnique(seq):
     '''Удаляет неуникальные элементы списка'''
     seen = set()
     seen_add = seen.add
-    return [ x for x in seq if x not in seen and not seen_add(x)]
+    return [x for x in seq if x not in seen and not seen_add(x)]
 
 def EncodeListForAgent(s):
     '''Перекодирует строку в win1251 и разделяет в список по переводам строки.
@@ -102,3 +103,60 @@ def HtmlLinksToBBCodes(l):
 def BBCodesToHtmlLinks(l):
     '''[url="xxx"]yyy[/url] --> <a href="xxx">yyy</a>'''
     pass
+
+def PrettyDate(time=False):
+    '''Get a datetime object or a int() Epoch timestamp and return a
+    pretty string like 'an hour ago', 'Yesterday', '3 months ago',
+    'just now', etc'''
+    now = datetime.datetime.now()
+    if type(time) is int:
+        diff = now - datetime.datetime.fromtimestamp(time)
+    elif time:
+        diff = now - time
+    else:
+        return ''
+    second_diff = diff.seconds
+    day_diff = diff.days
+
+    if day_diff < 0:
+        return ''
+
+    if day_diff == 0:
+        if second_diff < 10:
+            return "just now"
+        if second_diff < 60:
+            return str(second_diff) + " seconds ago"
+        if second_diff < 120:
+            return  "a minute ago"
+        if second_diff < 3600:
+            return str( second_diff / 60 ) + " minutes ago"
+        if second_diff < 7200:
+            return "an hour ago"
+        if second_diff < 86400:
+            return str( second_diff / 3600 ) + " hours ago"
+    if day_diff == 1:
+        return "Yesterday"
+    if day_diff < 7:
+        return str(day_diff) + " days ago"
+    if day_diff < 31:
+        return str(day_diff / 7) + " weeks ago"
+    if day_diff < 365:
+        return str(day_diff / 30) + " months ago"
+    return str(day_diff / 365) + " years ago"
+
+def GetCounter(objects, filterCondition, warningCondition = None):
+    '''Возвращает общее число объектов и число, удовлетворяющее заданному условию'''
+    n1 = objects.filter(**filterCondition).count()
+    n2 = objects.count()
+    if warningCondition and warningCondition(n1):
+        return '<font color="red"><strong>%d</strong></font>/%d' % (n1, n2)
+    else:
+        return '%d/%d' % (n1, n2)
+
+def GetPagesCounter(objects):
+    '''То же самое, но для страниц доров'''
+    try:
+        n = objects.aggregate(x = Sum('pagesCount'))['x']
+        return '%d' % n
+    except Exception:
+        return ''
