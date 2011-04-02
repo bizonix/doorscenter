@@ -1,5 +1,6 @@
 # coding=utf8
 import os, datetime, codecs, kwk8, agent, common, win32gui
+from xml.sax.saxutils import escape
 
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -39,7 +40,8 @@ class XrumerAgent(agent.BaseAgent):
             'EnableRefspam': '0', 
             'BBtoHTML': '1', 
             'PostNewMode': '3',
-            'SchedulerEnabled': '1'}
+            'SchedulerEnabled': '1',
+            'CurrentJob': '0'}
         self.appSettingsDictMode2 = {'OnlyRegistering': '0', 
             'RegisteringPlusPosting': '0', 
             'FromRegistered': '1', 
@@ -50,7 +52,8 @@ class XrumerAgent(agent.BaseAgent):
             'EnableRefspam': '0', 
             'BBtoHTML': '1', 
             'PostNewMode': '3',
-            'SchedulerEnabled': '1'}
+            'SchedulerEnabled': '1',
+            'CurrentJob': '0'}
         
         '''Файл проекта'''
         self.projectFileContents = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -88,9 +91,9 @@ class XrumerAgent(agent.BaseAgent):
     <OnlyPriors>false</OnlyPriors>
   </SecondarySection>
 </XRumerProject>
-''' % (self.projectName, self.currentTask['nickName'], self.currentTask['realName'], self.currentTask['password'], 
-       self.currentTask['emailAddress'], self.currentTask['emailPassword'], self.currentTask['emailLogin'], 
-       self.currentTask['emailPopServer'], self.currentTask['subject'], self.snippetsFile, codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251'))
+''' % (escape(self.projectName), escape(self.currentTask['nickName']), escape(self.currentTask['realName']), escape(self.currentTask['password']), 
+       escape(self.currentTask['emailAddress']), escape(self.currentTask['emailPassword']), escape(self.currentTask['emailLogin']), 
+       escape(self.currentTask['emailPopServer']), escape(self.currentTask['subject']), escape(self.snippetsFile), escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')))
         
         '''Файл расписания. Параметр в Schedule2: 0 - LinksList, 3 - RLinksList.'''
         self.appScheduleFileContents = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -146,7 +149,7 @@ class XrumerAgent(agent.BaseAgent):
   </Schedule6>
 </body>
 ''' % ((datetime.datetime.now() + datetime.timedelta(0, 120)).strftime('%d.%m.%y %H:%M:00'), 
-       self.projectName, '%d', self.currentTask['baseNumber'], self.doneScript)
+       escape(self.projectName), '%d', self.currentTask['baseNumber'], escape(self.doneScript))
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
