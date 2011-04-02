@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from doorsadmin.common import SelectKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, MakeListUnique, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter
+from doorsadmin.common import SelectKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, MakeListUnique, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes
 import datetime, random
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -88,7 +88,7 @@ class BaseDoorObjectTrackable(models.Model):
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
     baseNumber = models.IntegerField('Base Number', unique=True)
-    linksCount = models.IntegerField('Links Count, k', null=True)
+    linksCount = models.FloatField('Links Count, k', null=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     class Meta:
         abstract = True
@@ -724,7 +724,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseR.GetTaskDetails()
         result['snippetsFile'] = self.snippetsSet.localFile
-        result['spamLinksList'] = EncodeListForAgent(self.spamLinksList)
+        result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.spamLinksList))
         return result
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише базы'''

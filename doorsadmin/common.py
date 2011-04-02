@@ -1,7 +1,7 @@
 # coding=utf8
 from django.template.defaultfilters import slugify
 from django.db.models import Sum
-import os, glob, math, random, urllib, string, codecs, datetime
+import os, glob, math, random, urllib, string, codecs, datetime, re
 
 def SelectKeywords(path, encoding='utf-8', count=10):
     ''' Создание списка кеев для доров по Бабулеру.
@@ -96,13 +96,31 @@ def GenerateRandomWord(length):
     '''Генерация случайного набора букв заданной длины'''
     return ''.join(random.choice(string.letters) for _ in xrange(length))
 
+rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
 def HtmlLinksToBBCodes(l):
-    '''<a href="xxx">yyy</a> --> [url="xxx"]yyy[/url]'''
-    pass
+    '''Конвертация списка строк вида <a href="xxx">yyy</a> --> [url="xxx"]yyy[/url]'''
+    result = []
+    for line in l:
+        try:
+            groups = rxHtml.match(line).groups()
+            if len(groups) == 2:
+                result.append('[url="%s"]%s[/url]' % groups)
+        except Exception:
+            pass
+    return result
 
+rxBbcode = re.compile(r'\[url="(.*)"\](.*)\[/url\]')
 def BBCodesToHtmlLinks(l):
-    '''[url="xxx"]yyy[/url] --> <a href="xxx">yyy</a>'''
-    pass
+    '''Конвертация списка строк вида [url="xxx"]yyy[/url] --> <a href="xxx">yyy</a>'''
+    result = []
+    for line in l:
+        try:
+            groups = rxBbcode.match(line).groups()
+            if len(groups) == 2:
+                result.append('<a href="%s">%s</a>' % groups)
+        except Exception:
+            pass
+    return result
 
 def PrettyDate(time=False):
     '''Get a datetime object or a int() Epoch timestamp and return a
