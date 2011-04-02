@@ -201,7 +201,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['linksCount', 'nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
