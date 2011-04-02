@@ -1,5 +1,5 @@
 # coding=utf8
-import os, sys, shutil, urllib, ftplib, agent
+import os, shutil, urllib, ftplib, agent, common
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -31,6 +31,7 @@ class DoorgenAgent(agent.BaseAgent):
         self.appSpamLinks1File = os.path.join(self.appFolder, 'links' + os.sep + 'alinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat'
         self.doorwayUrl = 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder']
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
@@ -81,7 +82,7 @@ class DoorgenAgent(agent.BaseAgent):
             'AutoDownloadMyLinks': '1',
             'AutoDownloadMyLinksPath': self.appNetLinksFile,
             'BeginFileExecute': '1',
-            'PathFileBeginFileExecute': 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat',
+            'PathFileBeginFileExecute': self.doneScript,
             'DisableDoorgenPastGen': '1',
             'IncludeGenBegin': '1',
             'SendEmailEndGen': '0',
@@ -102,39 +103,26 @@ class DoorgenAgent(agent.BaseAgent):
             'FolderArchives': '0',
             'DoorwayInArchives': '0',
             'DeleteFilePastGenerate': '0'}
-        
-        self.appTuningsFileContent = '''[General]
-Account=forester
-TuningsINI=auto.ini
-Left=238
-Top=80
+        self.appTuningsDict = {'TuningsINI': 'auto.ini'}
+        self.appLinksPattern1Contents = '''<a href="{URL}">{BOSKEYWORD}</a>
 '''
-        self.appLinksPattern1Content = '''<a href="{URL}">{BOSKEYWORD}</a>
+        self.appLinksPattern2Contents = '''[URL="{URL}"]{BOSKEYWORD}[/URL]
 '''
-        self.appLinksPattern2Content = '''[URL="{URL}"]{BOSKEYWORD}[/URL]
-'''
-        self.appLinksPattern3Content = '''{URL}
+        self.appLinksPattern3Contents = '''{URL}
 '''
         
     def _ActionOn(self):
         self._Settings()
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
-            for line in self.currentTask['doorgenSettings']:
-                if line.find('=') >= 0:
-                    key, _, value = line.partition('=')
-                    if key in self.appSettingsDict:
-                        value = self.appSettingsDict[key]
-                    line = key + '=' + value
-                fd.write(line + '\n')
-        with open(self.appTuningsFile, 'w') as fd: 
-            fd.write(self.appTuningsFileContent)
+            fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
+        common.ModifyIniFile(self.appTuningsFile, self.appTuningsDict)
         with open(self.appLinksPattern1File, 'w') as fd:
-            fd.write(self.appLinksPattern1Content)
+            fd.write(self.appLinksPattern1Contents)
         with open(self.appLinksPattern2File, 'w') as fd:
-            fd.write(self.appLinksPattern2Content)
+            fd.write(self.appLinksPattern2Contents)
         with open(self.appLinksPattern3File, 'w') as fd:
-            fd.write(self.appLinksPattern3Content)
+            fd.write(self.appLinksPattern3Contents)
         '''Кейворды и ссылки сетки'''
         with open(self.appKeywordsFile, 'w') as fd:
             fd.write(self.currentTask['keywordsList'][0])

@@ -124,11 +124,12 @@ class BaseAgent(object):
     
     def _Cron(self):
         '''Метод вызывается по cron'''
+        dts = datetime.datetime.now().strftime('%d.%m.%y %H:%M')
         if not self._IsMaintenanceMode():
             if not self._HasTask():
                 self._GetNextTask()
                 if self._HasTask():
-                    print('Starting task #%s' % self._GetCurrentTaskId())
+                    print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
                     try:
                         self.currentTask['timeStart'] = datetime.datetime.now()
                         self._SaveCurrentTaskData()
@@ -138,16 +139,17 @@ class BaseAgent(object):
                         self._SetCurrentTaskState('error', str(error))
                         self._ReportTaskState()
                 else:
-                    print('No task found')
+                    print('%s - No tasks found' % dts)
             else:
-                print('Task #%s is currently running' % self._GetCurrentTaskId())
+                print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
         else:
-            print('Maintenance mode')
+            print('%s - Maintenance mode' % dts)
 
     def _Done(self):
         '''Текущее задание выполнено'''
+        dts = datetime.datetime.now().strftime('%d.%m.%y %H:%M')
         if self._HasTask():
-            print('Finishing task #%s' % self._GetCurrentTaskId())
+            print('%s - Finishing task #%s' % (dts, self._GetCurrentTaskId()))
             try:
                 self.currentTask['runTime'] = (datetime.datetime.now() - self.currentTask['timeStart']).seconds
                 self._SaveCurrentTaskData()
@@ -162,7 +164,7 @@ class BaseAgent(object):
                 self.currentTask = None
                 self._SaveCurrentTaskData()
         else:
-            print('No task is currently running')
+            print('%s - No task is currently running' % dts)
     
     def _RunApp(self, path):
         '''Запускаем приложение и не ждем завершения. 
