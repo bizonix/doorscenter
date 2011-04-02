@@ -88,7 +88,7 @@ class BaseDoorObjectTrackable(models.Model):
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
     baseNumber = models.IntegerField('Base Number', unique=True)
-    linksCount = models.IntegerField('Links Count', null=True, blank=True)
+    linksCount = models.IntegerField('Links Count', null=True)
     class Meta:
         abstract = True
     def __unicode__(self):
