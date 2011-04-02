@@ -147,16 +147,26 @@ def PrettyDate(time=False):
 def GetCounter(objects, filterCondition, warningCondition = None):
     '''Возвращает общее число объектов и число, удовлетворяющее заданному условию'''
     n1 = objects.filter(**filterCondition).count()
+    if n1 != 0:
+        s1 = '%d' % n1
+    else: 
+        s1 = '-'
     n2 = objects.count()
+    if n2 != 0:
+        s2 = '%d' % n2
+    else: 
+        s2 = '-'
     if warningCondition and warningCondition(n1):
-        return '<font color="red"><strong>%d</strong></font>/%d' % (n1, n2)
+        return '<font color="red">%s/%s</font>' % (s1, s2)
     else:
-        return '%d/%d' % (n1, n2)
+        return '%s/%s' % (s1, s2)
 
 def GetPagesCounter(objects):
     '''То же самое, но для страниц доров'''
     try:
-        n = objects.aggregate(x = Sum('pagesCount'))['x']
-        return '%d' % n
+        n = '%s' % objects.aggregate(x = Sum('pagesCount'))['x']
+        if n == '0':
+            n = '-'
+        return n
     except Exception:
-        return ''
+        return '-'
