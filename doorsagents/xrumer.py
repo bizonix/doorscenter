@@ -1,5 +1,5 @@
 # coding=utf8
-import os, datetime, codecs, kwk8, agent, common#, win32gui
+import os, datetime, codecs, kwk8, agent, common, win32gui
 
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -11,14 +11,14 @@ class XrumerAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        # self.appFolder = 'c:\\work\\xrumer7beta5'  # папка с приложением
-        self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/xrumer'  # папка с приложением
-        self.appCaption = 'XRumer 7.0 beta-5, Copyright BotmasterRu.Com, Support ICQ 876975, Admistration e-mail botmaster@bk.ru'
+        self.appFolder = 'c:\\work\\xrumer7beta5'  # папка с приложением
+        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/xrumer'  # папка с приложением
+        self.appCaption = 'XRumer 7.0 beta-5, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
-        # self.snippetsFolder = 'C:\\Work\\snippets'
-        self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'
+        self.snippetsFolder = 'C:\\Work\\snippets'
+        # self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
         self.projectName = 'Project%d' % self.currentTask['id']
         self.projectFile = os.path.join(self.appFolder, 'Projects', self.projectName + '.xml')
@@ -150,8 +150,8 @@ class XrumerAgent(agent.BaseAgent):
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
-        '''p = win32gui.FindWindow(None, appCaption)
-        win32gui.SendMessage(p, 0x10, 0, 0)'''
+        p = win32gui.FindWindow(None, appCaption)
+        win32gui.SendMessage(p, 0x10, 0, 0)
         
     def _ActionOn(self):
         self._Settings()
@@ -194,5 +194,4 @@ class XrumerAgent(agent.BaseAgent):
         return True
 
 if __name__ == '__main__':
-    # agent = XrumerAgent('http://searchpro.name/doorscenter/doorsadmin', 3)
-    agent = XrumerAgent('http://127.0.0.1:8000/doorsadmin', 3)
+    agent = XrumerAgent('http://searchpro.name/doorscenter/doorsadmin', 3)
