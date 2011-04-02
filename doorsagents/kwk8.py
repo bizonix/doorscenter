@@ -13,7 +13,7 @@ python 2.6
 + удаление строк по кейвордам/блэк-листу (разные алгоритмы, меняется число строк)
 '''
 
-import random, time
+import random, time, re
 
 class Kwk8:
     '''Базовый класс'''
@@ -80,6 +80,21 @@ class Kwk8:
         else:
             self.lines = [x.strip().lower() + '\n' for x in self.lines]
         self._Print('- done %s' % self._TimeFinish())
+        return self
+    
+    def Snippets(self):
+        '''Дополнительная очистка сниппетов'''
+        self._Print('Snippets processing...')
+        self._TimeStart()
+        newLines = []
+        rxSnippetsDate = re.compile(r'^[0-9]?[0-9] ... 20[0-1][0-9] ')
+        for line in self.lines:
+            line = line.strip() + '\n'
+            if rxSnippetsDate.match(line):
+                line = line[12:].strip() + '\n'
+            newLines.append(line)
+        self._Print('- done %s' % self._TimeFinish())
+        self.lines = newLines
         return self
     
     def Sort(self, mode = 'alpha'):
@@ -192,9 +207,15 @@ def ProcessLinks(inPathLinks, outPathLinks):
     '''Стандартная обработка ссылок'''
     return Kwk8Links(inPathLinks, False).Basic().Duplicates().Shuffle().Save(outPathLinks).Count()
 
+def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None):
+    '''Стандартная обработка сниппетов'''
+    snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']
+    return Kwk8Keys(inPathKeywords, False).Snippets().DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
+
 def Test():
-    ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
-    ProcessLinks('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out2.txt')
+    #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
+    #ProcessLinks('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out2.txt')
+    ProcessSnippets('/home/sasch/temp/list/snippets2.txt', '/home/sasch/temp/list/snippets_out.txt')
 
 if __name__ == '__main__':
     Test()
