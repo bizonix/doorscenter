@@ -186,9 +186,9 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'baseNumber', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount'), 'active']}),
+        (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
