@@ -22,7 +22,7 @@ templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 @transaction.commit_manually
 def EventLog(type, text, object=None, addErrorMessage=None):
     '''Запись события в лог'''
-    if type != 'tracex':
+    if type != 'trace':
         if addErrorMessage:
             text += ': ' + str(addErrorMessage)
         objectName = ''
