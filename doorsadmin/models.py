@@ -22,18 +22,19 @@ templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 @transaction.commit_manually
 def EventLog(type, text, object=None, addErrorMessage=None):
     '''Запись события в лог'''
-    if addErrorMessage:
-        text += ': ' + str(addErrorMessage)
-    objectName = ''
-    if object:
-        object.lastError = text
-        object.save()
-        objectName = object.__class__.__name__ + ' ' + str(object)
-    Event.objects.create(date=datetime.datetime.now(), 
-                         type=type, 
-                         object=objectName, 
-                         text=text).save()
-    transaction.commit()
+    if type != 'tracex':
+        if addErrorMessage:
+            text += ': ' + str(addErrorMessage)
+        objectName = ''
+        if object:
+            object.lastError = text
+            object.save()
+            objectName = object.__class__.__name__ + ' ' + str(object)
+        Event.objects.create(date=datetime.datetime.now(), 
+                             type=type, 
+                             object=objectName, 
+                             text=text).save()
+        transaction.commit()
 
 def ObjectLog(object, changeMessage):
     '''Запись в историю объекта'''
