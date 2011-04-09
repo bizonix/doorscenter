@@ -13,35 +13,35 @@ python 2.6
 + удаление строк по кейвордам/блэк-листу (разные алгоритмы, меняется число строк)
 '''
 
-import random, time, re
+import random, time, re, codecs
 
 class Kwk8:
     '''Базовый класс'''
-    def __init__(self, path, verbose=True):
+    def __init__(self, path, verbose=True, encoding='cp1251'):
         '''path - входной файл, isLinks - кеи или ссылки'''
         self.pathOriginal = path  # исходный файл
         self.countOriginal = 0  # число строк в исходном файле
         self.verbose=verbose
         self.lines = []
-        self._Load(self.pathOriginal)
+        self._Load(self.pathOriginal, encoding)
         
-    def _Load(self, path):
+    def _Load(self, path, encoding='cp1251'):
         '''Чтение файла'''
         self._Print('Loading file %s...' % path)
         self._TimeStart()
-        with open(path, 'r') as fd:
+        with codecs.open(path, 'r', encoding) as fd:
             self.lines = fd.readlines()
         self.countOriginal = self.Count()
         print("- %d lines loaded %s" % (self.Count(), self._TimeFinish()))
         return self
         
-    def Save(self, path = ''):
+    def Save(self, path = '', encoding='cp1251'):
         '''Записывает строки в файл'''
         if path == '':  # если path == '', то записывает в исходный файл
             path = self.pathOriginal
         self._Print('Saving to file %s...' % path)
         self._TimeStart()
-        with open(path, 'w') as fd:
+        with codecs.open(path, 'w', encoding) as fd:
             fd.writelines(self.lines)
         print("- {0} lines saved {1}".format(self.Count(), self._TimeFinish()))
         return self
@@ -164,21 +164,21 @@ class Kwk8:
         self.lines = newLines
         return self
     
-    def SelectByFile(self, keysFile):
+    def SelectByFile(self, keysFile, encoding='cp1251'):
         '''Выборка по кеям из файла'''
         if keysFile:
             keysList = []
-            for line in open(keysFile, 'r'):
+            for line in codecs.open(keysFile, 'r', encoding):
                 keysList.append(line.strip())
             return self.SelectByList(keysList)
         else:
             return self
         
-    def DeleteByFile(self, keysFile):
+    def DeleteByFile(self, keysFile, encoding='cp1251'):
         '''Чистка по кеям из файла'''
         if keysFile:
             keysList = []
-            for line in open(keysFile, 'r'):
+            for line in codecs.open(keysFile, 'r', encoding):
                 keysList.append(line.strip())
             return self.DeleteByList(keysList)
         else:
@@ -210,7 +210,7 @@ def ProcessLinks(inPathLinks, outPathLinks):
 def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None):
     '''Стандартная обработка сниппетов'''
     snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']
-    return Kwk8Keys(inPathKeywords, False).Snippets().DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
+    return Kwk8Keys(inPathKeywords, False, 'utf8').Snippets().DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords, 'utf8').Count()
 
 def Test():
     #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
