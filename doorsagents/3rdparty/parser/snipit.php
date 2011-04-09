@@ -6,8 +6,9 @@ $http = new httpdata;
 
 $num = 2; //Глубина парсинга
 $file = "C:/Work/snippets/parser/text.txt"; //Файл куда будет скидыватся текст
-$lang = "ru"; //Язык парсинга i.e(ru, en, ua. Нужно для парсинга русского текста, чтоб гугл отдавал его в читаемом виде.)
-$fkeys = "C:/Work/snippets/parser/keys.txt";
+//$lang = "ru"; //Язык парсинга i.e(ru, en, ua. Нужно для парсинга русского текста, чтоб гугл отдавал его в читаемом виде.)
+$lang = file_get_contents("C:/Work/snippets/parser/language.txt");
+$fkeys = "C:/Work/snippets/parser/keywords.txt";
 
 //-------Прокси--------//
 //$http->setProxy("proxy:port");
@@ -47,7 +48,7 @@ for($n=0;$n<count($keys);$n++)
 				$t = str_replace("&quot;", "", $t);
 				$t = str_replace(" &middot;", ".", $t);
 				$t = str_replace("&#39;", "'", $t);
-				$t = iconv('utf-8', 'cp1251', $t);
+//				$t = iconv('utf-8', 'cp1251', $t);
 				fwrite($fp, $t."\r\n");
 			}
 		}else{
