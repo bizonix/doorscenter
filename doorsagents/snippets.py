@@ -4,7 +4,7 @@ import os, agent, kwk8
 class SnippetsAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, stopwordsList, language.
-    Выходные: phrasesList.'''
+    Выходные: phrasesCount.'''
     
     def _Settings(self):
         '''Настройки'''
@@ -34,9 +34,10 @@ class SnippetsAgent(agent.BaseAgent):
         kwk8.ProcessSnippets(self.appTextFile, self.localFile, self.stopwordsFile)
         self.currentTask['keywordsList'] = []
         self.currentTask['stopwordsList'] = []
-        self.currentTask['phrasesList'] = []
-        for line in open(self.localFile, 'r'):
-            self.currentTask['phrasesList'].append(line.strip())
+        phrasesCount = 0
+        for _ in open(self.localFile, 'r'):
+            phrasesCount += 1
+        self.currentTask['phrasesCount'] = phrasesCount
         return True
 
 if __name__ == '__main__':

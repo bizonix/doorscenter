@@ -670,7 +670,6 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     keywordsCount = models.IntegerField('Keywords', null=True, default=1000)
     interval = models.IntegerField('Parsing Interval, h.', null=True, default=24)
     dateLastParsed = models.DateTimeField('Last Parsed', null=True, blank=True)
-    phrasesList = models.TextField('Phrases', default='', blank=True)
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
@@ -686,8 +685,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
                 'language': self.niche.language})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.phrasesList = DecodeListFromAgent(data['phrasesList'][:10]) + '\nsee more in the file'
-        self.phrasesCount = len(data['phrasesList']) 
+        self.phrasesCount = data['phrasesCount'] 
         self.dateLastParsed = datetime.datetime.now()
         if self.phrasesCount <= 5000:
             EventLog('warning', 'Too few snippets found (%d)' % self.phrasesCount, self)
