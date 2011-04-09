@@ -62,15 +62,27 @@ class EventAdmin(BaseAdmin):
 '''Domains group'''
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'name', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['niche', 'dateExpires']
+    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'netLink1', 'netLevel', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['name', ('niche', 'host'), ('dateRegistered', 'dateExpires'), ('ipAddress', 'nameServer1', 'nameServer2'), 'maxDoorsCount', 'active']}),
+        (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
+        ('Net', {'fields': [('netLink1', 'netLink2', 'netLevel')], 'classes': ['expanded']}),
+        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2')], 'classes': ['expanded']}),
+        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['collapse']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['netLevel', 'lastError', 'dateAdded', 'dateChanged']
+    
+class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['description', 'settings', 'active']}),
+        ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    
+
 class HostAdmin(BaseAdminSimple):
     list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
     fieldsets = [
@@ -93,11 +105,10 @@ class IPAddressAdmin(BaseAdminSimple):
 '''Doorways group'''
     
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
-    list_filter = ['niche', 'net', 'stateManaged']
+    list_display = ('pk', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
-        (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
-        ('Lists', {'fields': ['keywordsList', 'netLinksList', 'spamLinksList'], 'classes': ['collapse']}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
+        ('Lists', {'fields': ['keywordsList', 'netLinksList', 'spamLinksList'], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -133,16 +144,6 @@ class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    fieldsets = [
-        (None, {'fields': ['description', 'netLinksList', 'active']}),
-        ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
 class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
@@ -166,7 +167,6 @@ class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'GetDoorsCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
-    list_filter = ['stateManaged']
     fieldsets = [
         (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
         ('Lists', {'fields': ['spamLinksList', 'doorways'], 'classes': ['collapse']}),

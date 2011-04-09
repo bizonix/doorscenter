@@ -98,20 +98,20 @@ def GenerateRandomWord(length):
 
 rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
 def HtmlLinksToBBCodes(l):
-    '''Конвертация списка строк вида <a href="xxx">yyy</a> --> [url="xxx"]yyy[/url]'''
+    '''Конвертация списка строк вида <a href="xxx">yyy</a> --> [url=xxx]yyy[/url]'''
     result = []
     for line in l:
         try:
             groups = rxHtml.match(line).groups()
             if len(groups) == 2:
-                result.append('[url="%s"]%s[/url]' % groups)
+                result.append('[url=%s]%s[/url]' % groups)
         except Exception:
             pass
     return result
 
-rxBbcode = re.compile(r'\[url="(.*)"\](.*)\[/url\]')
+rxBbcode = re.compile(r'\[url=(.*)\](.*)\[/url\]')
 def BBCodesToHtmlLinks(l):
-    '''Конвертация списка строк вида [url="xxx"]yyy[/url] --> <a href="xxx">yyy</a>'''
+    '''Конвертация списка строк вида [url=xxx]yyy[/url] --> <a href="xxx">yyy</a>'''
     result = []
     for line in l:
         try:

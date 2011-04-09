@@ -10,7 +10,7 @@ import pickle, datetime, base64
 def get(request, agentId):
     '''Получить задание из очереди'''
     result = pickle.dumps(None)
-    agent = get_object_or_404(Agent, pk=agentId)
+    agent = get_object_or_404(Agent, pk=agentId, active=True)
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
@@ -48,7 +48,7 @@ def get(request, agentId):
 @transaction.commit_manually
 def update(request, agentId):
     '''Обновить состояние задания'''
-    agent = get_object_or_404(Agent, pk=agentId)
+    agent = get_object_or_404(Agent, pk=agentId, active=True)
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
