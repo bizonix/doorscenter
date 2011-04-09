@@ -186,7 +186,7 @@ class Kwk8:
 
 class Kwk8Keys(Kwk8):
     def _ProcessLine(self, line):
-        return line
+        return line.strip().lower()
 
 class Kwk8Links(Kwk8):
     def _ProcessLine(self, line):
