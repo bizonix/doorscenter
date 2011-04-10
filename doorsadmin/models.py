@@ -417,6 +417,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                 for domainName in self.remarks.splitlines():
                     try:
                         Domain.objects.create(name=domainName, 
+                                              net=self.net,
                                               niche=self.niche, 
                                               host=self.host, 
                                               registrator=self.registrator, 
@@ -519,7 +520,7 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
         return GetPagesCounter(self.doorway_set)
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
-    def _NewDateCome(self):
+    def _NewDayCome(self):
         '''Настали новые сутки по сравнению с lastRun?'''
         try:
             return datetime.datetime.now().strftime('%d.%m.%Y') != self.lastRun.strftime('%d.%m.%Y')
@@ -550,13 +551,13 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
         '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
         try:
             if count == None:  # число дорвеев не задано, определяем сами
-                if self._NewDateCome():  # если настал новый день
+                if self._NewDayCome():  # если настал новый день
                     if self.doorsToday > 0:  # генерим оставшиеся дорвеи за вчера, если вчера был сгенерирован хотя бы один дорвей
                         self._GenerateDoorwaysPrivate(self.doorsPerDay - self.doorsToday)
                     self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
                 d = datetime.datetime.now()
                 count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsToday
-            elif self._NewDateCome():  # если число задано и настал новый день
+            elif self._NewDayCome():  # если число задано и настал новый день
                 self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
             self._GenerateDoorwaysPrivate(count)  # генерим дорвеи за сегодня
             self.lastRun = datetime.datetime.now()  # обновляем статистику
