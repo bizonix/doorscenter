@@ -22,7 +22,7 @@ def GenerateSnippets():
 
 def GenerateNets():
     '''Плетем сети'''
-    for p in Domain.objects.filter(~Q(net=None), Q(maxLinkedDomains=None)).all(): 
+    for p in Domain.objects.filter(~Q(net=None), Q(maxLinkedDomains=None), Q(active=True)).all(): 
         p.net.AddDomain(p)
         p.save()
 
