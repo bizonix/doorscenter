@@ -191,21 +191,15 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetDomainsCount.allow_tags = True
     def AddDomain(self, newDomain):
         '''Добавить домен в сетку'''
-        EventLog('trace', 'AddDomain')
-        EventLog('trace', '%d' % newDomain.linkedDomains.count())
         newDomain.linkedDomains.clear()
-        EventLog('trace', '%d' % newDomain.linkedDomains.count())
         newDomain.maxLinkedDomains = random.randint(3,6)
-        for domain in self.domain_set.filter(pk__lt=newDomain.pk).order_by('pk').all():  # цикл по доменам до текущего
-            EventLog('trace', 'domain %d' % domain.pk)
+        for domain in self.domain_set.filter(pk__lt=newDomain.pk).order_by('pk').all():  # цикл по доменам сетки до текущего
             if domain.linkedDomains.filter(pk__gt=domain.pk).count() < domain.maxLinkedDomains:
-                EventLog('trace', 'found: %d' % domain.linkedDomains.filter(pk__gt=domain.pk).count())
                 newDomain.linkedDomains.add(domain)
                 if domain.netLevel:
                     newDomain.netLevel = domain.netLevel + 1
                 else:
                     newDomain.netLevel = 1
-                EventLog('trace', '%d' % newDomain.linkedDomains.count())
                 return
         newDomain.netLevel = 1
     def GetNextDomain(self):
@@ -365,7 +359,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=True, null=True, blank=True)
-    maxLinkedDomains = models.IntegerField('Max Linked', default=5, blank=True)
+    maxLinkedDomains = models.IntegerField('Max Linked', null=True, blank=True)
     netLevel = models.IntegerField('Net Level', null=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     class Meta:
@@ -405,9 +399,6 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                 linksList.extend(doorway.spamLinksList.split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def save(self, *args, **kwargs):
-        '''Устанавливаем параметры сетки'''
-        if (self.net != None) and ((self.linkedDomains.count() == 0) or (self.maxLinkedDomains == None)):
-            self.net.AddDomain(self)
         '''Новый домен добавляем в панель управления'''
         try:
             if self.stateSimple == 'new':

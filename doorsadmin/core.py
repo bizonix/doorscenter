@@ -1,11 +1,12 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import XrumerBaseR, Doorway, SpamTask, DoorwaySchedule, SnippetsSet, Agent, Event, EventLog
+from doorsadmin.models import XrumerBaseR, Doorway, SpamTask, DoorwaySchedule, SnippetsSet, Agent, Event, EventLog, Domain
 import random, datetime
 
 def Cron():
     '''Функция вызывается по расписанию'''
     GenerateSnippets()
+    GenerateNets()
     GenerateDoorways()
     GenerateSpamTasks()
     CheckAgentsActivity()
@@ -18,6 +19,12 @@ def GenerateSnippets():
         if (p.dateLastParsed==None) or (p.dateLastParsed + datetime.timedelta(0, p.interval*60*60, 0) < dt):
             p.stateManaged = 'new'
             p.save()
+
+def GenerateNets():
+    '''Плетем сети'''
+    for p in Domain.objects.filter(~Q(net=None), Q(maxLinkedDomains=None)).all(): 
+        p.net.AddDomain(p)
+        p.save()
 
 def GenerateDoorways():
     '''Генерируем дорвеи'''
