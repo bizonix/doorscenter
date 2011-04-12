@@ -11,9 +11,9 @@ $lang = file_get_contents("C:/Work/snippets/parser/language.txt");
 $fkeys = "C:/Work/snippets/parser/keywords.txt";
 
 //-------Прокси--------//
-//$http->setProxy("proxy:port");
+//$http->setProxy("139.19.142.3:3128");
 
-$googlesuka = "C:/Work/snippets/parser/proxy.txt"; //Гугл сука, банит нас
+$googlesuka = "Приносим свои извинения..."; //Гугл сука, банит нас
 
 
 //-------------------------Файлы---------------------------------------//
@@ -31,10 +31,11 @@ for($n=0;$n<count($keys);$n++)
 	echo "Parsing: ".$key."\r\n";
 	for($i=0;$i<$num;$i++)
 	{
-		$url = "http://www.google.com/search?hl=$lang&num=100&q=".urlencode($key)."&start=".$start; 
-		$start += 100;
+        $url = "http://www.google.com/search?hl=$lang&q=".urlencode($key)."&start=".$start;  // исправлено
+        $start += 10; // исправлено
 
-		$res = $http->GetData($ch, $url);
+        $res = $http->GetData($ch, $url);
+        sleep($pause); // подождать немного
 
 		if(!$http->CheckData($googlesuka, $res)){
 			preg_match_all("#<div class=\"s\">(.+)<br>#sU", $res, $text);
@@ -48,7 +49,7 @@ for($n=0;$n<count($keys);$n++)
 				$t = str_replace("&quot;", "", $t);
 				$t = str_replace(" &middot;", ".", $t);
 				$t = str_replace("&#39;", "'", $t);
-//				$t = iconv('utf-8', 'cp1251', $t);
+				$t = iconv('utf-8', 'cp1251', $t);
 				fwrite($fp, $t."\r\n");
 			}
 		}else{
