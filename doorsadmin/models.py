@@ -22,7 +22,7 @@ templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 @transaction.commit_manually
 def EventLog(type, text, object=None, addErrorMessage=None):
     '''Запись события в лог'''
-    if type != 'trace':
+    if type != 'trace2':
         if addErrorMessage:
             text += ': ' + str(addErrorMessage)
         objectName = ''
@@ -191,7 +191,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetDomainsCount.allow_tags = True
     def AddDomain(self, domain):
         '''Добавить домен в сетку'''
-        return None, 1  # TODO
+        return True  # TODO
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -348,9 +348,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     ipAddress = models.ForeignKey(IPAddress, verbose_name='IP Address', null=True, blank=True)
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
-    netLink1 = models.ForeignKey('self', verbose_name='Link 1', related_name='netLinks1', null=True, blank=True)
-    netLink2 = models.ForeignKey('self', verbose_name='Link 2', related_name='netLinks2', null=True, blank=True)
-    netLevel = models.IntegerField('Level', null=True)
+    linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', null=True, blank=True)
+    netLevel = models.IntegerField('Net Level', null=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     class Meta:
         verbose_name = 'Domain'
@@ -381,24 +380,17 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
         return self.IsFolderFree('/')
-    def GetNetLinksList(self):
+    def GetNetLinksList(self):  # TODO
         '''Получение ссылок для перелинковки'''
         linksList = []
-        if self.netLink1 != None:  # указан один связанный домен
-            for obj in self.netLink1.doorway_set.filter(stateManaged='done').all():
-                linksList.extend(obj.spamLinksList.split('\n'))
-        if self.netLink2 != None:  # указан другой связанный домен
-            for obj in self.netLink2.doorway_set.filter(stateManaged='done').all():
-                linksList.extend(obj.spamLinksList.split('\n'))
-        if (self.netLink1 == None) and (self.netLink2 == None) and (self.net != None):  # если для домена не указаны связи, но указана сетка
-            for obj1 in self.net.domain_set.filter(active=True).all():
-                for obj2 in obj1.doorway_set.filter(stateManaged='done').all():
-                    linksList.extend(obj2.spamLinksList.split('\n'))
+        for domain in self.linkedDomains.filter(pk__lt=self.pk).all():
+            for doorway in domain.doorway_set.filter(stateManaged='done').all():
+                linksList.extend(doorway.spamLinksList.split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def save(self, *args, **kwargs):
         '''Устанавливаем параметры сетки'''
         if self.net != None:
-            self.netLink1, self.netLevel = self.net.AddDomain(self)
+            self.net.AddDomain(self)
         '''Новый домен добавляем в панель управления'''
         try:
             if self.stateSimple == 'new':

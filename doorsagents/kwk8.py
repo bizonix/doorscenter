@@ -127,7 +127,8 @@ class Kwk8:
             if not x in hashes:
                 hashes.add(x)
                 newLines.append(line)
-        self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
+        if self.Count() != 0:
+            self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
         self.lines = newLines
         return self
     
@@ -142,7 +143,8 @@ class Kwk8:
                 if x.find(key) >= 0:
                     newLines.append(line)
                     break
-        self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
+        if self.Count() != 0:
+            self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
         self.lines = newLines
         return self
     
@@ -160,7 +162,8 @@ class Kwk8:
                     break
             if not found:
                 newLines.append(line)
-        self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
+        if self.Count() != 0:
+            self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
         self.lines = newLines
         return self
     

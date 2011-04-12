@@ -62,10 +62,10 @@ class EventAdmin(BaseAdmin):
 '''Domains group'''
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'netLink1', 'netLevel', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
         (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
-        ('Net', {'fields': [('netLink1', 'netLink2', 'netLevel')], 'classes': ['expanded']}),
+        ('Net', {'fields': [('linkedDomains', 'netLevel')], 'classes': ['expanded']}),
         ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2')], 'classes': ['expanded']}),
         ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
