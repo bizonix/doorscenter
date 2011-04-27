@@ -734,7 +734,8 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
         return 1000
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        return {'baseNumber': self.baseNumber, 
+        return {'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
+                'baseNumberDest': self.baseNumber,  # в случае создания базы R здесь указывается номер, присваемый созданной базе, в случае спама по базе R параметр не имеет значения
                 'nickName': self.nickName, 
                 'realName': self.realName, 
                 'password': self.password, 
@@ -773,7 +774,8 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     GetDoorsCount.allow_tags = True
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        result = self.xrumerBaseR.GetTaskDetails()
+        result = self.xrumerBaseR.GetTaskDetails()  # копируем информацию из базы R
+        result['baseNumber'] = self.xrumerBaseR.baseNumber  # перезаписываем нужные параметры
         result['snippetsFile'] = self.snippetsSet.localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.spamLinksList))
         return result
