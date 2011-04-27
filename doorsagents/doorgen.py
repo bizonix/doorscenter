@@ -17,7 +17,6 @@ class DoorgenAgent(agent.BaseAgent):
     def _Settings(self):
         '''Настройки'''
         self.appFolder = 'c:\\work\\aggress'  # папка с приложением
-        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/doorgen'  # папка с приложением
         self.appSettingsFile = os.path.join(self.appFolder, 'tunings' + os.sep + 'auto.ini')  # настройки 1
         self.appTuningsFile = os.path.join(self.appFolder, 'system' + os.sep + 'seting.ini')  # настройки 2
         self.appLinksPattern1File = os.path.join(self.appFolder, 'links' + os.sep + 'pattern1.txt')  # шаблон ссылок 1

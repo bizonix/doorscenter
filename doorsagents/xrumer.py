@@ -1,10 +1,10 @@
 # coding=utf8
-import os, datetime, codecs, kwk8, agent, common, win32gui
+import os, shutil, datetime, codecs, kwk8, agent, common, win32gui
 from xml.sax.saxutils import escape
 
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: baseNumber, nickName, realName, password, emailAddress, emailPassword, 
+    Входные: baseNumber, baseNumberDest, nickName, realName, password, emailAddress, emailPassword, 
     emailLogin, emailPopServer, subject, snippetsFile, spamLinksList.
     Выходные: successCount, halfSuccessCount, failsCount, profilesCount.
     
@@ -13,33 +13,37 @@ class XrumerAgent(agent.BaseAgent):
     def _Settings(self):
         '''Настройки'''
         self.appFolder = 'c:\\work\\xrumer7beta5'  # папка с приложением
-        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/xrumer'  # папка с приложением
         self.appCaption = 'XRumer 7.0 beta-5, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         self.snippetsFolder = 'C:\\Work\\snippets'
-        # self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
-        self.projectName = 'Project%d' % self.currentTask['id']
+        if self.currentTask['type'] == 'XrumerBaseR':
+            self.projectName = 'ProjectR%d' % self.currentTask['id']
+        if self.currentTask['type'] == 'SpamTask':
+            self.projectName = 'ProjectS%d' % self.currentTask['id']
         self.projectFile = os.path.join(self.appFolder, 'Projects', self.projectName + '.xml')
         self.logFileTemplate = os.path.join(self.appFolder, 'Logs', self.projectName, '%s id%d.txt' % ('%s', self.currentTask['baseNumber']))
         self.logSuccess = self.logFileTemplate % 'Success'
         self.logHalfSuccess = self.logFileTemplate % 'Halfsuccess'
         self.logFails = self.logFileTemplate % 'Others'
         self.logProfiles = self.logFileTemplate % 'Profiles'
+        self.appLinksFolder = os.path.join(self.appFolder, 'Links')
+        self.baseR1File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumber'])
+        self.baseR2File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberDest'])
         
         '''Содержимое файлов настроек'''
-        self.appSettingsDictMode1 = {'OnlyRegistering': '0',    # не реализовано
+        self.appSettingsDictMode1 = {'OnlyRegistering': '0',
             'RegisteringPlusPosting': '0', 
-            'FromRegistered': '1', 
+            'FromRegistered': '0', 
             'AggressiveMode': '0', 
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': '1', 
             'UploadAvatars': '0', 
             'EnableRefspam': '0', 
             'BBtoHTML': '1', 
-            'PostNewMode': '3',
+            'PostNewMode': '1',
             'SchedulerEnabled': '1',
             'CurrentJob': '0'}
         self.appSettingsDictMode2 = {'OnlyRegistering': '0', 
@@ -95,7 +99,7 @@ class XrumerAgent(agent.BaseAgent):
        escape(self.currentTask['emailAddress']), escape(self.currentTask['emailPassword']), escape(self.currentTask['emailLogin']), 
        escape(self.currentTask['emailPopServer']), escape(self.currentTask['subject']), escape(self.snippetsFile), escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')))
         
-        '''Файл расписания. Параметр в Schedule2: 0 - LinksList, 3 - RLinksList.'''
+        '''Файл расписания'''
         self.appScheduleFileContents = '''<?xml version="1.0" encoding="UTF-8"?>
 <body>
   <Schedule0>
@@ -150,6 +154,8 @@ class XrumerAgent(agent.BaseAgent):
 </body>
 ''' % ((datetime.datetime.now() + datetime.timedelta(0, 120)).strftime('%d.%m.%y %H:%M:00'), 
        escape(self.projectName), '%d', self.currentTask['baseNumber'], escape(self.doneScript))
+        self.appScheduleFileContentsMode1 = self.appScheduleFileContents % 0
+        self.appScheduleFileContentsMode2 = self.appScheduleFileContents % 3
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
@@ -161,10 +167,10 @@ class XrumerAgent(agent.BaseAgent):
         '''Установка настроек'''
         with open(self.appScheduleFile, 'w') as fd:
             if self.currentTask['type'] == 'XrumerBaseR':
-                fd.write(self.appScheduleFileContents % 0)
+                fd.write(self.appScheduleFileContentsMode1)
                 common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
             if self.currentTask['type'] == 'SpamTask':
-                fd.write(self.appScheduleFileContents % 3)
+                fd.write(self.appScheduleFileContentsMode2)
                 common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
@@ -176,6 +182,12 @@ class XrumerAgent(agent.BaseAgent):
         self._Settings()
         '''Закрытие приложения'''
         self._CloseApp(self.appCaption)
+        '''Копирование базы R'''
+        if self.currentTask['type'] == 'XrumerBaseR':
+            try:
+                shutil.copyfile(self.baseR1File, self.baseR2File)
+            except Exception:
+                print('Cannot copy the new base R')
         '''Выходные параметры'''
         self.currentTask['spamLinksList'] = []
         try:

@@ -10,8 +10,6 @@ class SnippetsAgent(agent.BaseAgent):
         '''Настройки'''
         self.appFolder = 'c:/work/snippets/parser'  # папка с приложением
         self.snippetsFolder = 'c:/work/snippets'  # папка с готовыми сниппетами
-        # self.appFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets/parser'  # папка с приложением
-        # self.snippetsFolder = '/home/sasch/workspace/doorscenter/src/doorscenter/test/snippets'  # папка с готовыми сниппетами
         self.appKeysFile = os.path.join(self.appFolder, 'keywords.txt')  # где приложение берет файл с кеями
         self.appTextFile = os.path.join(self.appFolder, 'text.txt')  # куда приложение пишет сниппеты
         self.localFile = os.path.join(self.snippetsFolder, self.currentTask['localFile'])  # куда поместить конечный файл
