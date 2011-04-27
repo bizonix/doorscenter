@@ -1,5 +1,6 @@
 # coding=utf8
 import os, sys, urllib, pickle, subprocess, datetime, base64
+from win32com.client import GetObject
 
 '''Для реализации агента требуется создать модуль с классом, унаследованным от 
 BaseAgent, и переопределить в нем методы _ActionOn() и _ActionOff(). 
@@ -45,6 +46,7 @@ class BaseAgent(object):
         self._ProcessCommandLine()
     
     def _ProcessCommandLine(self):
+        '''Обработка командной строки'''
         if len(sys.argv) > 1:
             if sys.argv[1] == 'cron':
                 self._Cron()
@@ -52,8 +54,19 @@ class BaseAgent(object):
                 self._Done()            
     
     def _IsMaintenanceMode(self):
+        '''Режим поддержки'''
         return os.path.isfile(self.maintenanceFileName)
     
+    def _IsHeavyLoad(self):
+        '''Есть ли в процессах тяжелые задачи'''
+        heavyProcessesList = ['AGGRESSDoorgen.exe', 'xpymep.exe']
+        processesList = GetObject('winmgmts:').InstancesOf('Win32_Process')
+        processesNames = [process.Properties_('Name').Value.lower() for process in processesList]
+        for processName in heavyProcessesList:
+            if processName.lower() in processesNames:
+                return True
+        return False
+        
     def _GetNextTask(self):
         '''Получить задание из очереди ЦА'''
         try:
@@ -127,19 +140,22 @@ class BaseAgent(object):
         dts = datetime.datetime.now().strftime('%d.%m.%y %H:%M')
         if not self._IsMaintenanceMode():
             if not self._HasTask():
-                self._GetNextTask()
-                if self._HasTask():
-                    print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
-                    try:
-                        self.currentTask['timeStart'] = datetime.datetime.now()
-                        self._SaveCurrentTaskData()
-                        self._ActionOn()
-                    except Exception as error:
-                        print('Error: %s' % error)
-                        self._SetCurrentTaskState('error', str(error))
-                        self._ReportTaskState()
+                if not self._IsHeavyLoad():
+                    self._GetNextTask()
+                    if self._HasTask():
+                        print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
+                        try:
+                            self.currentTask['timeStart'] = datetime.datetime.now()
+                            self._SaveCurrentTaskData()
+                            self._ActionOn()
+                        except Exception as error:
+                            print('Error: %s' % error)
+                            self._SetCurrentTaskState('error', str(error))
+                            self._ReportTaskState()
+                    else:
+                        print('%s - No tasks found' % dts)
                 else:
-                    print('%s - No tasks found' % dts)
+                    print('%s - Heavy load detected' % dts)
             else:
                 print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
         else:
