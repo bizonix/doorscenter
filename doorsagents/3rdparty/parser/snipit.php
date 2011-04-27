@@ -1,68 +1,59 @@
-п»ї<?
+<?
 set_time_limit(0);
 include("C:/Work/snippets/parser/httpdata.php");
 //---------------------------------------------------------------//
 $http = new httpdata;
 
-$num = 2; //Р“Р»СѓР±РёРЅР° РїР°СЂСЃРёРЅРіР°
-$file = "C:/Work/snippets/parser/text.txt"; //Р¤Р°Р№Р» РєСѓРґР° Р±СѓРґРµС‚ СЃРєРёРґС‹РІР°С‚СЃСЏ С‚РµРєСЃС‚
-//$lang = "ru"; //РЇР·С‹Рє РїР°СЂСЃРёРЅРіР° i.e(ru, en, ua. РќСѓР¶РЅРѕ РґР»СЏ РїР°СЂСЃРёРЅРіР° СЂСѓСЃСЃРєРѕРіРѕ С‚РµРєСЃС‚Р°, С‡С‚РѕР± РіСѓРіР» РѕС‚РґР°РІР°Р» РµРіРѕ РІ С‡РёС‚Р°РµРјРѕРј РІРёРґРµ.)
+$pause = 5; // новый параметр. Время между запросами к гуглу в секундах
+$num = 1; //Глубина парсинга
+$file = "C:/Work/snippets/parser/text.txt"; //Файл куда будет скидыватся текст
 $lang = file_get_contents("C:/Work/snippets/parser/language.txt");
 $fkeys = "C:/Work/snippets/parser/keywords.txt";
+$proxies = "C:/Work/snippets/parser/proxy.txt";
+$proxiesArray = file($proxies);
+$googlesuka = "Приносим свои извинения..."; //Гугл сука, банит нас
 
-//-------РџСЂРѕРєСЃРё--------//
-//$http->setProxy("139.19.142.3:3128");
-
-$googlesuka = "РџСЂРёРЅРѕСЃРёРј СЃРІРѕРё РёР·РІРёРЅРµРЅРёСЏ..."; //Р“СѓРіР» СЃСѓРєР°, Р±Р°РЅРёС‚ РЅР°СЃ
-
-
-//-------------------------Р¤Р°Р№Р»С‹---------------------------------------//
+//-------------------------Файлы---------------------------------------//
 $fp = fopen($file, "w+");
 $keys = file($fkeys);
 
-
-$ch = $http->CurlInit(); //РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј cUrl
-
-//-------------------------Р“Р»Р°РІРЅС‹Р№ С†РёРєР»---------------------------------------//
+//-------------------------Главный цикл---------------------------------------//
+$ch = $http->CurlInit(); //Инициализируем cUrl
 for($n=0;$n<count($keys);$n++)
 {
-	$key = trim($keys[$n]);
-	$start = 0;
-	echo "Parsing: ".$key."\r\n";
-	for($i=0;$i<$num;$i++)
-	{
-        $url = "http://www.google.com/search?hl=$lang&q=".urlencode($key)."&start=".$start;  // РёСЃРїСЂР°РІР»РµРЅРѕ
-        $start += 10; // РёСЃРїСЂР°РІР»РµРЅРѕ
+  $key = trim($keys[$n]);
+  echo "\r\n" . date('d.m.Y H:i:s') . " - parsing: " . $key;
+  for($i=0;$i<$num;$i++)
+  {
+    $url = "http://www.google.com/search?as_q=".urlencode($key)."&tbs=abx&num=100&hl=$lang&output=ie&filter=0";
+    $res = $http->GetData($ch, $url);
 
-        $res = $http->GetData($ch, $url);
-        sleep($pause); // РїРѕРґРѕР¶РґР°С‚СЊ РЅРµРјРЅРѕРіРѕ
+    if(!$http->CheckData($googlesuka, $res)){
+      preg_match_all("#<div class=\"s\">(.+)<br>#sU", $res, $text);
+      
+      $nn = 0;
+      foreach($text[1] as $t) {
+        $t = strip_tags($t);
+        $t = str_replace("...", "", $t);
+        $t = str_replace("&nbsp;", " ", $t);
+        $t = str_replace("&gt;", "", $t);
+        $t = str_replace("&quot;", "", $t);
+        $t = str_replace(" &middot;", ".", $t);
+        $t = str_replace("&#39;", "'", $t);
+        $t = iconv('utf-8', 'cp1251', $t);
+        fwrite($fp, $t."\r\n");
+        $nn++;
+      }
+      echo ", " . $nn;
+    } else {
+      echo "Гугл сука забанил";
+      die();
+    }
 
-		if(!$http->CheckData($googlesuka, $res)){
-			preg_match_all("#<div class=\"s\">(.+)<br>#sU", $res, $text);
-			
-			foreach($text[1] as $t)
-			{
-				$t = strip_tags($t);
-				$t = str_replace("...", "", $t);
-				$t = str_replace("&nbsp;", " ", $t);
-				$t = str_replace("&gt;", "", $t);
-				$t = str_replace("&quot;", "", $t);
-				$t = str_replace(" &middot;", ".", $t);
-				$t = str_replace("&#39;", "'", $t);
-				$t = iconv('utf-8', 'cp1251', $t);
-				fwrite($fp, $t."\r\n");
-			}
-		}else{
-			echo "Р“СѓРіР» СЃСѓРєР° Р·Р°Р±Р°РЅРёР»";
-			die();
-		}
-
-	}	
+  }  
 }
-fclose($fp);
 $http->CurlClose($ch);
 unset($ch);
+fclose($fp);
 unset($http);
-
-
 ?>
