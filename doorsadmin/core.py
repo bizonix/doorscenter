@@ -42,7 +42,7 @@ def GenerateSpamTasks():
     5. в одном задании может быть несколько доров. должно быть 2-4 разных домена, от каждого дора 3-5 ссылок.'''
     '''Сначала спамим не проспамленные доры, затем проспамленные 1 раз и т.д.'''
     EventLog('trace', 'GenerateSpamTasks')
-    dt = datetime.datetime.now() - datetime.timedelta(15)
+    dt = datetime.datetime.now() - datetime.timedelta(45)
     for spamCounter in range(1): 
         EventLog('trace', 'Spam Counter %d' % spamCounter)
         '''Цикл по активным готовым базам'''

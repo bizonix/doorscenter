@@ -54,6 +54,7 @@ class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class EventAdmin(BaseAdmin):
     list_display = ('pk', 'date', 'type', 'object', 'text')
+    list_filter = ['type']
     fieldsets = [
         (None, {'fields': ['date', ('type', 'object'), 'text']}),
     ]
@@ -118,8 +119,7 @@ class DoorwayAdmin(BaseAdminManaged):
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['description', 'language', 'active']}),
-        ('Lists', {'fields': ['stopwordsList'], 'classes': ['collapse']}),
+        (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
