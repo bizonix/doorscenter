@@ -723,12 +723,14 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     GetSpamTasksCount.allow_tags = True
     def GetDomainPosition(self, domain):
         '''Как давно домен спамился по этой базе'''
-        n = 0
+        n = 1
         for spamTask in self.spamtask_set.order_by('-pk').all():
             for doorway in spamTask.doorways.all():
                 if doorway.domain == domain:
+                    EventLog('trace', 'Domain position: %d' % n)
                     return n
             n += 1
+        EventLog('trace', 'Domain position: %d' % 1000)
         return 1000
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
