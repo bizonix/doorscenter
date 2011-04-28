@@ -6,7 +6,7 @@ class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: baseNumber, baseNumberDest, nickName, realName, password, emailAddress, emailPassword, 
     emailLogin, emailPopServer, subject, snippetsFile, spamLinksList.
-    Выходные: successCount, halfSuccessCount, failsCount, profilesCount.
+    Выходные: successCount, halfSuccessCount, failsCount, profilesCount, rBaseLinksCount.
     
     Два режима работы: 1 - создание базы R из сырой базы, 2 - спам по базе R.'''
     
@@ -206,6 +206,14 @@ class XrumerAgent(agent.BaseAgent):
             self.currentTask['profilesCount'] = kwk8.Kwk8Links(self.logProfiles, False).Count()
         except Exception:
             self.currentTask['profilesCount'] = 0
+        self.currentTask['rBaseLinksCount'] = 0
+        try:
+            if self.currentTask['type'] == 'XrumerBaseR':
+                self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
+            if self.currentTask['type'] == 'SpamTask':
+                self.currentTask['rBaseLinksCount'] = 0
+        except Exception:
+            pass
         return True
 
 if __name__ == '__main__':
