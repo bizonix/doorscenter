@@ -68,7 +68,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
         ('Net', {'fields': [('linkedDomains', 'netLevel', 'maxLinkedDomains')], 'classes': ['expanded']}),
         ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2')], 'classes': ['expanded']}),
-        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['collapse']}),
+        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

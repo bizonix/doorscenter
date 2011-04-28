@@ -53,6 +53,10 @@ def GetObjectByTaskType(taskType):
     elif taskType == 'SpamTask':
         return SpamTask
 
+def NextYearDate():
+    '''...'''
+    return datetime.date.today() + datetime.timedelta(365)
+
 '''Abstract models'''
 
 class BaseDoorObject(models.Model):
@@ -89,7 +93,7 @@ class BaseDoorObjectTrackable(models.Model):
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
     baseNumber = models.IntegerField('Base Number', unique=True)
-    linksCount = models.FloatField('Links Count, k', null=True)
+    linksCount = models.FloatField('Links Count, k', null=True, blank=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     class Meta:
         abstract = True
@@ -353,8 +357,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True, blank=True)
     host = models.ForeignKey(Host, verbose_name='Host', null=True)
     registrator = models.CharField('Registrator', max_length=200, default='', blank=True)
-    dateRegistered = models.DateField('Date Registered', null=True, blank=True)
-    dateExpires = models.DateField('Date Expires', null=True, blank=True)
+    dateRegistered = models.DateField('Date Registered', default=datetime.date.today, null=True, blank=True)
+    dateExpires = models.DateField('Date Expires', default=NextYearDate, null=True, blank=True)
     ipAddress = models.ForeignKey(IPAddress, verbose_name='IP Address', null=True, blank=True)
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
@@ -746,6 +750,11 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
                 'subject': self.subject, 
                 'snippetsFile': self.snippetsSet.localFile,
                 'spamLinksList': []}
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        if data['rBaseLinksCount'] != 0:
+            self.linksCount = data['rBaseLinksCount'] / 1000.0
+        super(XrumerBaseR, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -779,6 +788,12 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         result['snippetsFile'] = self.snippetsSet.localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.spamLinksList))
         return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        if data['rBaseLinksCount'] != 0:
+            self.xrumerBaseR.linksCount = data['rBaseLinksCount'] / 1000.0
+            self.xrumerBaseR.save()
+        super(XrumerBaseR, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише базы'''
         if self.snippetsSet == None:

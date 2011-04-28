@@ -14,6 +14,7 @@ def get(request, agentId):
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
+        agent.stateSimple = 'ok'
         agent.save()
         transaction.commit()
         '''Ищем задание'''
@@ -52,6 +53,7 @@ def update(request, agentId):
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
+        agent.stateSimple = 'ok'
         agent.save()
         transaction.commit()
         '''Обновляем задание'''
