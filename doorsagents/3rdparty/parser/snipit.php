@@ -25,7 +25,7 @@ for($n=0;$n<count($keys);$n++)
   echo "\r\n" . date('d.m.Y H:i:s') . " - parsing: " . $key;
   for($i=0;$i<$num;$i++)
   {
-    $url = "http://www.google.com/search?as_q=".urlencode($key)."&tbs=abx&num=100&hl=$lang&output=ie&filter=0";
+    $url = "http://www.google.com/search?as_q=".urlencode($key)."&tbs=qdr:z&num=100&hl=$lang&output=ie&filter=0";
     $res = $http->GetData($ch, $url);
 
     if(!$http->CheckData($googlesuka, $res)){
