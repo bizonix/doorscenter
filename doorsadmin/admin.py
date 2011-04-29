@@ -196,7 +196,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'description', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailPopServer'), ('emailLogin', 'emailPassword'), 'subject', ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

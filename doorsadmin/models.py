@@ -713,11 +713,10 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     nickName = models.CharField('Nick Name', max_length=200, default='')
     realName = models.CharField('Real Name', max_length=200, default='')
     password = models.CharField('Password', max_length=200, default='')
-    emailAddress = models.CharField('E.Address', max_length=200, default='')
-    emailLogin = models.CharField('E.Login', max_length=200, default='')
-    emailPassword = models.CharField('E.Password', max_length=200, default='')
-    emailPopServer = models.CharField('E.Pop Server', max_length=200, default='')
-    subject = models.CharField('Subject', max_length=200, default='')
+    emailAddress = models.CharField('E.Address', max_length=200, default='niiokr2012@gmail.com')
+    emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
+    emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
+    emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
     class Meta:
         verbose_name = 'Xrumer Base R'
         verbose_name_plural = 'IV.4 Xrumer Bases R - [managed]'
@@ -736,20 +735,25 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
             n += 1
         EventLog('trace', 'Domain position: %d' % 1000)
         return 1000
-    def GetTaskDetails(self):
-        '''Подготовка данных для работы агента'''
+    def GetTaskDetailsCommon(self):
+        '''Подготовка данных для работы агента - общая часть для задания на спам'''
         return {'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
                 'baseNumberDest': self.baseNumber,  # в случае создания базы R здесь указывается номер, присваемый созданной базе, в случае спама по базе R параметр не имеет значения
                 'nickName': self.nickName, 
                 'realName': self.realName, 
                 'password': self.password, 
-                'emailAddress': self.emailAddress, 
+                'emailAddress': self.emailAddress.replace('@gmail.com', '+%s@gmail.com' % self.nickName), 
                 'emailPassword': self.emailPassword, 
                 'emailLogin': self.emailLogin, 
                 'emailPopServer': self.emailPopServer, 
-                'subject': self.subject, 
                 'snippetsFile': self.snippetsSet.localFile,
-                'spamLinksList': []}
+                'spamLinksList': [],
+                'subjectsList': []}
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        result['subjectsList'] = self.niche.GenerateKeywordsList(5000)
+        return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         if data['rBaseLinksCount'] != 0:
@@ -783,7 +787,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     GetDoorsCount.allow_tags = True
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        result = self.xrumerBaseR.GetTaskDetails()  # копируем информацию из базы R
+        result = self.xrumerBaseR.GetTaskDetailsCommon()  # берем общую информацию из базы R
         result['baseNumber'] = self.xrumerBaseR.baseNumber  # перезаписываем нужные параметры
         result['snippetsFile'] = self.snippetsSet.localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.spamLinksList))
