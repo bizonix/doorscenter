@@ -129,7 +129,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     fieldsets = [
-        (None, {'fields': ['description', 'niche', ('localFolder', 'encoding'), 'active']}),
+        (None, {'fields': ['description', 'niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

@@ -4,7 +4,7 @@ from django.db.models import Sum
 import os, glob, math, random, urllib, string, codecs, datetime, re
 
 def SelectKeywords(path, encoding='utf-8', count=10):
-    ''' Создание списка кеев для доров по Бабулеру.
+    '''Создание списка кеев для доров по Бабулеру.
     Для каждого дора из каждого файла в папке берется заданный процент кеев.'''
     percentsTotal = 0
     inKeysList = []
@@ -31,6 +31,15 @@ def SelectKeywords(path, encoding='utf-8', count=10):
     '''Перемешиваем готовый список'''
     random.shuffle(outKeysList)
     return outKeysList
+
+def CountKeywords(path):
+    '''Считаем ключи'''
+    total = 0
+    '''Читаем файлы'''
+    for file in glob.glob(os.path.join(path, r'[*.txt')):
+        for _ in open(file, 'r'):
+            total += 1
+    return total
 
 def AddDomainToControlPanel(domainName, controlPanelType, controlPanelUrl):
     '''Добавить домен в панель управления'''

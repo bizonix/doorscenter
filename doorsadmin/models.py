@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
-from doorsadmin.common import SelectKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique
 import datetime, random
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -54,7 +54,7 @@ def GetObjectByTaskType(taskType):
         return SpamTask
 
 def NextYearDate():
-    '''...'''
+    '''Сегодняшняя дата плюс год'''
     return datetime.date.today() + datetime.timedelta(365)
 
 '''Abstract models'''
@@ -93,7 +93,7 @@ class BaseDoorObjectTrackable(models.Model):
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
     baseNumber = models.IntegerField('Base Number', unique=True)
-    linksCount = models.FloatField('Links Count, k', null=True, blank=True)
+    linksCount = models.FloatField('Links Count, k.', null=True, blank=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     class Meta:
         abstract = True
@@ -459,7 +459,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     localFolder = models.CharField('Local Folder', max_length=200, default='')
     encoding = models.CharField('Encoding', max_length=50, choices=encodings, default='cp1251')
-    keywordsCount = models.IntegerField('Keywords', null=True, blank=True)
+    keywordsCount = models.FloatField('Keys Count, k.', null=True, blank=True)
     class Meta:
         verbose_name = 'Keywords Set'
         verbose_name_plural = 'III.3 Keywords Sets - [act]'
@@ -477,6 +477,14 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
             return SelectKeywords(self.localFolder, self.encoding, count)
         except Exception as error:
             EventLog('error', 'Cannot generate keywords list', self, error)
+    def save(self, *args, **kwargs):
+        '''Если не указано число ключей, то считаем их'''
+        try:
+            if self.keywordsCount == None:
+                self.keywordsCount = CountKeywords(self.localFolder) / 1000.0
+        except Exception as error:
+            EventLog('error', 'Cannot count keywords list', self, error)
+        super(KeywordsSet, self).save(*args, **kwargs)
 
 class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
     '''Профиль доргена'''
