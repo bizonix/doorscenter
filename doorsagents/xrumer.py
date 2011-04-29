@@ -19,10 +19,12 @@ class XrumerAgent(agent.BaseAgent):
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         self.snippetsFolder = 'C:\\Work\\snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
-        if self.currentTask['type'] == 'XrumerBaseR':
+        if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
             self.projectName = 'ProjectR%d' % self.currentTask['id']
-        if self.currentTask['type'] == 'SpamTask':
+            self.subjectsFile = os.path.join(self.appFolder, 'Keys', 'Subjects%d.txt' % self.currentTask['baseNumberDest'])
+        if self.currentTask['type'] == 'SpamTask':  # mode 2
             self.projectName = 'ProjectS%d' % self.currentTask['id']
+            self.subjectsFile = os.path.join(self.appFolder, 'Keys', 'Subjects%d.txt' % self.currentTask['baseNumber'])
         self.projectFile = os.path.join(self.appFolder, 'Projects', self.projectName + '.xml')
         self.logFileTemplate = os.path.join(self.appFolder, 'Logs', self.projectName, '%s id%d.txt' % ('%s', self.currentTask['baseNumber']))
         self.logSuccess = self.logFileTemplate % 'Success'
@@ -88,7 +90,7 @@ class XrumerAgent(agent.BaseAgent):
     <PollOption5></PollOption5>
   </PrimarySection>
   <SecondarySection>
-    <Subject1>%s</Subject1>
+    <Subject1>#file_links[%s,1,N]</Subject1>
     <Subject2></Subject2>
     <PostText>#file_links[%s,7,S] %s</PostText>
     <Prior></Prior>
@@ -97,7 +99,7 @@ class XrumerAgent(agent.BaseAgent):
 </XRumerProject>
 ''' % (escape(self.projectName), escape(self.currentTask['nickName']), escape(self.currentTask['realName']), escape(self.currentTask['password']), 
        escape(self.currentTask['emailAddress']), escape(self.currentTask['emailPassword']), escape(self.currentTask['emailLogin']), 
-       escape(self.currentTask['emailPopServer']), escape(self.currentTask['subject']), escape(self.snippetsFile), escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')))
+       escape(self.currentTask['emailPopServer']), escape(self.subjectsFile), escape(self.snippetsFile), escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')))
         
         '''Файл расписания'''
         self.appScheduleFileContents = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -165,13 +167,21 @@ class XrumerAgent(agent.BaseAgent):
     def _ActionOn(self):
         self._Settings()
         '''Установка настроек'''
-        with open(self.appScheduleFile, 'w') as fd:
-            if self.currentTask['type'] == 'XrumerBaseR':
+        if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
+            with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode1)
-                common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
-            if self.currentTask['type'] == 'SpamTask':
+            common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
+            with open(self.subjectsFile, 'w') as fd:
+                fd.write('\n'.join(self.currentTask['subjectsList']))
+            if os.path.isfile(self.baseR1File):  # удаляем существующую базу R
+                try:
+                    os.remove(self.baseR1File)
+                except Exception:
+                    pass
+        if self.currentTask['type'] == 'SpamTask':  # mode 2
+            with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode2)
-                common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
+            common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
         '''Запуск приложения'''
@@ -183,7 +193,7 @@ class XrumerAgent(agent.BaseAgent):
         '''Закрытие приложения'''
         self._CloseApp(self.appCaption)
         '''Копирование базы R'''
-        if self.currentTask['type'] == 'XrumerBaseR':
+        if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
             try:
                 shutil.copyfile(self.baseR1File, self.baseR2File)
             except Exception:
@@ -208,9 +218,9 @@ class XrumerAgent(agent.BaseAgent):
             self.currentTask['profilesCount'] = 0
         self.currentTask['rBaseLinksCount'] = 0
         try:
-            if self.currentTask['type'] == 'XrumerBaseR':
+            if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
                 self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
-            if self.currentTask['type'] == 'SpamTask':
+            if self.currentTask['type'] == 'SpamTask':  # mode 2
                 self.currentTask['rBaseLinksCount'] = 0
         except Exception:
             pass
