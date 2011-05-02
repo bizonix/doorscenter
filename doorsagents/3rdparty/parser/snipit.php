@@ -18,7 +18,6 @@ $fp = fopen($file, "w+");
 $keys = file($fkeys);
 
 //-------------------------Главный цикл---------------------------------------//
-$ch = $http->CurlInit(); //Инициализируем cUrl
 for($n=0;$n<count($keys);$n++)
 {
   $key = trim($keys[$n]);
@@ -26,7 +25,11 @@ for($n=0;$n<count($keys);$n++)
   for($i=0;$i<$num;$i++)
   {
     $url = "http://www.google.com/search?as_q=".urlencode($key)."&tbs=qdr:z&num=100&hl=$lang&output=ie&filter=0";
+
+    $ch = $http->CurlInit(); //Инициализируем cUrl
     $res = $http->GetData($ch, $url);
+    $http->CurlClose($ch);
+    unset($ch);
 
     if(!$http->CheckData($googlesuka, $res)){
       preg_match_all("#<div class=\"s\">(.+)<br>#sU", $res, $text);
@@ -52,8 +55,6 @@ for($n=0;$n<count($keys);$n++)
 
   }  
 }
-$http->CurlClose($ch);
-unset($ch);
 fclose($fp);
 unset($http);
 ?>
