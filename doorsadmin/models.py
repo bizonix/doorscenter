@@ -805,7 +805,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         if data['rBaseLinksCount'] != 0:
             self.xrumerBaseR.linksCount = data['rBaseLinksCount'] / 1000.0
             self.xrumerBaseR.save()
-        super(XrumerBaseR, self).SetTaskDetails(data)
+        super(SpamTask, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише базы'''
         if self.snippetsSet == None:
