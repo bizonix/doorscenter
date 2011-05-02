@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, urllib, ftplib, agent, common
+import os, shutil, urllib, ftplib, io, tarfile, agent, common
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -12,6 +12,9 @@ class DoorgenAgent(agent.BaseAgent):
     keyword1|[domain]|[ftpLogin]|[ftpPassword]|[documentRoot](os.path.join)[domainFolder]|
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
+    
+    Минимальное содержимое командного файла cmd.php (для загрузки по FTP в архиве):
+    <?php system('tar -zxf bean.tgz'); unlink('bean.tgz'); ?>     
 '''
     
     def _Settings(self):
@@ -32,6 +35,7 @@ class DoorgenAgent(agent.BaseAgent):
         self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat'
         self.doorwayUrl = 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
         '''Содержимое файлов настроек'''
@@ -64,7 +68,7 @@ class DoorgenAgent(agent.BaseAgent):
             'AutoCountPage': '1',
             'CreatePatternBeforeGenerate': '0',
             'CreateLinksPastGenerate': '1',
-            'DownloadPastGenerate': '1',
+            'DownloadPastGenerate': '0',
             'CreateNewFolder': '0',
             'FindFolderForFTP': '0',
             'DownloadFTPThreade': '0',
@@ -109,6 +113,45 @@ class DoorgenAgent(agent.BaseAgent):
 '''
         self.appLinksPattern3Contents = '''{URL}
 '''
+        
+    def _Upload(self):
+        '''Константы'''
+        archiveFile = 'bean.tgz'
+        commandFile = 'cmd.php'
+        '''Создаем архив в памяти'''
+        fileObj = io.BytesIO()
+        tar = tarfile.open('', 'w:gz', fileobj=fileObj)
+        for filelocal in os.listdir(self.doorwayFolder):
+            filelocal = os.path.join(self.doorwayFolder, filelocal)
+            tar.add(filelocal, arcname=filelocal.replace(self.doorwayFolder, ''))
+        tar.close()
+        fileObj.seek(0)
+        '''Загружаем на FTP'''
+        remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
+        ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
+        try:
+            ftp.mkd(remoteFolder)
+        except Exception as error:
+            print(error)
+        try:
+            ftp.sendcmd('SITE CHMOD 02775 ' + remoteFolder)
+        except Exception as error:
+            print(error)
+        try:
+            ftp.storbinary('STOR ' + os.path.join(remoteFolder, archiveFile), fileObj)
+        except Exception as error:
+            print(error)
+        try:
+            with open(os.path.join(self.doorwayFolder, commandFile), 'r') as fd:
+                ftp.storbinary('STOR ' + os.path.join(remoteFolder, commandFile), fd)
+        except Exception as error:
+            print(error)
+        ftp.quit()
+        '''Дергаем командный урл'''
+        try:
+            urllib.urlopen(remoteUrl = self.doorwayUrl + '/' + commandFile)
+        except Exception as error:
+            print(error)
         
     def _ActionOn(self):
         self._Settings()
@@ -159,21 +202,14 @@ class DoorgenAgent(agent.BaseAgent):
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
-        '''Меняем разрешения на папку на FTP'''
+        '''Загружаем на FTP'''
         try:
-            ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.currentTask['documentRoot'])
-            ftp.sendcmd('SITE CHMOD 02775 %s%s' % (self.currentTask['documentRoot'], self.currentTask['domainFolder']))
-            ftp.quit()
+            self._Upload()
         except Exception as error:
             print('Error: %s' % error)
         '''Удаляем локальную папку'''
         try:
-            shutil.rmtree(self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId())
-        except Exception as error:
-            print('Error: %s' % error)
-        '''Дергаем командный урл на доре'''
-        try:
-            urllib.urlopen(self.doorwayUrl + '/cmd.php')
+            shutil.rmtree(self.doorwayFolder)
         except Exception as error:
             print('Error: %s' % error)
         return True
