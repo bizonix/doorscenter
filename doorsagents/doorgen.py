@@ -138,18 +138,18 @@ class DoorgenAgent(agent.BaseAgent):
         except Exception as error:
             print(error)
         try:
-            ftp.storbinary('STOR ' + os.path.join(remoteFolder, archiveFile), fileObj)
+            ftp.storbinary('STOR ' + remoteFolder + '/' + archiveFile, fileObj)
         except Exception as error:
             print(error)
         try:
             with open(os.path.join(self.doorwayFolder, commandFile), 'r') as fd:
-                ftp.storbinary('STOR ' + os.path.join(remoteFolder, commandFile), fd)
+                ftp.storbinary('STOR ' + remoteFolder + '/' + commandFile, fd)
         except Exception as error:
             print(error)
         ftp.quit()
         '''Дергаем командный урл'''
         try:
-            urllib.urlopen(remoteUrl = self.doorwayUrl + '/' + commandFile)
+            urllib.urlopen(self.doorwayUrl + '/' + commandFile)
         except Exception as error:
             print(error)
         
