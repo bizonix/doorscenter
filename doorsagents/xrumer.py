@@ -171,7 +171,7 @@ class XrumerAgent(agent.BaseAgent):
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode1)
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
-            with open(self.subjectsFile, 'w') as fd:
+            with codecs.open(self.subjectsFile, 'w', 'cp1251') as fd:
                 fd.write('\n'.join(self.currentTask['subjectsList']))
             if os.path.isfile(self.baseR1File):  # удаляем существующую базу R
                 try:

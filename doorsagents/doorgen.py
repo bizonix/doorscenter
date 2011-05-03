@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, urllib, ftplib, io, tarfile, agent, common
+import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -152,6 +152,23 @@ class DoorgenAgent(agent.BaseAgent):
             urllib.urlopen(self.doorwayUrl + '/' + commandFile)
         except Exception as error:
             print(error)
+            
+    def _CreateXmlSitemap(self):
+        '''Генерация карты XML'''
+        with open(os.path.join(self.doorwayFolder, 'sitemap.xml'), 'w') as fd:
+            fd.write('''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+''')
+            for link in open(self.appSpamLinks3File, 'r'):
+                fd.write('''   <url>
+      <loc>%s</loc>
+      <lastmod>%s</lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>0.5</priority>
+   </url>
+''' % (link.strip(), datetime.date.today().strftime('%Y-%m-%d')))
+            fd.write('''</urlset>
+''')
         
     def _ActionOn(self):
         self._Settings()
@@ -202,6 +219,11 @@ class DoorgenAgent(agent.BaseAgent):
         self.currentTask['spamLinksList'] = []
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
+        '''Custom actions'''
+        try:
+            self._CreateXmlSitemap()
+        except Exception as error:
+            print('Error: %s' % error)
         '''Загружаем на FTP'''
         try:
             self._Upload()
