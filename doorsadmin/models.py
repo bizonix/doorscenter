@@ -1,5 +1,5 @@
 # coding=utf8
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Max, Q
 from django.db import models, transaction
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
@@ -57,6 +57,10 @@ def NextYearDate():
     '''Сегодняшняя дата плюс год'''
     return datetime.date.today() + datetime.timedelta(365)
 
+def NextBaseNumber():
+    ''''''
+    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseR.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+
 '''Abstract models'''
 
 class BaseDoorObject(models.Model):
@@ -92,7 +96,7 @@ class BaseDoorObjectTrackable(models.Model):
 
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
-    baseNumber = models.IntegerField('Base Number', unique=True)
+    baseNumber = models.IntegerField('Base Number', unique=True, default=NextBaseNumber)
     linksCount = models.FloatField('Links Count, k.', null=True, blank=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     class Meta:
