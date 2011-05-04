@@ -113,7 +113,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     interval = models.IntegerField('Warning Interval, h.', null=True, default=3)
     class Meta:
         verbose_name = 'Agent'
-        verbose_name_plural = 'I. Agents - [act]'
+        verbose_name_plural = 'IV.1 # Agents - [act]'
     def GetDateLastPingAgo(self):
         return PrettyDate(self.dateLastPing)
     GetDateLastPingAgo.short_description = 'Last Ping'
@@ -175,7 +175,7 @@ class Event(models.Model):
     text = models.CharField('Description', max_length=1000, default='', blank=True)
     class Meta:
         verbose_name = 'Event'
-        verbose_name_plural = 'V. Events - [large]'
+        verbose_name_plural = 'IV.2 Events - [large]'
     def __unicode__(self):
         return '%s: %s' % (self.type, self.text)
 
@@ -184,7 +184,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     settings = models.TextField('Settings', default='', blank=True)
     class Meta:
         verbose_name = 'Net'
-        verbose_name_plural = 'II.2 Nets - [act]'
+        verbose_name_plural = 'I.1 # Nets - [act]'
     def GetDoorsCount(self):
         return None  #GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -227,7 +227,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     tdsSchemes = models.CharField('TDS Schemes', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Niche'
-        verbose_name_plural = 'III.2 Niches - [act]'
+        verbose_name_plural = 'I.2 Niches - [act]'
     def __unicode__(self):
         return '#%s %s (%s)' % (self.pk, self.description, self.language)
     def GetDoorsCount(self):
@@ -312,7 +312,7 @@ class Host(BaseDoorObject):
     ftpPort = models.IntegerField('FTP Port', default=21, blank=True)
     class Meta:
         verbose_name = 'Host'
-        verbose_name_plural = 'II.3 Hosts'
+        verbose_name_plural = 'III.1 # Hosts'
     def __unicode__(self):
         return '%s #%s %s' % (self.__class__.__name__, self.pk, self.company + ' - ' + self.hostName)
     def GetIPAddressesCount(self):
@@ -338,7 +338,7 @@ class IPAddress(BaseDoorObject):
     host = models.ForeignKey(Host, verbose_name='Host', null=True, blank=True)
     class Meta:
         verbose_name = 'IP Address'
-        verbose_name_plural = 'II.4 IP Addresses'
+        verbose_name_plural = 'III.2 IP Addresses'
     def __unicode__(self):
         return self.address
     def GetDomainsCount(self):
@@ -372,7 +372,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     class Meta:
         verbose_name = 'Domain'
-        verbose_name_plural = 'II. Domains - [act, large]'
+        verbose_name_plural = 'II.1 # Domains - [act, large]'
     def __unicode__(self):
         return self.name
     def GetDoorsMaxCount(self):
@@ -448,7 +448,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     localFolder = models.CharField('Local Folder', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Template'
-        verbose_name_plural = 'III.4 Templates - [act]'
+        verbose_name_plural = 'I.4 Templates - [act]'
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -466,7 +466,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     keywordsCount = models.FloatField('Keys Count, k.', null=True, blank=True)
     class Meta:
         verbose_name = 'Keywords Set'
-        verbose_name_plural = 'III.3 Keywords Sets - [act]'
+        verbose_name_plural = 'I.3 Keywords Sets - [act]'
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -495,7 +495,7 @@ class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
     settings = models.TextField('Settings', default='')
     class Meta:
         verbose_name = 'Doorgen Profile'
-        verbose_name_plural = 'III.5 Profiles - [act]'
+        verbose_name_plural = 'III.3 Profiles - [act]'
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -523,7 +523,7 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
     class Meta:
         verbose_name = 'Doorway Schedule'
-        verbose_name_plural = 'III.6 Schedules - [act]'
+        verbose_name_plural = 'I.5 Schedules - [act]'
     def GetDoorsTodayCount(self):
         return '%d/%d' % (self.doorsToday, self.doorsPerDay)
     GetDoorsTodayCount.short_description = 'Today/Max'
@@ -598,7 +598,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     spamLinksList = models.TextField('Self Links', default='', blank=True)  # ссылки дорвея для спама и линковки с сеткой
     class Meta:
         verbose_name = 'Doorway'
-        verbose_name_plural = 'III. Doorways - [large, managed]'
+        verbose_name_plural = 'II.2 Doorways - [large, managed]'
     def GetTemplateType(self):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
@@ -690,7 +690,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
-        verbose_name_plural = 'IV.2 Snippets Sets - [act, managed]'
+        verbose_name_plural = 'I.6 Snippets Sets - [act, managed]'
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
@@ -711,7 +711,7 @@ class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера. File-based.'''
     class Meta:
         verbose_name = 'Xrumer Base Raw'
-        verbose_name_plural = 'IV.3 Xrumer Bases Raw'
+        verbose_name_plural = 'III.4 Xrumer Bases Raw - [act]'
     def GetXrumerBasesRCount(self):
         return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesRCount.short_description = 'Bases R'
@@ -731,7 +731,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
     class Meta:
         verbose_name = 'Xrumer Base R'
-        verbose_name_plural = 'IV.4 Xrumer Bases R - [managed]'
+        verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam Tasks'
@@ -792,7 +792,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     spamLinksList = models.TextField('Spam Links', default='', blank=True)
     class Meta:
         verbose_name = 'Spam Task'
-        verbose_name_plural = 'IV. Spam Tasks - [large, managed]'
+        verbose_name_plural = 'II.3 Spam Tasks - [large, managed]'
     def GetDoorsCount(self):
         return GetCounter(self.doorways, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
