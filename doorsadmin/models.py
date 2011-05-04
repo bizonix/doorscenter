@@ -96,8 +96,8 @@ class BaseDoorObjectTrackable(models.Model):
 
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     '''База Хрумера. File-based.'''
-    baseNumber = models.IntegerField('Base Number', unique=True, default=NextBaseNumber)
-    linksCount = models.FloatField('Links Count, k.', null=True, blank=True)
+    baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
+    linksCount = models.FloatField('Count, k.', null=True, blank=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     class Meta:
         abstract = True
@@ -247,7 +247,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetKeywordsSetsCount.short_description = 'Keywords Sets'
     GetKeywordsSetsCount.allow_tags = True
     def GetDomainsCount(self):
-        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 3)
+        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 2)
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetXrumerBasesRCount(self):

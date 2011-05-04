@@ -63,7 +63,8 @@ class EventAdmin(BaseAdmin):
 '''Domains group'''
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'dateExpires', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'maxLinkedDomains', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'maxLinkedDomains', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['net', 'niche']
     fieldsets = [
         (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
         ('Net', {'fields': [('linkedDomains', 'netLevel', 'maxLinkedDomains')], 'classes': ['expanded']}),
@@ -118,6 +119,7 @@ class DoorwayAdmin(BaseAdminManaged):
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['language']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
@@ -128,6 +130,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['niche']
     fieldsets = [
         (None, {'fields': ['description', 'niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -137,6 +140,7 @@ class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'type', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['niche']
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'type'), 'localFolder', 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -155,6 +159,7 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['net', 'niche']
     fieldsets = [
         (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
@@ -177,6 +182,7 @@ class SpamTaskAdmin(BaseAdminManaged):
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_filter = ['niche']
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -195,6 +201,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'description', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_filter = ['niche']
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
