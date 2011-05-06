@@ -65,6 +65,7 @@ class EventAdmin(BaseAdmin):
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'maxLinkedDomains', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['net', 'niche']
+    search_fields = ['name']
     fieldsets = [
         (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
         ('Net', {'fields': [('linkedDomains', 'netLevel', 'maxLinkedDomains')], 'classes': ['expanded']}),
@@ -200,10 +201,10 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('baseNumber', 'description', 'linksCount', 'niche', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['niche']
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount'), ('niche', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
