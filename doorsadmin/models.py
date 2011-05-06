@@ -4,6 +4,7 @@ from django.db import models, transaction
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
+from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique
 import datetime, random
 
@@ -35,6 +36,8 @@ def EventLog(type, text, object=None, addErrorMessage=None):
                              object=objectName, 
                              text=text).save()
         transaction.commit()
+        if type == 'error':
+            send_mail('Doors Center', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
 
 def ObjectLog(object, changeMessage):
     '''Запись в историю объекта'''
@@ -82,7 +85,7 @@ class BaseDoorObject(models.Model):
 
 class BaseDoorObjectActivatable(models.Model):
     '''Объекты, активностью которых можно управлять'''
-    active = models.BooleanField('Active', default=True)
+    active = models.BooleanField('Ac.', default=True)
     class Meta:
         abstract = True
 
@@ -102,7 +105,7 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
     class Meta:
         abstract = True
     def __unicode__(self):
-        return "Base #%d" % self.baseNumber
+        return "#%d" % self.baseNumber
 
 '''Real models'''
 
@@ -150,10 +153,10 @@ class BaseDoorObjectManaged(models.Model):
 
 class BaseDoorObjectSpammable(BaseDoorObjectManaged):
     '''Объект, по которому спамят'''
-    successCount = models.IntegerField('Success', null=True, blank=True)
-    halfSuccessCount = models.IntegerField('H/Success', null=True, blank=True)
-    failsCount = models.IntegerField('Fails', null=True, blank=True)
-    profilesCount = models.IntegerField('Profiles', null=True, blank=True)
+    successCount = models.IntegerField('Sc.', null=True, blank=True)
+    halfSuccessCount = models.IntegerField('Hs.', null=True, blank=True)
+    failsCount = models.IntegerField('Fl.', null=True, blank=True)
+    profilesCount = models.IntegerField('Pr.', null=True, blank=True)
     class Meta:
         abstract = True
     def SetTaskDetails(self, data):
@@ -175,7 +178,7 @@ class Event(models.Model):
     text = models.CharField('Description', max_length=1000, default='', blank=True)
     class Meta:
         verbose_name = 'Event'
-        verbose_name_plural = 'IV.2 Events - [large]'
+        verbose_name_plural = 'IV.2 Events'
     def __unicode__(self):
         return '%s: %s' % (self.type, self.text)
 
@@ -685,7 +688,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     localFile = models.CharField('Local File', max_length=200, default='')
     keywordsCount = models.IntegerField('Keywords', null=True, default=500)
-    interval = models.IntegerField('Parsing Interval, h.', null=True, default=100)
+    interval = models.IntegerField('Interval, h.', null=True, default=100)
     dateLastParsed = models.DateTimeField('Last Parsed', null=True, blank=True)
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
@@ -734,7 +737,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
         verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
-    GetSpamTasksCount.short_description = 'Spam Tasks'
+    GetSpamTasksCount.short_description = 'Spam'
     GetSpamTasksCount.allow_tags = True
     def GetDomainPosition(self, domain):
         '''Как давно домен спамился по этой базе'''
