@@ -364,14 +364,14 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True, blank=True)
     host = models.ForeignKey(Host, verbose_name='Host', null=True)
     registrator = models.CharField('Registrator', max_length=200, default='', blank=True)
-    dateRegistered = models.DateField('Date Registered', default=datetime.date.today, null=True, blank=True)
-    dateExpires = models.DateField('Date Expires', default=NextYearDate, null=True, blank=True)
+    dateRegistered = models.DateField('Registered', default=datetime.date.today, null=True, blank=True)
+    dateExpires = models.DateField('Expires', default=NextYearDate, null=True, blank=True)
     ipAddress = models.ForeignKey(IPAddress, verbose_name='IP Address', null=True, blank=True)
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=True, null=True, blank=True)
-    maxLinkedDomains = models.IntegerField('Max Linked', null=True, blank=True)
-    netLevel = models.IntegerField('Net Level', null=True)
+    maxLinkedDomains = models.IntegerField('Max Lnk.', null=True, blank=True)
+    netLevel = models.IntegerField('Net Lvl.', null=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     class Meta:
         verbose_name = 'Domain'
@@ -380,7 +380,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         return self.name
     def GetDoorsMaxCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'}) + '/%d' % self.maxDoorsCount
-    GetDoorsMaxCount.short_description = 'Doors/Max'
+    GetDoorsMaxCount.short_description = 'Doors'
     GetDoorsMaxCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
@@ -514,7 +514,7 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
     template = models.ForeignKey(Template, verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Keywords Set', null=True, blank=True)
-    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Drg Prof.', null=True)
+    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Profile', null=True)
     minPagesCount = models.IntegerField('Min Pgs', null=True)
     maxPagesCount = models.IntegerField('Max Pgs', null=True)
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=1)
@@ -526,10 +526,10 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
     class Meta:
         verbose_name = 'Doorway Schedule'
-        verbose_name_plural = 'I.5 Schedules - [act]'
+        verbose_name_plural = 'I.5 Doorway Schedules - [act]'
     def GetDoorsTodayCount(self):
         return '%d/%d' % (self.doorsToday, self.doorsPerDay)
-    GetDoorsTodayCount.short_description = 'Today/Max'
+    GetDoorsTodayCount.short_description = 'Today'
     GetDoorsTodayCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
