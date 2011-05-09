@@ -109,6 +109,7 @@ class IPAddressAdmin(BaseAdminSimple):
     
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    search_fields = ['domain__name']
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList', 'spamLinksList'], 'classes': ['expanded']}),
