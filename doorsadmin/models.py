@@ -85,7 +85,7 @@ class BaseDoorObject(models.Model):
 
 class BaseDoorObjectActivatable(models.Model):
     '''Объекты, активностью которых можно управлять'''
-    active = models.BooleanField('Ac.', default=True)
+    active = models.BooleanField('Act.', default=True)
     class Meta:
         abstract = True
 
@@ -189,11 +189,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         verbose_name = 'Net'
         verbose_name_plural = 'I.1 # Nets - [act]'
     def GetDoorsCount(self):
-        return None  #GetCounter(self.doorway_set, {'stateManaged': 'done'})
+        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return None  #GetPagesCounter(self.doorway_set)
+        return self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx']
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetDomainsCount(self):
@@ -327,7 +327,7 @@ class Host(BaseDoorObject):
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetDoorsCount(self):
-        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']  # !!! здесь и ниже считается неверно, 4 места
+        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
