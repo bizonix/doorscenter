@@ -78,6 +78,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'settings', 'active']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
@@ -120,8 +121,9 @@ class DoorwayAdmin(BaseAdminManaged):
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language']
+    ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
@@ -131,10 +133,10 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche']
     fieldsets = [
-        (None, {'fields': ['description', 'niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
+        (None, {'fields': ['niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

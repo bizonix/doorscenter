@@ -247,7 +247,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetTemplatesCount.allow_tags = True
     def GetKeywordsSetsCount(self):
         return GetCounter(self.keywordsset_set, {'active': True}, lambda x: x <= 0)
-    GetKeywordsSetsCount.short_description = 'Keywords Sets'
+    GetKeywordsSetsCount.short_description = 'Keywords'
     GetKeywordsSetsCount.allow_tags = True
     def GetDomainsCount(self):
         return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 2)
@@ -258,12 +258,12 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetXrumerBasesRCount.short_description = 'Bases R'
     GetXrumerBasesRCount.allow_tags = True
     def GetSpamTasksCount(self):
-        return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
-    GetSpamTasksCount.short_description = 'Spam Tasks'
+        return None #self.xrumerBaseR_set.annotate(x=Sum('spamTask')).aggregate(xx=Sum('x'))['xx'] #GetCounter(self.spamtask_set, {'stateManaged': 'done'})
+    GetSpamTasksCount.short_description = 'Spam'
     GetSpamTasksCount.allow_tags = True
     def GetSnippetsSetsCount(self):
         return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0)
-    GetSnippetsSetsCount.short_description = 'Snippets Sets'
+    GetSnippetsSetsCount.short_description = 'Snippets'
     GetSnippetsSetsCount.allow_tags = True
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
@@ -304,9 +304,9 @@ class Host(BaseDoorObject):
     type = models.CharField('Host Type', max_length=50, choices=hostTypes, default='shared', blank=True)
     company = models.CharField('Company', max_length=200, default='', blank=True)
     hostName = models.CharField('Host Name', max_length=200, default='', blank=True)
-    costPerMonth = models.IntegerField('Cost per Month, $', null=True, blank=True)
-    diskSpace = models.IntegerField('Disk Space, Gb', null=True, blank=True)
-    traffic = models.IntegerField('Traffic, Gb/m', null=True, blank=True)
+    costPerMonth = models.IntegerField('Cost, $', null=True, blank=True)
+    diskSpace = models.IntegerField('Disk, Gb', null=True, blank=True)
+    traffic = models.IntegerField('Traf., Gb', null=True, blank=True)
     controlPanelType = models.CharField('Control Panel Type', max_length=50, choices=hostControlPanelTypes, default='none', blank=True)
     controlPanelUrl = models.CharField('Control Panel URL', max_length=200, default='', blank=True)
     rootDocumentTemplate = models.CharField('Document Path', max_length=200, default='')
