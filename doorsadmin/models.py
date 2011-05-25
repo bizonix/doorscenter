@@ -77,7 +77,13 @@ class BaseDoorObject(models.Model):
     class Meta:
         abstract = True
     def __unicode__(self):
-        return '#%s %s' % (self.pk, self.description)
+        if self.description:
+            return self.description
+        else:
+            try:
+                return '#%s \'%s\'' % (self.pk, self.niche.description)
+            except Exception:
+                return '#%s' % (self.pk)
     def save(self, *args, **kwargs):
         if self.stateSimple == 'new':
             self.stateSimple = 'ok'
@@ -200,6 +206,10 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.domain_set, {'active': True})
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
+    def GetSchedulesCount(self):
+        return GetCounter(self.doorwayschedule_set, {'active': True})
+    GetSchedulesCount.short_description = 'Schedules'
+    GetSchedulesCount.allow_tags = True
     def AddDomain(self, newDomain):
         '''Добавить домен в сетку'''
         newDomain.linkedDomains.clear()
@@ -232,7 +242,11 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         verbose_name = 'Niche'
         verbose_name_plural = 'I.2 Niches - [act]'
     def __unicode__(self):
-        return '#%s %s (%s)' % (self.pk, self.description, self.language)
+        return '#%s %s' % (self.pk, self.description)
+    def GetStopWordsCount(self):
+        return len(self.stopwordsList.split('\n'))
+    GetStopWordsCount.short_description = 'Stopwords'
+    GetStopWordsCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -242,27 +256,31 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetTemplatesCount(self):
-        return GetCounter(self.template_set, {'active': True}, lambda x: x <= 0)
+        return GetCounter(self.template_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetTemplatesCount.short_description = 'Templates'
     GetTemplatesCount.allow_tags = True
     def GetKeywordsSetsCount(self):
-        return GetCounter(self.keywordsset_set, {'active': True}, lambda x: x <= 0)
+        return GetCounter(self.keywordsset_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetKeywordsSetsCount.short_description = 'Keywords'
     GetKeywordsSetsCount.allow_tags = True
     def GetDomainsCount(self):
-        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 2)
+        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 2 and self.active)
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
+    def GetSchedulesCount(self):
+        return GetCounter(self.doorwayschedule_set, {'active': True}, lambda x: x <= 0 and self.active)
+    GetSchedulesCount.short_description = 'Schedules'
+    GetSchedulesCount.allow_tags = True
     def GetXrumerBasesRCount(self):
-        return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0)
+        return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
     GetXrumerBasesRCount.short_description = 'Bases R'
     GetXrumerBasesRCount.allow_tags = True
     def GetSpamTasksCount(self):
-        return None #self.xrumerBaseR_set.annotate(x=Sum('spamTask')).aggregate(xx=Sum('x'))['xx'] #GetCounter(self.spamtask_set, {'stateManaged': 'done'})
+        return self.xrumerbaser_set.annotate(x=Count('spamtask')).aggregate(xx=Sum('x'))['xx']
     GetSpamTasksCount.short_description = 'Spam'
     GetSpamTasksCount.allow_tags = True
     def GetSnippetsSetsCount(self):
-        return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0)
+        return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetSnippetsSetsCount.short_description = 'Snippets'
     GetSnippetsSetsCount.allow_tags = True
     def GetRandomTemplate(self):

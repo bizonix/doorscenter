@@ -77,7 +77,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['netLevel', 'lastError', 'dateAdded', 'dateChanged']
     
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'settings', 'active']}),
@@ -121,7 +121,7 @@ class DoorwayAdmin(BaseAdminManaged):
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language']
     ordering = ['description']
     fieldsets = [
