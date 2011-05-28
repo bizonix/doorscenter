@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero
 import datetime, random, re
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -195,11 +195,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         verbose_name = 'Net'
         verbose_name_plural = 'I.1 # Nets - [act]'
     def GetDoorsCount(self):
-        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetDomainsCount(self):
@@ -278,7 +278,17 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetSnippetsSetsCount.short_description = 'Snip.'
     GetSnippetsSetsCount.allow_tags = True
     def GetSpamLinksCount(self):
-        return '%d/%d' % (SpamLink.objects.filter(~Q(spamTask=None), Q(doorway__niche=self)).count(), SpamLink.objects.filter(Q(doorway__niche=self)).count())
+        n1 = SpamLink.objects.filter(~Q(spamTask=None), Q(doorway__niche=self)).count()
+        n2 = SpamLink.objects.filter(Q(doorway__niche=self)).count()
+        if n1 != 0:
+            s1 = '%d' % n1
+        else:
+            s1 = '-'
+        if n2 != 0:
+            s2 = '%d' % n2
+        else:
+            s2 = '-'
+        return '%s/%s' % (s1, s2)
     GetSpamLinksCount.short_description = 'Spam'
     GetSpamLinksCount.allow_tags = True
     def GetRandomTemplate(self):
@@ -410,11 +420,11 @@ class Host(BaseDoorObject):
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetDoorsCount(self):
-        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     
@@ -432,11 +442,11 @@ class IPAddress(BaseDoorObject):
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetDoorsCount(self):
-        return self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx']
+        return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     
@@ -705,7 +715,12 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
     def GetSpamLinksCount(self):
-        return '%d/%d' % (SpamLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count(), self.spamLinksCount)
+        n1 = SpamLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count()
+        if n1 != 0:
+            s1 = '%d' % n1
+        else:
+            s1 = '-'
+        return '%s/%d' % (s1, self.spamLinksCount)
     GetSpamLinksCount.short_description = 'Lnks'
     GetSpamLinksCount.allow_tags = True
     def GetSpamLinksList(self):

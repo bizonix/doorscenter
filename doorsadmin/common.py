@@ -192,8 +192,15 @@ def GetPagesCounter(objects):
     '''То же самое, но для страниц доров'''
     try:
         n = '%s' % objects.aggregate(x = Sum('pagesCount'))['x']
-        if n == '0':
+        if n == '0' or n == 'None':
             n = '-'
         return n
     except Exception:
         return '-'
+
+def ReplaceZero(s):
+    '''Заменяем None на тире'''
+    if s == None or s == 0 or s == 'None' or s == '0':
+        return '-'
+    else:
+        return s
