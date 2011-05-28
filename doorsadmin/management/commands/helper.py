@@ -36,5 +36,4 @@ class Command(BaseCommand):
                     SpamLink.objects.create(url=url, anchor=anchor, doorway=doorway).save()
     
     def handle(self, *args, **options):
-        self._FillSpamLinks()
         self.stdout.write('Done\n')

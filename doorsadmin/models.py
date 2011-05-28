@@ -6,7 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique
-import datetime, random
+import datetime, random, re
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -273,10 +273,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
     GetXrumerBasesRCount.short_description = 'Bases R'
     GetXrumerBasesRCount.allow_tags = True
-    def GetSpamTasksCount(self):
-        return self.xrumerbaser_set.annotate(x=Count('spamtask')).aggregate(xx=Sum('x'))['xx']
-    GetSpamTasksCount.short_description = 'Spam'
-    GetSpamTasksCount.allow_tags = True
     def GetSnippetsSetsCount(self):
         return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetSnippetsSetsCount.short_description = 'Snippets'
@@ -423,7 +419,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         linksList = []
         for domain in self.linkedDomains.filter(pk__lt=self.pk).all():
             for doorway in domain.doorway_set.filter(stateManaged='done').all():
-                linksList.extend(doorway.spamLinksList.split('\n'))
+                linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def save(self, *args, **kwargs):
         '''Новый домен добавляем в панель управления'''
@@ -601,6 +597,19 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
             EventLog('error', 'Cannot generate dorways', self, error)
         self.save()
         
+class SpamLink(models.Model):
+    '''Ссылки для спама'''
+    url = models.CharField('URL', max_length = 1000, default = '')
+    anchor = models.CharField('Anchor', max_length = 1000, default = '')
+    doorway = models.ForeignKey('Doorway', verbose_name='Doorway')
+    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
+    class Meta:
+        verbose_name = 'Spam Link'
+        verbose_name_plural = 'II.3 Spam Links - [large]'
+    def IsAssigned(self):
+        return self.spamTask != None
+    IsAssigned.short_description = 'Ass.'
+    
 class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     '''Дорвей'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
@@ -614,25 +623,26 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
-    spamLinksList = models.TextField('Self Links', default='', blank=True)  # ссылки дорвея для спама и линковки с сеткой
     class Meta:
         verbose_name = 'Doorway'
         verbose_name_plural = 'II.2 Doorways - [large, managed]'
     def GetTemplateType(self):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
-    def GetSpamTasksCount(self):
-        return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
-    GetSpamTasksCount.short_description = 'Spam'
-    GetSpamTasksCount.allow_tags = True
     def GetUrl(self):
         return '<a href="http://www.%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
+    def GetSpamLinksList(self):
+        '''Получаем список ссылок для спама'''
+        s = ''
+        for spamLink in SpamLink.objects.filter(doorway=self):
+            s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
+        return s
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({
-                'keywordsList': EncodeListForAgent(self.keywordsList),
+                'keywordsList': EncodeListForAgent(self.keywordsList), 
                 'templateFolder': self.template.localFolder, 
                 'doorgenSettings': EncodeListForAgent(self.doorgenProfile.settings), 
                 'domain': self.domain.name, 
@@ -647,7 +657,22 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'ftpPort': self.domain.host.ftpPort})
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        self.spamLinksList = DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount])
+        rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
+        for link in DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount]).split('\n'):
+            '''Парсим'''
+            link = link.strip()
+            x = rxHtml.match(link)
+            if not x:
+                continue
+            if len(x.groups()) != 2:
+                continue
+            url = x.groups()[0]
+            anchor = x.groups()[1]
+            '''Создаем ссылки'''
+            SpamLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+            if url.endswith('/index.html'):
+                url = url.replace('/index.html', '/sitemap.html')
+                SpamLink.objects.create(url=url, anchor=anchor, doorway=self).save()
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
         if self.template == None:
@@ -699,19 +724,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.domain.save()
         super(Doorway, self).save(*args, **kwargs)
 
-class SpamLink(models.Model):
-    '''Ссылки для спама'''
-    url = models.CharField('URL', max_length = 1000, default = '')
-    anchor = models.CharField('Anchor', max_length = 1000, default = '')
-    doorway = models.ForeignKey(Doorway, verbose_name='Doorway')
-    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
-    class Meta:
-        verbose_name = 'Spam Link'
-        verbose_name_plural = 'II.3 Spam Links - [large]'
-    def IsAssigned(self):
-        return self.spamTask != None
-    IsAssigned.short_description = 'Ass.'
-    
 class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManaged):
     '''Сниппеты'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
@@ -820,8 +832,6 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
     xrumerBaseR = models.ForeignKey(XrumerBaseR, verbose_name='Base R', null=True)
     snippetsSet = models.ForeignKey(SnippetsSet, verbose_name='Snippets', null=True, blank=True)
-    doorways = models.ManyToManyField(Doorway, verbose_name='Doorways', null=True, blank=True)
-    spamLinksList = models.TextField('Spam Links', default='', blank=True)
     class Meta:
         verbose_name = 'Spam Task'
         verbose_name_plural = 'II.4 Spam Tasks - [large, managed]'
@@ -829,12 +839,18 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         return GetCounter(self.doorways, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
+    def GetSpamLinksList(self):
+        '''Получаем список ссылок для спама'''
+        s = ''
+        for spamLink in SpamLink.objects.filter(spamTask=self):
+            s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
+        return s
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseR.GetTaskDetailsCommon()  # берем общую информацию из базы R
         result['baseNumber'] = self.xrumerBaseR.baseNumber  # перезаписываем нужные параметры
         result['snippetsFile'] = self.snippetsSet.localFile
-        result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.spamLinksList))
+        result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
