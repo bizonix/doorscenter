@@ -186,7 +186,7 @@ class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
 '''Spam group'''
 
 class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'GetDoorsCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     fieldsets = [
         (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -219,6 +219,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_filter = ['niche']
     fieldsets = [
         (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        ('Spam parameters', {'fields': [('spamTaskDomainsMin', 'spamTaskDomainsMax', 'nextSpamTaskDomainsCount'), ('spamTaskDomainLinksMin', 'spamTaskDomainLinksMax')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

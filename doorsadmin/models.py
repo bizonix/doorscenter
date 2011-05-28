@@ -295,6 +295,12 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return SnippetsSet.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a snippets set', self, error)
+    def GetRandomBaseR(self):
+        '''Получить случайную базу R'''
+        try:
+            return XrumerBaseR.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?')[:1].get()
+        except Exception as error:
+            EventLog('error', 'Cannot find a base R', self, error)
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -310,6 +316,62 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return self.GetRandomKeywordsSet().GenerateKeywordsList(count)
         except Exception as error:
             EventLog('error', 'Cannot generate keywords list', self, error)
+    def GenerateSpamTasks(self):
+        '''Генерируем задания для спама. Постановка задачи:
+            - ссылки для спама прогонять по базе р ниши дора; 
+            - в одном задании может быть только одна база р, соответственно только одна ниша; 
+            - в одном задании должно быть 3-5 разных доменов, от каждого домена 3-5 ссылок; 
+            - один домен по одной базе должен прогоняться не чаще, чем через 10 прогонов.'''
+        try:
+            '''Инициализируем переменные'''
+            print('- niche: %s' % self)
+            xrumerBaseR = self.GetRandomBaseR()
+            linksList = []  # ссылки задания
+            linksLeft = 0  # сколько всего ссылок должно быть в задании
+            domainsList = {}  # домены задания: домен => число ссылок от него
+            domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
+            '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
+            for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self)).order_by('?').all(): 
+                print(spamLink.url)
+                domain = spamLink.doorway.domain
+                if domain in domainsList:
+                    if domainsList[domain] <= 0:  # по домену превысили число ссылок
+                        print('* max links exceeded')
+                        continue
+                elif domainsLeft <= 0:  # превышено число доменов
+                    print('* max domains exceeded')
+                    continue
+                elif xrumerBaseR.GetDomainPosition(domain) < 10:  # отсекаем домены, которые спамились по базе < 10 раз назад
+                    print('* domain position')
+                    continue
+                else: 
+                    x = xrumerBaseR.GetSpamTaskDomainLinksCount()  # сколько ссылок в задании должно быть от этого домена, макс.
+                    linksLeft += x
+                    domainsList[domain] = x
+                    domainsLeft -= 1
+                linksList.append(spamLink)
+                linksLeft -= 1
+                domainsList[domain] -= 1
+                print('%d %d' % (linksLeft, domainsLeft))
+                '''Создаем задание'''
+                if linksLeft == 0 and domainsLeft == 0:
+                    spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
+                    spamTask.save()
+                    for link in linksList:
+                        link.spamTask = spamTask
+                        link.save()
+                    xrumerBaseR.nextSpamTaskDomainsCount = None
+                    xrumerBaseR.save()
+                    print('created')
+                    '''Инициализируем переменные'''
+                    xrumerBaseR = self.GetRandomBaseR()
+                    linksList = []  # ссылки задания
+                    linksLeft = 0  # сколько всего ссылок должно быть в задании
+                    domainsList = {}  # домены задания: домен => число ссылок от него
+                    domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
+        except Exception as error:
+            print('error: %s' % error)
+            EventLog('trace', 'Error in GenerateSpamTasks', self, error)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''
@@ -773,6 +835,11 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
+    spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
+    spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
+    nextSpamTaskDomainsCount = models.IntegerField('...', default = 4)
+    spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
+    spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
     class Meta:
         verbose_name = 'Xrumer Base R'
         verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
@@ -780,15 +847,19 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam'
     GetSpamTasksCount.allow_tags = True
+    def GetSpamTaskDomainLinksCount(self):
+        return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
     def GetDomainPosition(self, domain):
         '''Как давно домен спамился по этой базе'''
         n = 1
         for spamTask in self.spamtask_set.order_by('-pk').all():
-            for doorway in spamTask.doorways.all():
-                if doorway.domain == domain:
+            for spamLink in spamTask.spamlink_set.all():
+                if spamLink.doorway.domain == domain:
                     EventLog('trace', 'Domain position: %d' % n)
                     return n
             n += 1
+            if n > 10:  # дальше проверять не надо
+                return 1000
         EventLog('trace', 'Domain position: %d' % 1000)
         return 1000
     def GetTaskDetailsCommon(self):
@@ -826,6 +897,9 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
             self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
         if self.password == '':
             self.password = GenerateRandomWord(12)
+        '''Сколько доменов должно включать в себя следующее задание для спама по этой базе'''
+        if self.nextSpamTaskDomainsCount == None:
+            self.nextSpamTaskDomainsCount = random.randint(self.spamTaskDomainsMin, self.spamTaskDomainsMax)
         super(XrumerBaseR, self).save(*args, **kwargs)
     
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
@@ -835,10 +909,6 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     class Meta:
         verbose_name = 'Spam Task'
         verbose_name_plural = 'II.4 Spam Tasks - [large, managed]'
-    def GetDoorsCount(self):
-        return GetCounter(self.doorways, {'stateManaged': 'done'})
-    GetDoorsCount.short_description = 'Doors'
-    GetDoorsCount.allow_tags = True
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''
