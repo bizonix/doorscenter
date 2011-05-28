@@ -108,6 +108,16 @@ class IPAddressAdmin(BaseAdminSimple):
 
 '''Doorways group'''
     
+class SpamLinkInline(admin.TabularInline):
+    model = SpamLink
+    extra = 1
+
+class SpamLinkAdmin(BaseAdmin):
+    list_display = ('pk', 'link', 'spamTask')
+    fieldsets = [
+        (None, {'fields': ['link', ('doorway', 'spamTask')]}),
+    ]
+
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetSpamTasksCount', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     search_fields = ['domain__name']
@@ -119,6 +129,7 @@ class DoorwayAdmin(BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
+    inlines = [SpamLinkInline]
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamTasksCount', 'active', 'stateSimple', 'dateAdded')
@@ -183,6 +194,7 @@ class SpamTaskAdmin(BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    inlines = [SpamLinkInline]
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
@@ -220,6 +232,7 @@ admin.site.register(Domain, DomainAdmin)
 admin.site.register(Host, HostAdmin)
 admin.site.register(IPAddress, IPAddressAdmin)
 
+admin.site.register(SpamLink, SpamLinkAdmin)
 admin.site.register(Doorway, DoorwayAdmin)
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)

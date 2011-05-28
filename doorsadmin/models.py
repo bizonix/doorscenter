@@ -61,7 +61,7 @@ def NextYearDate():
     return datetime.date.today() + datetime.timedelta(365)
 
 def NextBaseNumber():
-    ''''''
+    '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseR.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
 '''Abstract models'''
@@ -241,8 +241,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     class Meta:
         verbose_name = 'Niche'
         verbose_name_plural = 'I.2 Niches - [act]'
-    def __unicode__(self):
-        return '#%s %s' % (self.pk, self.description)
     def GetStopWordsCount(self):
         return len(self.stopwordsList.split('\n'))
     GetStopWordsCount.short_description = 'Stopwords'
@@ -700,6 +698,15 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.domain.active = False
             self.domain.save()
         super(Doorway, self).save(*args, **kwargs)
+
+class SpamLink(models.Model):
+    '''Ссылки для спама'''
+    link = models.CharField('Link', max_length = 500, default = '')
+    doorway = models.ForeignKey(Doorway, verbose_name='Doorway')
+    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
+    class Meta:
+        verbose_name = 'Spam Link'
+        verbose_name_plural = 'II.3 Spam Links - [large]'
     
 class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManaged):
     '''Сниппеты'''
@@ -813,7 +820,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     spamLinksList = models.TextField('Spam Links', default='', blank=True)
     class Meta:
         verbose_name = 'Spam Task'
-        verbose_name_plural = 'II.3 Spam Tasks - [large, managed]'
+        verbose_name_plural = 'II.4 Spam Tasks - [large, managed]'
     def GetDoorsCount(self):
         return GetCounter(self.doorways, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
