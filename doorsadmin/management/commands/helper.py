@@ -1,6 +1,7 @@
 # coding=utf8
 from django.core.management.base import BaseCommand
 from doorsadmin.models import Doorway, SpamLink, SpamTask
+from doorsadmin.core import GenerateSpamTasks
 import re
 
 class Command(BaseCommand):
@@ -36,4 +37,5 @@ class Command(BaseCommand):
                     SpamLink.objects.create(url=url, anchor=anchor, doorway=doorway).save()
     
     def handle(self, *args, **options):
+        GenerateSpamTasks()
         self.stdout.write('Done\n')

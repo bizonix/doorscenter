@@ -324,7 +324,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             - один домен по одной базе должен прогоняться не чаще, чем через 10 прогонов.'''
         try:
             '''Инициализируем переменные'''
-            #print('- niche: %s' % self)
+            print('- niche: %s' % self)
             xrumerBaseR = self.GetRandomBaseR()
             linksList = []  # ссылки задания
             linksLeft = 0  # сколько всего ссылок должно быть в задании
@@ -332,17 +332,17 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
             '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
             for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self)).order_by('?').all(): 
-                #print(spamLink.url)
+                print(spamLink.url)
                 domain = spamLink.doorway.domain
                 if domain in domainsList:
                     if domainsList[domain] <= 0:  # по домену превысили число ссылок
-                        #print('* max links exceeded')
+                        print('* max links exceeded')
                         continue
                 elif domainsLeft <= 0:  # превышено число доменов
-                    #print('* max domains exceeded')
+                    print('* max domains exceeded')
                     continue
                 elif xrumerBaseR.GetDomainPosition(domain) < 10:  # отсекаем домены, которые спамились по базе < 10 раз назад
-                    #print('* domain position')
+                    print('* domain position')
                     continue
                 else: 
                     x = xrumerBaseR.GetSpamTaskDomainLinksCount()  # сколько ссылок в задании должно быть от этого домена, макс.
@@ -352,7 +352,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 linksList.append(spamLink)
                 linksLeft -= 1
                 domainsList[domain] -= 1
-                #print('%d %d' % (linksLeft, domainsLeft))
+                print('%d %d' % (linksLeft, domainsLeft))
                 '''Создаем задание'''
                 if linksLeft == 0 and domainsLeft == 0:
                     spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
@@ -362,7 +362,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         link.save()
                     xrumerBaseR.nextSpamTaskDomainsCount = None
                     xrumerBaseR.save()
-                    #print('created')
+                    print('created')
                     '''Инициализируем переменные'''
                     xrumerBaseR = self.GetRandomBaseR()
                     linksList = []  # ссылки задания
@@ -370,7 +370,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     domainsList = {}  # домены задания: домен => число ссылок от него
                     domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
         except Exception as error:
-            #print('error: %s' % error)
+            print('error: %s' % error)
             EventLog('trace', 'Error in GenerateSpamTasks', self, error)
 
 class Host(BaseDoorObject):
@@ -599,8 +599,8 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     lastRun = models.DateTimeField('Last Run Date', null=True)
     doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
     class Meta:
-        verbose_name = 'Doorway Schedule'
-        verbose_name_plural = 'I.5 Doorway Schedules - [act]'
+        verbose_name = 'Schedule'
+        verbose_name_plural = 'I.5 Schedules - [act]'
     def GetDoorsTodayCount(self):
         return '%d/%d' % (self.doorsToday, self.doorsPerDay)
     GetDoorsTodayCount.short_description = 'Today'
