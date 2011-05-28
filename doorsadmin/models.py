@@ -733,6 +733,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
+        SpamLink.objects.filter(doorway=self).delete()
         for link in DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount]).split('\n'):
             '''Парсим'''
             link = link.strip()
