@@ -8,7 +8,7 @@ def Cron():
     GenerateSnippets()
     GenerateNets()
     GenerateDoorways()
-    #GenerateSpamTasks()
+    GenerateSpamTasks()
     CheckAgentsActivity()
     ClearEventLog()
 
