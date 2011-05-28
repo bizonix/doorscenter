@@ -701,12 +701,16 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
 
 class SpamLink(models.Model):
     '''Ссылки для спама'''
-    link = models.CharField('Link', max_length = 500, default = '')
+    url = models.CharField('URL', max_length = 1000, default = '')
+    anchor = models.CharField('Anchor', max_length = 1000, default = '')
     doorway = models.ForeignKey(Doorway, verbose_name='Doorway')
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
     class Meta:
         verbose_name = 'Spam Link'
         verbose_name_plural = 'II.3 Spam Links - [large]'
+    def IsAssigned(self):
+        return self.spamTask != None
+    IsAssigned.short_description = 'Ass.'
     
 class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManaged):
     '''Сниппеты'''

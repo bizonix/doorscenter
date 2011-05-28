@@ -113,9 +113,9 @@ class SpamLinkInline(admin.TabularInline):
     extra = 1
 
 class SpamLinkAdmin(BaseAdmin):
-    list_display = ('pk', 'link', 'spamTask')
+    list_display = ('pk', 'url', 'anchor', 'spamTask')
     fieldsets = [
-        (None, {'fields': ['link', ('doorway', 'spamTask')]}),
+        (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
     ]
 
 class DoorwayAdmin(BaseAdminManaged):
