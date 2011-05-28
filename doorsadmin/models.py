@@ -326,6 +326,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             '''Инициализируем переменные'''
             print('- niche: %s' % self)
             xrumerBaseR = self.GetRandomBaseR()
+            domainPositions = {}
             linksList = []  # ссылки задания
             linksLeft = 0  # сколько всего ссылок должно быть в задании
             domainsList = {}  # домены задания: домен => число ссылок от него
@@ -334,21 +335,24 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self)).order_by('?').all(): 
                 print(spamLink.url)
                 domain = spamLink.doorway.domain
-                if domain in domainsList:
+                if domain in domainsList:  # если домен уже есть в списке
                     if domainsList[domain] <= 0:  # по домену превысили число ссылок
                         print('* max links exceeded')
                         continue
                 elif domainsLeft <= 0:  # превышено число доменов
                     print('* max domains exceeded')
                     continue
-                elif xrumerBaseR.GetDomainPosition(domain) < 10:  # отсекаем домены, которые спамились по базе < 10 раз назад
-                    print('* domain position')
-                    continue
-                else: 
-                    x = xrumerBaseR.GetSpamTaskDomainLinksCount()  # сколько ссылок в задании должно быть от этого домена, макс.
-                    linksLeft += x
-                    domainsList[domain] = x
-                    domainsLeft -= 1
+                else:
+                    if domain not in domainPositions:  # определяем и кэшируем позицию домена
+                        domainPositions[domain] = xrumerBaseR.GetDomainPosition(domain)
+                    if domainPositions[domain] < 10:  # отсекаем домены, которые спамились по базе < 10 раз назад
+                        print('* domain position')
+                        continue
+                    else: 
+                        x = xrumerBaseR.GetSpamTaskDomainLinksCount()  # сколько ссылок в задании должно быть от этого домена, макс.
+                        linksLeft += x
+                        domainsList[domain] = x
+                        domainsLeft -= 1
                 linksList.append(spamLink)
                 linksLeft -= 1
                 domainsList[domain] -= 1
@@ -365,6 +369,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     print('created')
                     '''Инициализируем переменные'''
                     xrumerBaseR = self.GetRandomBaseR()
+                    domainPositions = {}
                     linksList = []  # ссылки задания
                     linksLeft = 0  # сколько всего ссылок должно быть в задании
                     domainsList = {}  # домены задания: домен => число ссылок от него
