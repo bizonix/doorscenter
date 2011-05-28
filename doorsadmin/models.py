@@ -235,7 +235,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     
 class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Тематика доров'''
-    language = models.CharField('Language', max_length=50, choices=languages)
+    language = models.CharField('Lang.', max_length=50, choices=languages)
     stopwordsList = models.TextField('Stop Words', default='', blank=True)
     tdsSchemes = models.CharField('TDS Schemes', max_length=200, default='', blank=True)
     class Meta:
@@ -243,7 +243,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         verbose_name_plural = 'I.2 Niches - [act]'
     def GetStopWordsCount(self):
         return len(self.stopwordsList.split('\n'))
-    GetStopWordsCount.short_description = 'Stopwords'
+    GetStopWordsCount.short_description = 'Stopw.'
     GetStopWordsCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
@@ -255,28 +255,32 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetPagesCount.allow_tags = True
     def GetTemplatesCount(self):
         return GetCounter(self.template_set, {'active': True}, lambda x: x <= 0 and self.active)
-    GetTemplatesCount.short_description = 'Templates'
+    GetTemplatesCount.short_description = 'Templ.'
     GetTemplatesCount.allow_tags = True
     def GetKeywordsSetsCount(self):
         return GetCounter(self.keywordsset_set, {'active': True}, lambda x: x <= 0 and self.active)
-    GetKeywordsSetsCount.short_description = 'Keywords'
+    GetKeywordsSetsCount.short_description = 'Keyw.'
     GetKeywordsSetsCount.allow_tags = True
     def GetDomainsCount(self):
         return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 30 and self.active)
-    GetDomainsCount.short_description = 'Domains'
+    GetDomainsCount.short_description = 'Domns'
     GetDomainsCount.allow_tags = True
     def GetSchedulesCount(self):
         return GetCounter(self.doorwayschedule_set, {'active': True}, lambda x: x <= 0 and self.active)
-    GetSchedulesCount.short_description = 'Schedules'
+    GetSchedulesCount.short_description = 'Schd.'
     GetSchedulesCount.allow_tags = True
     def GetXrumerBasesRCount(self):
         return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
-    GetXrumerBasesRCount.short_description = 'Bases R'
+    GetXrumerBasesRCount.short_description = 'Bas. R'
     GetXrumerBasesRCount.allow_tags = True
     def GetSnippetsSetsCount(self):
         return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0 and self.active)
-    GetSnippetsSetsCount.short_description = 'Snippets'
+    GetSnippetsSetsCount.short_description = 'Snip.'
     GetSnippetsSetsCount.allow_tags = True
+    def GetSpamLinksCount(self):
+        return '%d/%d' % (SpamLink.objects.filter(~Q(spamTask=None), Q(doorway__niche=self)).count(), SpamLink.objects.filter(Q(doorway__niche=self)).count())
+    GetSpamLinksCount.short_description = 'Spam'
+    GetSpamLinksCount.allow_tags = True
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
         try:
@@ -324,7 +328,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             - один домен по одной базе должен прогоняться не чаще, чем через 10 прогонов.'''
         try:
             '''Инициализируем переменные'''
-            print('- niche: %s' % self)
+            #print('- niche: %s' % self)
             xrumerBaseR = self.GetRandomBaseR()
             domainPositions = {}
             linksList = []  # ссылки задания
@@ -333,20 +337,20 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
             '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
             for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self)).order_by('?').all(): 
-                print(spamLink.url)
+                #print(spamLink.url)
                 domain = spamLink.doorway.domain
                 if domain in domainsList:  # если домен уже есть в списке
                     if domainsList[domain] <= 0:  # по домену превысили число ссылок
-                        print('* max links exceeded')
+                        #print('* max links exceeded')
                         continue
                 elif domainsLeft <= 0:  # превышено число доменов
-                    print('* max domains exceeded')
+                    #print('* max domains exceeded')
                     continue
                 else:
                     if domain not in domainPositions:  # определяем и кэшируем позицию домена
                         domainPositions[domain] = xrumerBaseR.GetDomainPosition(domain)
                     if domainPositions[domain] < 10:  # отсекаем домены, которые спамились по базе < 10 раз назад
-                        print('* domain position')
+                        #print('* domain position')
                         continue
                     else: 
                         x = xrumerBaseR.GetSpamTaskDomainLinksCount()  # сколько ссылок в задании должно быть от этого домена, макс.
@@ -356,7 +360,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 linksList.append(spamLink)
                 linksLeft -= 1
                 domainsList[domain] -= 1
-                print('%d %d' % (linksLeft, domainsLeft))
+                #print('%d %d' % (linksLeft, domainsLeft))
                 '''Создаем задание'''
                 if linksLeft == 0 and domainsLeft == 0:
                     spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
@@ -366,7 +370,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         link.save()
                     xrumerBaseR.nextSpamTaskDomainsCount = None
                     xrumerBaseR.save()
-                    print('created')
+                    #print('created')
                     '''Инициализируем переменные'''
                     xrumerBaseR = self.GetRandomBaseR()
                     domainPositions = {}
@@ -375,7 +379,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     domainsList = {}  # домены задания: домен => число ссылок от него
                     domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
         except Exception as error:
-            print('error: %s' % error)
+            #print('error: %s' % error)
             EventLog('trace', 'Error in GenerateSpamTasks', self, error)
 
 class Host(BaseDoorObject):
@@ -700,6 +704,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return '<a href="http://www.%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
+    def GetSpamLinksCount(self):
+        return '%d/%d' % (SpamLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count(), self.spamLinksCount)
+    GetSpamLinksCount.short_description = 'Lnks'
+    GetSpamLinksCount.allow_tags = True
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''

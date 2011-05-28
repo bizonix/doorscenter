@@ -34,7 +34,7 @@ def get(request, agentId):
                 data['state'] = task.stateManaged
                 data['error'] = task.lastError
                 '''Обновляем агента'''
-                agent.currentTask = 'task #%s (%s)' % (data['id'], data['type'])
+                agent.currentTask = '%s #%s' % (data['type'], data['id'])
                 agent.save()
                 ObjectLog(agent, agent.currentTask)
                 '''Формируем ответ'''

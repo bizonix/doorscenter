@@ -119,7 +119,7 @@ class SpamLinkAdmin(BaseAdmin):
     ]
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'spamLinksCount', 'GetUrl', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     search_fields = ['domain__name']
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
@@ -132,7 +132,7 @@ class DoorwayAdmin(BaseAdminManaged):
     inlines = [SpamLinkInline]
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language']
     ordering = ['description']
     fieldsets = [
