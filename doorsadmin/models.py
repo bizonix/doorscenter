@@ -262,7 +262,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetKeywordsSetsCount.short_description = 'Keywords'
     GetKeywordsSetsCount.allow_tags = True
     def GetDomainsCount(self):
-        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 2 and self.active)
+        return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 30 and self.active)
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetSchedulesCount(self):

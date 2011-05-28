@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import SnippetsSet, Domain, DoorwaySchedule, Niche, Agent, Event, EventLog
+from doorsadmin.models import SnippetsSet, Domain, DoorwaySchedule, Niche, SpamLink, Agent, Event, EventLog
 import datetime
 
 def Cron():
@@ -35,8 +35,8 @@ def GenerateDoorways():
 
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''
-    for niche in Niche.objects.filter(active=True).all(): 
-        niche.GenerateSpamTasks()
+    #for niche in Niche.objects.filter(active=True).all(): 
+    #    niche.GenerateSpamTasks()
     print('Spam links unallocated: %d.' % SpamLink.objects.filter(spamTask=None).count())
 
 def CheckAgentsActivity():
