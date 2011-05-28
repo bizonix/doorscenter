@@ -8,7 +8,7 @@ def Cron():
     GenerateSnippets()
     GenerateNets()
     GenerateDoorways()
-    GenerateSpamTasks()
+    #GenerateSpamTasks()
     CheckAgentsActivity()
     ClearEventLog()
 
@@ -35,8 +35,8 @@ def GenerateDoorways():
 
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''
-    #for niche in Niche.objects.filter(active=True).all(): 
-    #    niche.GenerateSpamTasks()
+    for niche in Niche.objects.filter(active=True).all(): 
+        niche.GenerateSpamTasks()
     print('Spam links unallocated: %d.' % SpamLink.objects.filter(spamTask=None).count())
 
 def CheckAgentsActivity():
