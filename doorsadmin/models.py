@@ -563,6 +563,12 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     class Meta:
         verbose_name = 'Keywords Set'
         verbose_name_plural = 'I.3 Keywords Sets - [act]'
+    def GetLocalFolder(self):
+        s = self.localFolder
+        s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/keywords/', '')
+        return s
+    GetLocalFolder.short_description = 'Local Folder'
+    GetLocalFolder.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'

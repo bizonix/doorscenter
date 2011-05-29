@@ -99,6 +99,7 @@ class HostAdmin(BaseAdminSimple):
 
 class IPAddressAdmin(BaseAdminSimple):
     list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
+    ordering = ['address']
     fieldsets = [
         (None, {'fields': ['address', 'host']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -144,8 +145,9 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'niche', 'localFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche']
+    ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': ['niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -156,6 +158,7 @@ class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
 class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'type', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche']
+    ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'type'), 'localFolder', 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -175,6 +178,7 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
 class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['net', 'niche']
+    ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
@@ -198,6 +202,7 @@ class SpamTaskAdmin(BaseAdminManaged):
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['niche']
+    ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -217,6 +222,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['niche']
+    ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Spam parameters', {'fields': [('spamTaskDomainsMin', 'spamTaskDomainsMax', 'nextSpamTaskDomainsCount'), ('spamTaskDomainLinksMin', 'spamTaskDomainLinksMax')], 'classes': ['expanded']}),
