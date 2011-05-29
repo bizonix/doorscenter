@@ -430,7 +430,7 @@ class Host(BaseDoorObject):
     
 class IPAddress(BaseDoorObject):
     '''IP адрес'''
-    address = models.IPAddressField('IP Address')
+    address = models.IPAddressField('IP Address', unique=True)
     host = models.ForeignKey(Host, verbose_name='Host', null=True, blank=True)
     class Meta:
         verbose_name = 'IP Address'
@@ -452,7 +452,7 @@ class IPAddress(BaseDoorObject):
     
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''
-    name = models.CharField('Domain Name', max_length=200)
+    name = models.CharField('Domain Name', max_length=200, unique=True)
     net = models.ForeignKey(Net, verbose_name='Net', null=True, blank=True)
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True, blank=True)
     host = models.ForeignKey(Host, verbose_name='Host', null=True)
