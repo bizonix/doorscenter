@@ -172,7 +172,7 @@ class Kwk8:
         if keysFile:
             keysList = []
             for line in codecs.open(keysFile, 'r', encoding):
-                keysList.append(line.strip())
+                keysList.append(self._ProcessLine(line))
             return self.SelectByList(keysList)
         else:
             return self
@@ -182,7 +182,7 @@ class Kwk8:
         if keysFile:
             keysList = []
             for line in codecs.open(keysFile, 'r', encoding):
-                keysList.append(line.strip())
+                keysList.append(self._ProcessLine(line))
             return self.DeleteByList(keysList)
         else:
             return self
