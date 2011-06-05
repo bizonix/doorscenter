@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common
+import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
@@ -172,6 +172,10 @@ class DoorgenAgent(agent.BaseAgent):
         
     def _ActionOn(self):
         self._Settings()
+        '''Генерация шаблона'''
+        if self.currentTask['templateFolder'].startswith('xgen'):
+            tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
+            self.currentTask['templateFolder'] = 'xgen'
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
             fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
