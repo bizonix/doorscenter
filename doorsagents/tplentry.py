@@ -13,7 +13,7 @@ strIndex = r'''<html>
       <!--//
       * {margin:0;padding:0}
       body {
-        background:url("{STAT}{RAND(1,5)}.png{/STAT}");
+        background:url("{STAT}/images/back/{RAND(1,776)}.jpg{/STAT}");
         color:{{rndColor1}};
         margin:0;
         padding:0;
@@ -66,7 +66,7 @@ strSitemap = r'''<html>
       <!--//
       * {margin:0;padding:0}
       body {
-        background:url("{STAT}{RAND(1,5)}.png{/STAT}");
+        background:url("{STAT}/images/back/{RAND(1,776)}.jpg{/STAT}");
         color:{{rndColor1}};
         margin:0;
         padding:0;

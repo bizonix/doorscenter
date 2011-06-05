@@ -38,6 +38,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
+        '''Генерация шаблона'''
+        if self.currentTask['templateFolder'].startswith('xgen'):
+            tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
+            self.currentTask['templateFolder'] = 'xgen'
         '''Содержимое файлов настроек'''
         self.appSettingsDict = {'OverturBeforeGen': '0',
             'MyLinkHTML': '1',  # HTML-1, URL-0
@@ -172,10 +176,6 @@ class DoorgenAgent(agent.BaseAgent):
         
     def _ActionOn(self):
         self._Settings()
-        '''Генерация шаблона'''
-        if self.currentTask['templateFolder'].startswith('xgen'):
-            tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
-            self.currentTask['templateFolder'] = 'xgen'
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
             fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
