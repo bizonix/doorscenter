@@ -49,7 +49,7 @@ def get(request, agentId):
 @transaction.commit_manually
 def update(request, agentId):
     '''Обновить состояние задания'''
-    agent = get_object_or_404(Agent, pk=agentId, active=True)
+    agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()

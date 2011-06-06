@@ -562,7 +562,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name_plural = 'I.3 Keywords Sets - [act]'
     def GetLocalFolder(self):
         s = self.localFolder
-        s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/keywords/', '')
+        s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/keywords/', '.../')
         return s
     GetLocalFolder.short_description = 'Local Folder'
     GetLocalFolder.allow_tags = True

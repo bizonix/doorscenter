@@ -5,7 +5,7 @@ import datetime
 
 def Cron():
     '''Функция вызывается по расписанию'''
-    GenerateSnippets()
+    #GenerateSnippets()  # фича пока отключена из-за бана парсера гуглом
     GenerateNets()
     GenerateDoorways()
     GenerateSpamTasks()
@@ -13,9 +13,9 @@ def Cron():
     ClearEventLog()
 
 def GenerateSnippets():
-    '''Собираем сниппеты'''
+    '''Перегенерируем сниппеты'''
     dt = datetime.datetime.now()
-    for snippetsSet in SnippetsSet.objects.filter(active=True).all():
+    for snippetsSet in SnippetsSet.objects.filter(Q(active=True), Q(stateManaged='done')).all():
         if (snippetsSet.dateLastParsed==None) or (snippetsSet.dateLastParsed + datetime.timedelta(0, snippetsSet.interval*60*60, 0) < dt):
             snippetsSet.stateManaged = 'new'
             snippetsSet.save()
