@@ -34,7 +34,7 @@ class DoorgenAgent(agent.BaseAgent):
         self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat'
-        self.doorwayUrl = 'http://www.' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
         self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
