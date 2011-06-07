@@ -407,7 +407,7 @@ class Host(BaseDoorObject):
         verbose_name = 'Host'
         verbose_name_plural = 'III.1 # Hosts'
     def __unicode__(self):
-        return '%s #%s %s' % (self.__class__.__name__, self.pk, self.company + ' - ' + self.hostName)
+        return '#%s %s' % (self.pk, self.hostName)
     def GetIPAddressesCount(self):
         return self.ipaddress_set.count()
     GetIPAddressesCount.short_description = 'IP Addresses'
