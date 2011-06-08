@@ -163,6 +163,17 @@ class XrumerAgent(agent.BaseAgent):
         '''Закрытие приложения под Windows по заголовку окна'''
         p = win32gui.FindWindow(None, appCaption)
         win32gui.SendMessage(p, 0x10, 0, 0)
+    
+    def _FilterBaseR(self):
+        '''Фильтрация базы R'''
+        logTemp = self.logFileTemplate % 'Temporary'
+        with open(logTemp, 'w') as fd:
+            for line in open(self.logSuccess, 'r'):
+                fd.write(line)
+            for line in open(self.logHalfSuccess, 'r'):
+                fd.write(line)
+        kwk8.Kwk8Links(self.baseR1File, False).SelectByFile(logTemp).Save(self.baseR1File)
+        os.unlink(logTemp)
         
     def _ActionOn(self):
         self._Settings()
@@ -198,6 +209,12 @@ class XrumerAgent(agent.BaseAgent):
                 shutil.copyfile(self.baseR1File, self.baseR2File)
             except Exception:
                 print('Cannot copy the new base R')
+        '''Фильтрация базы R по успешным и полууспешным'''
+        if self.currentTask['type'] == 'SpamTask':  # mode 2
+            try:
+                self._FilterBaseR()
+            except Exception:
+                print('Cannot filter base R')
         '''Выходные параметры'''
         self.currentTask['spamLinksList'] = []
         try:
@@ -216,14 +233,10 @@ class XrumerAgent(agent.BaseAgent):
             self.currentTask['profilesCount'] = kwk8.Kwk8Links(self.logProfiles, False).Count()
         except Exception:
             self.currentTask['profilesCount'] = 0
-        self.currentTask['rBaseLinksCount'] = 0
         try:
-            if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
-                self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
-            if self.currentTask['type'] == 'SpamTask':  # mode 2
-                self.currentTask['rBaseLinksCount'] = 0
+            self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
         except Exception:
-            pass
+            self.currentTask['rBaseLinksCount'] = 0
         return True
 
 if __name__ == '__main__':

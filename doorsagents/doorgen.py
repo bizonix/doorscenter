@@ -17,7 +17,7 @@ class DoorgenAgent(agent.BaseAgent):
     <?php system('tar -zxf bean.tgz'); unlink('bean.tgz'); ?>     
 '''
     
-    def _Settings(self):
+    def _Settings(self, generateTemplate = False):
         '''Настройки'''
         self.appFolder = 'c:\\work\\aggress'  # папка с приложением
         self.appSettingsFile = os.path.join(self.appFolder, 'tunings' + os.sep + 'auto.ini')  # настройки 1
@@ -39,9 +39,10 @@ class DoorgenAgent(agent.BaseAgent):
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
         '''Генерация шаблона'''
-        if self.currentTask['templateFolder'].startswith('xgen'):
-            tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
-            self.currentTask['templateFolder'] = 'xgen'
+        if generateTemplate:
+            if self.currentTask['templateFolder'].startswith('xgen'):
+                tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
+                self.currentTask['templateFolder'] = 'xgen'
         '''Содержимое файлов настроек'''
         self.appSettingsDict = {'OverturBeforeGen': '0',
             'MyLinkHTML': '1',  # HTML-1, URL-0
@@ -118,6 +119,23 @@ class DoorgenAgent(agent.BaseAgent):
         self.appLinksPattern3Contents = '''{URL}
 '''
         
+    def _CreateXmlSitemap(self):
+        '''Генерация карты XML'''
+        with open(os.path.join(self.doorwayFolder, 'sitemap.xml'), 'w') as fd:
+            fd.write('''<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+''')
+            for link in open(self.appSpamLinks3File, 'r'):
+                fd.write('''   <url>
+      <loc>%s</loc>
+      <lastmod>%s</lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>0.5</priority>
+   </url>
+''' % (link.strip(), datetime.date.today().strftime('%Y-%m-%d')))
+            fd.write('''</urlset>
+''')
+        
     def _Upload(self):
         '''Константы'''
         archiveFile = 'bean.tgz'
@@ -156,26 +174,15 @@ class DoorgenAgent(agent.BaseAgent):
             urllib.urlopen(self.doorwayUrl + '/' + commandFile)
         except Exception as error:
             print(error)
-            
-    def _CreateXmlSitemap(self):
-        '''Генерация карты XML'''
-        with open(os.path.join(self.doorwayFolder, 'sitemap.xml'), 'w') as fd:
-            fd.write('''<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-''')
-            for link in open(self.appSpamLinks3File, 'r'):
-                fd.write('''   <url>
-      <loc>%s</loc>
-      <lastmod>%s</lastmod>
-      <changefreq>weekly</changefreq>
-      <priority>0.5</priority>
-   </url>
-''' % (link.strip(), datetime.date.today().strftime('%Y-%m-%d')))
-            fd.write('''</urlset>
-''')
+    
+    def _CheckStatusCode(self):
+        '''Проверить код статуса HTTP у залитого дора'''
+        statusCode = urllib.urlopen(self.doorwayUrl).getcode()
+        if statusCode != 200:
+            raise Exception('Status code = %d' % statusCode)
         
     def _ActionOn(self):
-        self._Settings()
+        self._Settings(True)
         '''Установка настроек'''
         with open(self.appSettingsFile, 'w') as fd:
             fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
@@ -233,6 +240,8 @@ class DoorgenAgent(agent.BaseAgent):
             self._Upload()
         except Exception as error:
             print('Error: %s' % error)
+        '''Проверяем код статуса'''
+        self._CheckStatusCode()
         '''Удаляем локальную папку'''
         try:
             shutil.rmtree(self.doorwayFolder)
