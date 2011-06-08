@@ -120,7 +120,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)
     dateLastPing = models.DateTimeField('Last Ping', null=True, blank=True)
-    interval = models.IntegerField('Warning Interval, h.', null=True, default=3)
+    interval = models.IntegerField('Warning, h.', null=True, default=3)
     class Meta:
         verbose_name = 'Agent'
         verbose_name_plural = 'IV.1 # Agents - [act]'
@@ -736,6 +736,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return s
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
+        if self.netLinksList == '':
+            self.netLinksList = self.domain.GetNetLinksList()
         return({
                 'keywordsList': EncodeListForAgent(self.keywordsList), 
                 'templateFolder': self.template.localFolder, 
