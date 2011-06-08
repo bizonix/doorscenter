@@ -17,6 +17,7 @@ agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrum
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('real', 'real'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
+taskPriorities = (('zero', 'zero'), ('std', 'std'), ('high', 'high'))
 
 '''Helper functions'''
 
@@ -138,6 +139,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
 '''Abstract models'''
 
 class BaseDoorObjectManaged(models.Model):
+    priority = models.CharField('Prt.', max_length=20, choices = taskPriorities, default='std')
     agent = models.ForeignKey(Agent, verbose_name='Agent', null=True, blank=True)
     runTime = models.IntegerField('Run Time', null=True)
     stateManaged = models.CharField('State', max_length=50, choices = stateManaged, default='new')

@@ -19,7 +19,7 @@ def get(request, agentId):
         transaction.commit()
         '''Ищем задание'''
         for queue in agent.GetQueues(): 
-            taskList = list(queue.objects.filter(stateManaged='new')[:1])
+            taskList = list(queue.objects.filter(stateManaged='new').order_by('priority', 'pk')[:1])
             if taskList:
                 task = taskList[0]
                 '''Обновляем задание'''
