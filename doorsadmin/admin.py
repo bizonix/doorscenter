@@ -210,7 +210,7 @@ class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
 '''Spam group'''
 
 class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'priority', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['stateManaged']
     fieldsets = [
         (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
@@ -242,7 +242,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'agent', 'dateAdded')
     list_filter = ['active', 'niche', 'stateManaged']
     ordering = ['niche__description']
     fieldsets = [
