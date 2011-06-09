@@ -77,3 +77,20 @@ def update(request, agentId):
         EventLog('error', 'Cannot handle "update" request', None, error)
         result = 'error'
     return HttpResponse(result)
+
+@transaction.commit_manually
+def ping(request, agentId):
+    '''Обновить состояние задания'''
+    agent = get_object_or_404(Agent, pk=agentId)
+    try:
+        '''Пишем дату пинга'''
+        agent.dateLastPing = datetime.datetime.now()
+        agent.stateSimple = 'ok'
+        agent.save()
+        result = 'ok'
+        transaction.commit()
+    except Exception as error:
+        transaction.rollback()
+        EventLog('error', 'Cannot handle "ping" request', None, error)
+        result = 'error'
+    return HttpResponse(result)
