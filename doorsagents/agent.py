@@ -93,6 +93,14 @@ class BaseAgent(object):
             print('Error in _ReportTaskState: %s' % error)
         return result
     
+    def _ReportPing(self):
+        '''Сделать пинг в случае, если не можем начать выполнение задания
+        из-за загрузки сервера'''
+        try:
+            urllib.urlopen(self.actionUrl + 'ping').close()
+        except Exception as error:
+            print('Error in _ReportPing: %s' % error)
+    
     def _LoadCurrentTaskData(self):
         '''Получить данные о текущем задании из локального хранилища'''
         self.currentTask = None
@@ -156,6 +164,7 @@ class BaseAgent(object):
                         print('%s - No tasks found' % dts)
                 else:
                     print('%s - Heavy load detected' % dts)
+                    self._ReportPing()
             else:
                 print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
         else:
