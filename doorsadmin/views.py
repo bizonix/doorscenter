@@ -64,6 +64,8 @@ def update(request, agentId):
         task.lastError = data['error']
         task.runTime = data['runTime']
         task.save()
+        if task.stateManaged == 'error':
+            EventLog(task.stateManaged, task.lastError, task)
         ObjectLog(task, 'Change state to "%s".' % task.stateManaged)
         '''Обновляем агента'''
         agent.currentTask = 'idle'

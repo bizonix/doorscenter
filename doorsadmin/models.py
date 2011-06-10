@@ -193,6 +193,7 @@ class Event(models.Model):
 class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Сетка доров'''
     settings = models.TextField('Settings', default='', blank=True)
+    makeSpam = models.BooleanField('Spam', default=True)
     class Meta:
         verbose_name = 'Net'
         verbose_name_plural = 'I.1 # Nets - [act]'
@@ -352,7 +353,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 domainsList = {}  # домены задания: домен => число ссылок от него
                 domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
                 '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
-                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self)).order_by('?').all(): 
+                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all(): 
                     domain = spamLink.doorway.domain
                     if domain in domainsList:  # если домен уже есть в списке
                         if domainsList[domain] <= 0:  # по домену превысили число ссылок
@@ -461,7 +462,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     ipAddress = models.ForeignKey(IPAddress, verbose_name='IP Address', null=True, blank=True)
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
-    linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=True, null=True, blank=True)
+    linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     maxLinkedDomains = models.IntegerField('Max Lnk.', null=True, blank=True)
     netLevel = models.IntegerField('Net Lvl.', null=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
@@ -469,7 +470,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name = 'Domain'
         verbose_name_plural = 'II.1 # Domains - [act, large]'
     def __unicode__(self):
-        return self.name
+        return '%s (%d)' % (self.name, self.pk)
     def GetDoorsMaxCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'}) + '/%d' % self.maxDoorsCount
     GetDoorsMaxCount.short_description = 'Doors'
@@ -712,6 +713,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     class Meta:
         verbose_name = 'Doorway'
         verbose_name_plural = 'II.2 Doorways - [large, managed]'
+    def GetNet(self):
+        return self.domain.net
+    GetNet.short_description = 'Net'
     def GetTemplateType(self):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
@@ -749,6 +753,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'piwikId': self.piwikId,
                 'cyclikId': self.cyclikId,
                 'documentRoot': self.domain.GetDocumentRoot(), 
+                'ftpHost': self.domain.ipAddress.address, 
                 'ftpLogin': self.domain.host.ftpLogin, 
                 'ftpPassword': self.domain.host.ftpPassword, 
                 'ftpPort': self.domain.host.ftpPort})

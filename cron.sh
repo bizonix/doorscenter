@@ -1,2 +1,2 @@
 #!/bin/bash
-python manage.py cron
+python manage.py cronhourly

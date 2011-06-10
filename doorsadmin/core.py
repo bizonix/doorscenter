@@ -3,13 +3,16 @@ from django.db.models import Q
 from doorsadmin.models import SnippetsSet, Domain, DoorwaySchedule, Niche, SpamLink, Agent, Event, EventLog
 import datetime
 
-def Cron():
+def CronHourly():
     '''Функция вызывается по расписанию'''
     #GenerateSnippets()  # фича пока отключена из-за бана парсера гуглом
     GenerateNets()
     GenerateDoorways()
-    GenerateSpamTasks()
     CheckAgentsActivity()
+
+def CronDaily():
+    '''Функция вызывается по расписанию'''
+    GenerateSpamTasks()
     ClearEventLog()
 
 def GenerateSnippets():
@@ -37,7 +40,6 @@ def GenerateSpamTasks():
     '''Генерируем задания для спама'''
     for niche in Niche.objects.filter(active=True).all(): 
         niche.GenerateSpamTasks()
-    print('Spam links unallocated: %d.' % SpamLink.objects.filter(spamTask=None).count())
 
 def CheckAgentsActivity():
     '''Проверяем активность агентов'''
