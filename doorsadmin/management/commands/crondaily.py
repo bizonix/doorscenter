@@ -5,4 +5,4 @@ from doorsadmin.core import CronDaily
 class Command(BaseCommand):
     def handle(self, *args, **options):
         CronDaily()
-        self.stdout.write('Done\n')
+        self.stdout.write('Done daily\n')
