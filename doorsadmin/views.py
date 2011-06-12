@@ -10,7 +10,7 @@ import pickle, datetime, base64
 def get(request, agentId):
     '''Получить задание из очереди'''
     result = pickle.dumps(None)
-    agent = get_object_or_404(Agent, pk=agentId, active=True)
+    agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
@@ -18,37 +18,38 @@ def get(request, agentId):
         agent.save()
         transaction.commit()
         '''Ищем задание'''
-        for queue in agent.GetQueues(): 
-            taskList = list(queue.objects.filter(stateManaged='new').order_by('priority', 'pk')[:1])
-            if taskList:
-                task = taskList[0]
-                '''Обновляем задание'''
-                task.agent = agent
-                task.stateManaged = 'inproc'
-                task.save()
-                ObjectLog(task, 'Change state to "%s".' % task.stateManaged)
-                '''Формируем текст задания для агента'''
-                data = task.GetTaskDetails()
-                data['id'] = task.pk
-                data['type'] = task.__class__.__name__
-                data['state'] = task.stateManaged
-                data['error'] = task.lastError
-                '''Обновляем агента'''
-                agent.currentTask = '%s #%s' % (data['type'], data['id'])
-                agent.save()
-                ObjectLog(agent, agent.currentTask)
-                '''Формируем ответ'''
-                result = pickle.dumps(data)
-                transaction.commit()
+        if agent.active:
+            for queue in agent.GetQueues(): 
+                taskList = list(queue.objects.filter(stateManaged='new').order_by('priority', 'pk')[:1])
+                if taskList:
+                    task = taskList[0]
+                    '''Обновляем задание'''
+                    task.agent = agent
+                    task.stateManaged = 'inproc'
+                    task.save()
+                    ObjectLog(task, 'Change state to "%s".' % task.stateManaged)
+                    '''Формируем текст задания для агента'''
+                    data = task.GetTaskDetails()
+                    data['id'] = task.pk
+                    data['type'] = task.__class__.__name__
+                    data['state'] = task.stateManaged
+                    data['error'] = task.lastError
+                    '''Обновляем агента'''
+                    agent.currentTask = '%s #%s' % (data['type'], data['id'])
+                    agent.save()
+                    ObjectLog(agent, agent.currentTask)
+                    transaction.commit()
+                    '''Формируем ответ'''
+                    result = pickle.dumps(data)
     except Exception as error:
         transaction.rollback()
         EventLog('error', 'Cannot handle "get" request', None, error)
-        result = pickle.dumps(None)
     return HttpResponse(base64.b64encode(result))
 
 @transaction.commit_manually
 def update(request, agentId):
     '''Обновить состояние задания'''
+    result = 'error'
     agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
@@ -71,28 +72,28 @@ def update(request, agentId):
         agent.currentTask = 'idle'
         agent.save()
         ObjectLog(agent, agent.currentTask)
+        transaction.commit()
         '''Формируем ответ'''
         result = 'ok'
-        transaction.commit()
     except Exception as error:
         transaction.rollback()
         EventLog('error', 'Cannot handle "update" request', None, error)
-        result = 'error'
     return HttpResponse(result)
 
 @transaction.commit_manually
 def ping(request, agentId):
     '''Обновить состояние задания'''
+    result = 'error'
     agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
         agent.stateSimple = 'ok'
         agent.save()
-        result = 'ok'
         transaction.commit()
+        '''Формируем ответ'''
+        result = 'ok'
     except Exception as error:
         transaction.rollback()
         EventLog('error', 'Cannot handle "ping" request', None, error)
-        result = 'error'
     return HttpResponse(result)
