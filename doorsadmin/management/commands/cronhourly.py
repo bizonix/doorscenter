@@ -5,4 +5,4 @@ from doorsadmin.core import CronHourly
 class Command(BaseCommand):
     def handle(self, *args, **options):
         CronHourly()
-        self.stdout.write('Done hourly\n')
+        #self.stdout.write('Done hourly\n')

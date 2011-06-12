@@ -137,8 +137,8 @@ class SpamLinkAdmin(BaseAdmin):
     ]
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'GetNet', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['stateManaged']
+    list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
+    list_filter = ['niche', 'template', 'stateManaged']
     search_fields = ['domain__name']
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
