@@ -41,6 +41,7 @@ def get(request, agentId):
                     transaction.commit()
                     '''Формируем ответ'''
                     result = pickle.dumps(data)
+                    break
     except Exception as error:
         transaction.rollback()
         EventLog('error', 'Cannot handle "get" request', None, error)

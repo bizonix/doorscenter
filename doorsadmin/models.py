@@ -343,6 +343,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             - в одном задании может быть только одна база р, соответственно только одна ниша; 
             - в одном задании должно быть 3-5 разных доменов, от каждого домена 3-5 ссылок; 
             - один домен по одной базе должен прогоняться не чаще, чем через 10 прогонов.'''
+        print(self)
         try:
             '''Инициализируем переменные'''
             xrumerBaseR = self.GetRandomBaseR()
@@ -353,7 +354,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 domainsList = {}  # домены задания: домен => число ссылок от него
                 domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
                 '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
-                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all(): 
+                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all()[:1000]: 
                     domain = spamLink.doorway.domain
                     if domain in domainsList:  # если домен уже есть в списке
                         if domainsList[domain] <= 0:  # по домену превысили число ссылок
@@ -380,6 +381,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         for link in linksList:
                             link.spamTask = spamTask
                             link.save()
+                        print('- created')
                         xrumerBaseR.nextSpamTaskDomainsCount = None
                         xrumerBaseR.save()
                         '''Инициализируем переменные'''
