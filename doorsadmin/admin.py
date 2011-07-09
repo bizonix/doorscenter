@@ -82,7 +82,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
         ('Net', {'fields': [('linkedDomains', 'netLevel', 'maxLinkedDomains')], 'classes': ['expanded']}),
-        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2')], 'classes': ['expanded']}),
+        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2', 'useOwnDNS')], 'classes': ['expanded']}),
         ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -106,7 +106,7 @@ class HostAdmin(BaseAdminSimple):
     list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
     list_filter = ['stateSimple']
     fieldsets = [
-        (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl')]}),
+        (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl', 'controlPanelServerId')]}),
         ('FTP Account', {'fields': [('ftpLogin', 'ftpPassword', 'ftpPort'), 'rootDocumentTemplate'], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),

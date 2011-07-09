@@ -41,16 +41,18 @@ def CountKeywords(path):
             total += 1
     return total
 
-def AddDomainToControlPanel(domainName, controlPanelType, controlPanelUrl):
+def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, controlPanelUrl, controlPanelServerId):
     '''Добавить домен в панель управления'''
     if controlPanelType == 'ispconfig':
         try:
-            data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
+            data = {'domainName': domainName, 'ipAddress': ipAddress, 'useDNS': useDNS, 'controlPanelUrl': controlPanelUrl, 'controlPanelServerId': controlPanelServerId}
             fd = urllib.urlopen(r'http://searchpro.name/tools/isp-add-domain.php', urllib.urlencode(data))
             reply = fd.read()
             fd.close()
             if reply == 'ok':
                 return ''
+            elif reply != '':
+                return reply
             else:
                 return 'unknown error'
         except Exception as error:

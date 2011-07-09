@@ -404,6 +404,7 @@ class Host(BaseDoorObject):
     traffic = models.IntegerField('Traf., Gb', null=True, blank=True)
     controlPanelType = models.CharField('Control Panel Type', max_length=50, choices=hostControlPanelTypes, default='none', blank=True)
     controlPanelUrl = models.CharField('Control Panel URL', max_length=200, default='', blank=True)
+    controlPanelServerId = models.IntegerField('Control Panel Server #', default=1, blank=True)
     rootDocumentTemplate = models.CharField('Document Path', max_length=200, default='')
     ftpLogin = models.CharField('FTP Login', max_length=200, default='', blank=True)
     ftpPassword = models.CharField('FTP Password', max_length=200, default='', blank=True)
@@ -464,6 +465,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     ipAddress = models.ForeignKey(IPAddress, verbose_name='IP Address', null=True, blank=True)
     nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
+    useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     maxLinkedDomains = models.IntegerField('Max Lnk.', null=True, blank=True)
     netLevel = models.IntegerField('Net Lvl.', null=True)
@@ -508,7 +510,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         '''Новый домен добавляем в панель управления'''
         try:
             if self.stateSimple == 'new':
-                error = AddDomainToControlPanel(self.name, self.host.controlPanelType, self.host.controlPanelUrl)
+                error = AddDomainToControlPanel(self.name, self.ipAddress.address, self.useOwnDNS, self.host.controlPanelType, self.host.controlPanelUrl, self.host.controlPanelServerId)
                 if error != '':
                     self.lastError = error
                     self.stateSimple = 'error'
@@ -532,6 +534,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                                               ipAddress=self.ipAddress, 
                                               nameServer1=self.nameServer1, 
                                               nameServer2=self.nameServer2, 
+                                              useOwnDNS=self.useOwnDNS, 
                                               remarks='').save()
                     except Exception as error:
                         EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
