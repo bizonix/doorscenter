@@ -76,7 +76,7 @@ class EventAdmin(BaseAdmin):
 '''Domains group'''
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'name', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'maxLinkedDomains', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'netLevel', 'maxLinkedDomains', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'net', 'niche', 'stateSimple']
     search_fields = ['name']
     fieldsets = [

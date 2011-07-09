@@ -475,6 +475,10 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name_plural = 'II.1 # Domains - [act, large]'
     def __unicode__(self):
         return '%s (%d)' % (self.name, self.pk)
+    def GetDomainUrl(self):
+        return '<a href="http://%s" style="color: black;">%s</a>' % (self.name, self.name)
+    GetDomainUrl.short_description = 'Domain Name'
+    GetDomainUrl.allow_tags = True
     def GetDoorsMaxCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'}) + '/%d' % self.maxDoorsCount
     GetDoorsMaxCount.short_description = 'Doors'
