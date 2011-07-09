@@ -162,7 +162,7 @@ def PrettyDate(time=False):
         if second_diff < 86400:
             return str( second_diff / 3600 ) + " hours ago"
     if day_diff == 1:
-        return "Yesterday"
+        return "yesterday"
     if day_diff < 7:
         return str(day_diff) + " days ago"
     if day_diff < 31:

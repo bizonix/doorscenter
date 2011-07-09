@@ -354,7 +354,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 domainsList = {}  # домены задания: домен => число ссылок от него
                 domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
                 '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
-                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all()[:1000]: 
+                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all()[:5000]: 
                     domain = spamLink.doorway.domain
                     if domain in domainsList:  # если домен уже есть в списке
                         if domainsList[domain] <= 0:  # по домену превысили число ссылок
