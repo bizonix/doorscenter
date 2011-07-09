@@ -93,7 +93,7 @@ function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlP
 		$session_id = $client->login($username,$password);
 		// domain
 		$website_id = $client->sites_web_domain_add($session_id, $client_id, $params);
-		if ($useDNS) {
+		if ($useDNS == 'True') {
 			// primary dns
 			$zone_id = $client->dns_zone_add($session_id, $client_id, $params1);
 			// a record
