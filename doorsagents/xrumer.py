@@ -12,8 +12,8 @@ class XrumerAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'c:\\work\\xrumer7beta5'  # папка с приложением
-        self.appCaption = 'XRumer 7.0 beta-5, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
+        self.appFolder = 'c:\\work\\xrumer7beta61'  # папка с приложением
+        self.appCaption = 'XRumer 7.0 beta-6.1, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
@@ -212,7 +212,8 @@ class XrumerAgent(agent.BaseAgent):
         '''Фильтрация базы R по успешным и полууспешным'''
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             try:
-                self._FilterBaseR()
+                if kwk8.Kwk8Links(self.logFails, False).Count() > 700:
+                    self._FilterBaseR()
             except Exception:
                 print('Cannot filter base R')
         '''Выходные параметры'''
