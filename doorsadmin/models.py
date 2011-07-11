@@ -243,6 +243,25 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return Domain.objects.filter(Q(active=True), (Q(net=self) | Q(net=None))).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
+    def GenerateDoorways(self, count, doorwaySchedule = None):
+        '''Генерируем дорвеи'''
+        for _ in range(0, count):
+            try:
+                p = Doorway.objects.create(niche=self.niche, 
+                                           template=self.template, 
+                                           keywordsSet=self.keywordsSet, 
+                                           doorgenProfile=self.doorgenProfile, 
+                                           domain=self.GetNextDomain(), 
+                                           pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
+                                           domainFolder='', 
+                                           spamLinksCount=0, 
+                                           doorwaySchedule=doorwaySchedule)
+                '''Число ссылок для спама задается в процентах, 
+                а в абсолютных числах должно быть не меньше трех и не больше страниц дора'''
+                p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
+                p.save()
+            except Exception as error:
+                EventLog('error', 'Cannot generate dorway', self, error)
     
 class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Тематика доров'''
@@ -627,14 +646,6 @@ class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
 class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     '''Менеджер генерации дорвеев'''
     net = models.ForeignKey(Net, verbose_name='Net', null=True)
-    niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
-    template = models.ForeignKey(Template, verbose_name='Template', null=True, blank=True)
-    keywordsSet = models.ForeignKey(KeywordsSet, verbose_name='Kwrds Set', null=True, blank=True)
-    doorgenProfile = models.ForeignKey(DoorgenProfile, verbose_name='Prof.', null=True)
-    minPagesCount = models.IntegerField('Min Pgs', null=True, default=500)
-    maxPagesCount = models.IntegerField('Max Pgs', null=True, default=900)
-    minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
-    maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     dateStart = models.DateField('Start Date', null=True, blank=True, default=datetime.date.today)
     dateEnd = models.DateField('End Date', null=True, blank=True)
     doorsPerDay = models.IntegerField('Drs/Day', null=True, default=1)
@@ -661,40 +672,21 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
             return datetime.datetime.now().strftime('%d.%m.%Y') != self.lastRun.strftime('%d.%m.%Y')
         except:
             return True
-    def _GenerateDoorwaysPrivate(self, count):
-        '''Генерируем дорвей'''
-        if count > 0:
-            for _ in range(0, count):
-                try:
-                    p = Doorway.objects.create(niche=self.niche, 
-                                               template=self.template, 
-                                               keywordsSet=self.keywordsSet, 
-                                               doorgenProfile=self.doorgenProfile, 
-                                               domain=self.net.GetNextDomain(), 
-                                               pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
-                                               domainFolder='', 
-                                               spamLinksCount=0, 
-                                               doorwaySchedule=self)
-                    '''Число ссылок для спама задается в процентах, 
-                    а в абсолютных числах должно быть не меньше трех и не больше страниц дора'''
-                    p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
-                    p.save()
-                except Exception as error:
-                    EventLog('error', 'Cannot generate dorway', self, error)
-        
     def GenerateDoorways(self, count = None):
         '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
         try:
             if count == None:  # число дорвеев не задано, определяем сами
                 if self._NewDayCome():  # если настал новый день
                     if self.doorsToday > 0:  # генерим оставшиеся дорвеи за вчера, если вчера был сгенерирован хотя бы один дорвей
-                        self._GenerateDoorwaysPrivate(self.doorsPerDay - self.doorsToday)
+                        if self.doorsPerDay - self.doorsToday > 0:
+                            self.net.GenerateDoorways(self.doorsPerDay - self.doorsToday)
                     self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
                 d = datetime.datetime.now()
                 count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsToday
             elif self._NewDayCome():  # если число задано и настал новый день
                 self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
-            self._GenerateDoorwaysPrivate(count)  # генерим дорвеи за сегодня
+            if count > 0:
+                self.net.GenerateDoorways(count)  # генерим дорвеи за сегодня
             self.lastRun = datetime.datetime.now()  # обновляем статистику
             self.doorsToday += count
         except Exception as error:

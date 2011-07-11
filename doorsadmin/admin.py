@@ -95,7 +95,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam')]}),
-        ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['expanded']}),
+        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -143,7 +143,7 @@ class DoorwayAdmin(BaseAdminManaged):
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['collapse']}),
+        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -156,7 +156,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['expanded']}),
+        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -200,7 +200,7 @@ class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
-        (None, {'fields': ['net', ('dateStart', 'dateEnd', 'doorsPerDay'), ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'active']}),
+        (None, {'fields': ['net', ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
