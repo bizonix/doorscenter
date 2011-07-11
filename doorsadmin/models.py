@@ -221,19 +221,23 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.doorwayschedule_set, {'active': True})
     GetSchedulesCount.short_description = 'Schedules'
     GetSchedulesCount.allow_tags = True
-    def AddDomain(self, newDomain):
-        '''Добавить домен в сетку'''
-        newDomain.linkedDomains.clear()
-        newDomain.maxLinkedDomains = random.randint(3,6)
-        for domain in self.domain_set.filter(pk__lt=newDomain.pk).order_by('pk').all():  # цикл по доменам сетки до текущего
-            if domain.linkedDomains.filter(pk__gt=domain.pk).count() < domain.maxLinkedDomains:
-                newDomain.linkedDomains.add(domain)
-                if domain.netLevel:
-                    newDomain.netLevel = domain.netLevel + 1
-                else:
-                    newDomain.netLevel = 1
-                return
-        newDomain.netLevel = 1
+    def UpdateNet(self):
+        '''Построение сетки'''
+        netChain = self.settings.split(';')
+        netDomains = self.domain_set.order_by('pk')
+        if netDomains.count() < len(netChain):
+            '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша пустая или совпадает с нишой сетки'''
+            for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), Q(active=True)).all():
+                domain.linkedDomains.clear()
+                '''Цикл по доменам, к которым надо привязать новый домен'''
+                for n in netChain[netDomains.count()].split('-')[1:]:
+                    domain.linkedDomains.add(netDomains[int(n) - 1])
+                domain.net = self
+                domain.save()
+                '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
+                netDomains = self.domain_set.order_by('pk')
+                if netDomains.count() >= len(netChain):
+                    return
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -494,8 +498,6 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
-    maxLinkedDomains = models.IntegerField('Max Lnk.', null=True, blank=True)
-    netLevel = models.IntegerField('Net Lvl.', null=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     class Meta:
         verbose_name = 'Domain'

@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import SnippetsSet, Domain, DoorwaySchedule, Niche, SpamLink, Agent, Event, EventLog
+from doorsadmin.models import Net, SnippetsSet, DoorwaySchedule, Niche, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -25,9 +25,8 @@ def GenerateSnippets():
 
 def GenerateNets():
     '''Плетем сети'''
-    for domain in Domain.objects.filter(~Q(net=None), Q(maxLinkedDomains=None), Q(active=True)).all(): 
-        domain.net.AddDomain(domain)
-        domain.save()
+    for net in Net.objects.filter(active=True).all(): 
+        net.UpdateNet()
 
 def GenerateDoorways():
     '''Генерируем дорвеи'''
