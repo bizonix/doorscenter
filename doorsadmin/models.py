@@ -192,6 +192,14 @@ class Event(models.Model):
 
 class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Сетка доров'''
+    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
+    template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
+    keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
+    doorgenProfile = models.ForeignKey('DoorgenProfile', verbose_name='Prof.', null=True)
+    minPagesCount = models.IntegerField('Min Pgs', null=True, default=500)
+    maxPagesCount = models.IntegerField('Max Pgs', null=True, default=900)
+    minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
+    maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     settings = models.TextField('Settings', default='', blank=True)
     makeSpam = models.BooleanField('Spam', default=True)
     class Meta:

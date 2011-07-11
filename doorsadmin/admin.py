@@ -90,11 +90,11 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'makeSpam', 'piwikId', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
+    list_display = ('pk', 'description', 'niche', 'keywordsSet', 'template', 'doorgenProfile', 'makeSpam', 'piwikId', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'niche', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': ['description', 'settings', ('active', 'makeSpam')]}),
+        (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam')]}),
         ('Analytics', {'fields': [('analyticsId', 'piwikId', 'cyclikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -196,11 +196,11 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'niche', 'net', 'keywordsSet', 'template', 'doorgenProfile', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'net', 'niche', 'stateSimple']
+    list_display = ('pk', 'net', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
-        (None, {'fields': [('niche', 'net'), ('keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
+        (None, {'fields': ['net', ('dateStart', 'dateEnd', 'doorsPerDay'), ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
