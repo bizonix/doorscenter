@@ -94,7 +94,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['active', 'niche', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam')]}),
+        (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNow')]}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),

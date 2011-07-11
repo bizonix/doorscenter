@@ -201,6 +201,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     settings = models.TextField('Settings', default='', blank=True)
+    generateNow = models.IntegerField('Generate Now', default=0, blank=True)
     makeSpam = models.BooleanField('Spam', default=True)
     class Meta:
         verbose_name = 'Net'
@@ -266,6 +267,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 p.save()
             except Exception as error:
                 EventLog('error', 'Cannot generate dorway', self, error)
+    def save(self, *args, **kwargs):
+        if self.generateNow > 0:
+            self.GenerateDoorways(self.generateNow)
+            self.generateNow = 0
+        super(Net, self).save(*args, **kwargs)
     
 class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Тематика доров'''
