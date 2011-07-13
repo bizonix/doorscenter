@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero
 import datetime, random, re
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -268,6 +268,13 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             except Exception as error:
                 EventLog('error', 'Cannot generate dorway', self, error)
     def save(self, *args, **kwargs):
+        '''...'''
+        try:
+            if self.stateSimple == 'new' and self.piwikId == None:
+                self.piwikId = int(AddSiteToPiwik(self.description))
+        except Exception as error:
+            EventLog('error', 'Cannot add site to Piwik', None, error)
+        '''...'''
         if self.generateNow > 0:
             self.GenerateDoorways(self.generateNow)
             self.generateNow = 0
