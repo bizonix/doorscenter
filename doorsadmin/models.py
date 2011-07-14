@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig, GenerateNetParams
 import datetime, random, re
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -200,7 +200,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     maxPagesCount = models.IntegerField('Max Pgs', null=True, default=900)
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
-    settings = models.TextField('Settings', default='', blank=True)
+    settings = models.TextField('Settings', default='#gen', blank=True)
     generateNow = models.IntegerField('Generate Now', default=0, blank=True)
     makeSpam = models.BooleanField('Spam', default=True)
     class Meta:
@@ -274,6 +274,13 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 self.piwikId = int(AddSiteToPiwik(self.description))
         except Exception as error:
             EventLog('error', 'Cannot add site to Piwik', None, error)
+        '''...'''
+        try:
+            if self.stateSimple == 'new' and self.settings == '#gen':
+                self.settings, _, _, _ = GenerateNetConfig(2, 4, 2, 4, True)
+                self.minPagesCount, self.maxPagesCount, self.minSpamLinksPercent, self.maxSpamLinksPercent, self.makeSpam = GenerateNetParams()
+        except Exception as error:
+            EventLog('error', 'Cannot generate net params', None, error)
         '''...'''
         if self.generateNow > 0:
             self.GenerateDoorways(self.generateNow)
