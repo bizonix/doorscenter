@@ -226,7 +226,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         '''Построение сетки'''
         netChain = self.settings.split(';')
         netDomains = self.domain_set.order_by('pk')
-        if netDomains.count() < len(netChain):
+        if (netDomains.count() < len(netChain)) and (self.settings != ''):
             '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша пустая или совпадает с нишой сетки'''
             for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), Q(active=True)).all():
                 domain.linkedDomains.clear()

@@ -6,7 +6,7 @@ import datetime
 def CronHourly():
     '''Функция вызывается по расписанию'''
     #GenerateSnippets()  # фича пока отключена из-за бана парсера гуглом
-    GenerateNets()
+    #GenerateNets()
     GenerateDoorways()
     CheckAgentsActivity()
 

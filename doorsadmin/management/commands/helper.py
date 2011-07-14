@@ -4,6 +4,6 @@ from doorsadmin.models import Net
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        for net in Net.objects.filter(active=True).all(): 
+        for net in Net.objects.filter(active=True).order_by('pk').all():
             net.UpdateNet()
         self.stdout.write('Done\n')
