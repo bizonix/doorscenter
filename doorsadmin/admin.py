@@ -198,7 +198,7 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
 class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'net', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'stateSimple']
-    ordering = ['niche__description']
+    ordering = ['net__niche__description']
     fieldsets = [
         (None, {'fields': ['net', ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
         ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
