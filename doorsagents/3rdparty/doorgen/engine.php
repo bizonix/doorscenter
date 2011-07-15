@@ -9,6 +9,7 @@
 	$time_start = time(); //засекаем время начала работы
 	require ("lib/func.lib.php");
 	require ("lib/permissions.php");
+	require ("lib/custom_macros.php");
 }
 
 {	//читаем настройки из settings.xml
@@ -61,12 +62,12 @@
 	$job_list = del_comment_job_list($job_list); //удаляем комменты с перестановкой в получившиеся пустые строки
 	$count_job = count($job_list);
 	preg_match("/(.*?)\.txt/i", $job_file, $job_name); //получаем имя файла задания без расширения и ...
-	$job_name = $job_name[1]."_".time(); //... обзываем с добавлением timestamp
+	$job_name = $job_name[1];//."_".time(); //... обзываем с добавлением timestamp
 	echo "Всего заданий: <b>".$count_job."</b><br>";
 	echo "Идет выборка и подготовка ключей для доров. Это может занять несколько минут<br><script>scroll(0,999999);document.title='Выборка и подготовка ключей'</script>";
 	$t4 = time();
 	for($i=0;$i<$count_job;$i++) { //вначале проходим по заданиям и генерируем *_log.txt для правильной перелинковки всей сетки. для макроса {RELINKS}. преобразуем все кеи в названия файлов страниц
-		$job_list[$i] = replace_macros_page($job_list[$i], $access_macros_jobs); //обрабатываем макросы в строках заданий
+//		$job_list[$i] = replace_macros_page($job_list[$i], $access_macros_jobs); //обрабатываем макросы в строках заданий
 		$tmp_job_list[$i] = explode(",", $job_list[$i]); //разделяем по параметрам задание
 		list ($relinks_ids, $dor_file_keys, $dor_num_keys, $enable_shuffle, $dor_templates, $path_remote, $path_local) =  array(trim($tmp_job_list[$i][0]), trim($tmp_job_list[$i][1]), trim($tmp_job_list[$i][2]), trim($tmp_job_list[$i][3]), trim($tmp_job_list[$i][4]), trim($tmp_job_list[$i][5]), trim($tmp_job_list[$i][6]));
 		if ($cached_dor_keys[$dor_file_keys]=="") { //если файл ключей не кэширован, то кэшируем
@@ -151,11 +152,15 @@
 //		print_r($relinks_ids_array);
 //		echo "</pre>";
 		echo "<p style=\"margin-left: 3em;\">Взяли шаблон: ".$templ_this."<br>";
-		if (!include ($templ_dir."/".$templ_this."/custom_macros.php"))
-			die ('<b>Ошибка</b>: В папке с шаблоном '.$templ_dir."/".$templ_this.' отсутсвует обязательный файл custom_macros.php');
-		$templ_index = file_get_contents($templ_dir."/".$templ_this."/index.txt") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/index.txt"); 
-		$templ_page = file_get_contents($templ_dir."/".$templ_this."/page.txt") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/page.txt");
-		$templ_map = file_get_contents($templ_dir."/".$templ_this."/map.txt") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/map.txt");
+		$templ_index = file_get_contents($templ_dir."/".$templ_this."/index.html") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/index.html"); 
+		$templ_index = str_replace("{INDEXLINK}", "", $templ_index);
+		$templ_index = aggress($templ_index);
+		$templ_page = file_get_contents($templ_dir."/".$templ_this."/index.html") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/index.html");
+		$templ_page = str_replace("{SITEMAPLINK}", "", $templ_page);
+		$templ_page = aggress($templ_page);
+		$templ_map = file_get_contents($templ_dir."/".$templ_this."/dp_sitemap.html") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/dp_sitemap.html");
+		$templ_map = aggress($templ_map);
+
 		$dor_keys = array_keys($a_all_dor_keys_filename[$i]); //берем кеи из массива ключевиков по каждому дору
 		$a_key_filename = $a_all_dor_keys_filename[$i]; //берем массив кей => имя файла для кадждого дора
 		$total_key_dor = count($dor_keys); //считаем кол-во всех ключей текущего дора

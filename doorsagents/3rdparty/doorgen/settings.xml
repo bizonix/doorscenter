@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="windows-1251" ?>
 <settings>
 	<primary>
-		<job_file>test.txt</job_file>
-		<text_ancor_sitemap_links>Карт#</text_ancor_sitemap_links>
-		<text_ancor_index_link>На главную {MKEYWORD}</text_ancor_index_link>
-		<count_ancor_in_map>20</count_ancor_in_map>
-		<num_perc_spam>0.1</num_perc_spam>
+		<job_file>jobs.txt</job_file>
+		<text_ancor_sitemap_links>Map #</text_ancor_sitemap_links>
+		<text_ancor_index_link>Index {MKEYWORD}</text_ancor_index_link>
+		<count_ancor_in_map>100000</count_ancor_in_map>
+		<num_perc_spam>0.05</num_perc_spam>
 	</primary>
 
 	<secondary>
