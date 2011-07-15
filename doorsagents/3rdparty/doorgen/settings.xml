@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="windows-1251" ?>
+<settings>
+	<primary>
+		<job_file>test.txt</job_file>
+		<text_ancor_sitemap_links>Карт#</text_ancor_sitemap_links>
+		<text_ancor_index_link>На главную {MKEYWORD}</text_ancor_index_link>
+		<count_ancor_in_map>20</count_ancor_in_map>
+		<num_perc_spam>0.1</num_perc_spam>
+	</primary>
+
+	<secondary>
+		<compression_template>FALSE</compression_template>
+		<extension>.html</extension>
+		<keys_dir>keys</keys_dir>
+		<templ_dir>templ</templ_dir>
+		<out_dir>out</out_dir>
+		<jobs_dir>jobs</jobs_dir>
+		<text_dir>text</text_dir>
+		<insert_sitemaps_links_in_all_ancor_log>TRUE</insert_sitemaps_links_in_all_ancor_log>
+		<insert_sitemaps_links_in_ancor_log>TRUE</insert_sitemaps_links_in_ancor_log>
+		<insert_sitemaps_links_in_bbcode_log>TRUE</insert_sitemaps_links_in_bbcode_log>
+		<insert_sitemaps_links_in_bbcode_log_spam>TRUE</insert_sitemaps_links_in_bbcode_log_spam>
+		<generate_sitemap_xml>TRUE</generate_sitemap_xml>
+		<generate_robots_txt>TRUE</generate_robots_txt>
+		<generate_filezilla_project>FALSE</generate_filezilla_project>
+		<enable_packing>FALSE</enable_packing>
+		<upload_ftp>FALSE</upload_ftp>
+		<default_ftp_url>ftp://username:password@test.com:21/path</default_ftp_url>
+		<extract_zip_archive>FALSE</extract_zip_archive>
+	</secondary>
+
+	<editor>
+		<editor_def_jobs_file>jobs/test.txt</editor_def_jobs_file>
+		<editor_def_templ_folder>templ/test_macros2</editor_def_templ_folder>
+		<editor_def_keys_file>keys/test_two.txt</editor_def_keys_file>
+		<editor_def_macros_file>templ/test_macros2/custom_macros.php</editor_def_macros_file>
+		<editor_def_text_file>text/123.txt</editor_def_text_file>
+		<editor_def_delete_file></editor_def_delete_file>
+	</editor>
+</settings>

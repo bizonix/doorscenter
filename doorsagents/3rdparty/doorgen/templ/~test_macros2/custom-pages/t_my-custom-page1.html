@@ -1,0 +1,83 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+        <link rel="stylesheet" type="text/css" href="my-custom-style.css" />
+        <title>{DOR_TEXT_title.txt}</title>
+        </head>
+    <body>
+        <h2>Пример использования макросов поодиночке</h2>
+        <table border="1">
+			<tr><td><b>Запись макроса</b></td><td><b>Пример работы</b></td></tr>
+			<tr><td>&#123;JOB_RAND_sign1_5_10&#125;&lt;br&gt;&#123;JOB_RAND_sign2_5_10&#125;</td><td>{JOB_RAND_sign1_5_10}<br>{JOB_RAND_sign2_5_10}</td></tr>
+			<tr><td>&#123;NUM_SITEMAP&#125;</td><td>{NUM_SITEMAP}</td></tr>
+			<tr><td>&#123;MAP_LINKS_&lt;br&gt;&#125;</td><td>{MAP_LINKS_<br>}</td></tr>
+			<tr><td>&#123;INDEX&#125;</td><td>{INDEX}</td></tr>
+			<tr><td>&#123;FOR_3_3&#125;&#123;INDEX_&#123;FOR_NUM&#125;&#125;<br>&#123;/FOR&#125;</td><td>{FOR_3_3}{INDEX_{FOR_NUM}}<br>{/FOR}</td></tr>
+			<tr><td>&#123;KEYWORD&#125;</td><td>{KEYWORD}</td></tr>
+			<tr><td>&#123;BKEYWORD&#125;</td><td>{BKEYWORD}</td></tr>
+			<tr><td>&#123;BBKEYWORD&#125;</td><td>{BBKEYWORD}</td></tr>
+			<tr><td>&#123;MKEYWORD&#125;</td><td>{MKEYWORD}</td></tr>
+			<tr><td>&#123;BMKEYWORD&#125;</td><td>{BMKEYWORD}</td></tr>
+			<tr><td>&#123;BBMKEYWORD&#125;</td><td>{BBMKEYWORD}</td></tr>
+			<tr><td>&#123;PREV_PAGE_4_.&#125 &#123;CURR_PAGE&#125; &#123;NEXT_PAGE_4_.&#125;</td><td>{PREV_PAGE_4_.} {CURR_PAGE} {NEXT_PAGE_4_.}</td></tr>
+			<tr><td>&#123;PAGE_RAND_sign1_1_20&#125;<br>Повторим: &#123;PAGE_RAND_sign1_1_20&#125;<br>Другая метка: &#123;PAGE_RAND_sign2_1_20&#125;</td><td>{PAGE_RAND_sign1_1_20}<br>Повторим: {PAGE_RAND_sign1_1_20}<br>Другая метка: {PAGE_RAND_sign2_1_20}</td></tr>
+			<tr><td>&#123;DOR_URL&#125;</td><td>{DOR_URL}</td></tr>
+			<tr><td>&#123;DOR_HOST&#125;</td><td>{DOR_HOST}</td></tr>
+			<tr><td>&#123;MAPS_, &#125;</td><td>{MAPS_, }</td></tr>
+			<tr><td>&#123;RAND_ANCOR&#125;</td><td>{RAND_ANCOR}</td></tr>
+			<tr><td>&#123;BRAND_ANCOR&#125;</td><td>{BRAND_ANCOR}</td></tr>
+			<tr><td>&#123;BBRAND_ANCOR&#125;</td><td>{BBRAND_ANCOR}</td></tr>
+			<tr><td>&#123;RAND_URL&#125;</td><td>{RAND_URL}</td></tr>
+			<tr><td>&#123;RAND_KEY&#125;</td><td>{RAND_KEY}</td></tr>
+			<tr><td>&#123;BRAND_KEY&#125;</td><td>{BRAND_KEY}</td></tr>
+			<tr><td>&#123;BBRAND_KEY&#125;</td><td>{BBRAND_KEY}</td></tr>
+			<tr><td>&#123;RAND_KEY_1_3_, &#125;</td><td>{RAND_KEY_1_3_, }</td></tr>
+			<tr><td>&#123;BRAND_KEY_1_3_, &#125;</td><td>{BRAND_KEY_1_3_, }</td></tr>
+			<tr><td>&#123;BBRAND_KEY_1_3_, &#125;</td><td>{BBRAND_KEY_1_3_, }</td></tr>
+			<tr><td>&#123;MIX_TEXT_counter.txt_\n_&#060;br&#062;&#125;</td><td>{MIX_TEXT_counter.txt_\n_<br>}</td></tr>
+			<tr><td>&#123;RELINKS_2_5_&lt;br&gt;&#125;</td><td>{RELINKS_2_5_<br>}</td></tr>
+			<tr><td>&#123;LINKS_2_5_&lt;br&gt;&#125;</td><td>{LINKS_2_5_<br>}</td></tr>
+			<tr><td>&#123;BLINKS_2_5_&lt;br&gt;&#125;</td><td>{BLINKS_2_5_<br>}</td></tr>
+			<tr><td>&#123;BBLINKS_2_5_&lt;br&gt;&#125;</td><td>{BBLINKS_2_5_<br>}</td></tr>
+			<tr><td>&#123;LINE_FILE_123.txt_15&#125;</td><td>{LINE_FILE_123.txt_15}</td></tr>
+			<tr><td>&#123;DOR_TEXT_counter.txt&#125;</td><td>{DOR_TEXT_counter.txt}</td></tr>
+			<tr><td>&#123;RAND_TEXT_123.txt&#125;</td><td>{RAND_TEXT_123.txt}</td></tr>
+			<tr><td>&#123;BRAND_TEXT_123.txt&#125;</td><td>{BRAND_TEXT_123.txt}</td></tr>
+			<tr><td>&#123;BBRAND_TEXT_123.txt&#125;</td><td>{BBRAND_TEXT_123.txt}</td></tr>
+			<tr><td>&#123;RAND_TEXT_testRandText.txt&#125;</td><td>{RAND_TEXT_testRandText.txt}</td></tr>
+			<tr><td>&#123;MEM_two&#125;&#123;RAND_TEXT_testRandText.txt&#125;&#123;/MEM&#125;</td><td>{MEM_two}{RAND_TEXT_testRandText.txt}{/MEM}</td></tr>
+			<tr><td>&#123;INS_two&#125;</td><td>{INS_two}</td></tr>
+			<tr><td>&#123;RAND_TEXT_123withend.txt_3_5_{END}_&#060;br&#062;&#125;</td><td>{RAND_TEXT_123withend.txt_3_5_{END}_<br>}</td></tr>
+			<tr><td>&#123;RAND_TEXT_123withend.txt_3_5_\n_&#060;br&#062;&#125;</td><td>{RAND_TEXT_123withend.txt_3_5_\n_<br>}</td></tr>
+			<tr><td>&#123;BRAND_TEXT_123withend.txt_3_5_\n_&#060;br&#062;&#125;</td><td>{BRAND_TEXT_123withend.txt_3_5_\n_<br>}</td></tr>
+			<tr><td>&#123;BBRAND_TEXT_123withend.txt_3_5_\n_&#060;br&#062;&#125;</td><td>{BBRAND_TEXT_123withend.txt_3_5_\n_<br>}</td></tr>
+			<tr><td>&#123;DOR_RAND_s1_1_3&#125;<br>&#123;DOR_RAND_poz9_1_3&#125;<br>&#123;DOR_RAND_s1_1_3&#125;<br>&#123;DOR_RAND_poz9_1_3&#125;</td><td>{DOR_RAND_s1_1_3}<br>{DOR_RAND_poz9_1_3}<br>{DOR_RAND_s1_1_3}<br>{DOR_RAND_poz9_1_3}</td></tr>
+			<tr><td>&#123;DOR_URAND_yandeG_1_20&#125;<br>&#123;DOR_URAND_GoOgla_1_20&#125;<br>&#123;DOR_URAND_yandeG_1_20&#125;<br>&#123;DOR_URAND_GoOgla_1_20&#125;</td><td>{DOR_URAND_yandeG_1_20}<br>{DOR_URAND_GoOgla_1_20}<br>{DOR_URAND_yandeG_1_20}<br>{DOR_URAND_GoOgla_1_20}</td></tr>
+			<tr><td>&#123;MEM_one1&#125;&#123;RAND_1_5&#125;&#123;/MEM&#125;<br>следующая строка будет дублирована<br>&#123;INS_one1&#125;<br></td><td>{MEM_one1}{RAND_1_5}{/MEM}<br>следующая строка будет дублирована<br>{INS_one1}</td></tr>
+			<tr><td>&#123;CNT_one_5_1&#125;&lt;a href="&#123;LINE_FILE_text.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;img src="&#123;LINE_FILE_blin.txt_&#123;CNT_NUM&#125;&#125;" alt="&#123;LINE_FILE_xreh.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;/a&gt;&#123;/CNT&#125;</td><td>{CNT_one_5_1}<a href="{LINE_FILE_text.txt_{CNT_NUM}}"><img src="{LINE_FILE_blin.txt_{CNT_NUM}}" alt="{LINE_FILE_xreh.txt_{CNT_NUM}}"></a>{/CNT}</td></tr>
+			<tr><td>&#123;CNT_one_5_1&#125;&lt;a href="&#123;LINE_FILE_text.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;img src="&#123;LINE_FILE_blin.txt_&#123;CNT_NUM&#125;&#125;" alt="&#123;LINE_FILE_xreh.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;/a&gt;&#123;/CNT&#125;&lt;/td><td>{CNT_one_5_1}<a href="{LINE_FILE_text.txt_{CNT_NUM}}"><img src="{LINE_FILE_blin.txt_{CNT_NUM}}" alt="{LINE_FILE_xreh.txt_{CNT_NUM}}"></a>{/CNT}</td></tr>
+			<tr><td>&#123;CNT_two_15_2&#125;&lt;a href="&#123;LINE_FILE_text.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;img src="&#123;LINE_FILE_blin.txt_&#123;CNT_NUM&#125;&#125;" alt="&#123;LINE_FILE_xreh.txt_&#123;CNT_NUM&#125;&#125;"&gt;&lt;/a&gt;&#123;/CNT&#125;</td><td>{CNT_two_15_2}<a href="{LINE_FILE_text.txt_{CNT_NUM}}"><img src="{LINE_FILE_blin.txt_{CNT_NUM}}" alt="{LINE_FILE_xreh.txt_{CNT_NUM}}"></a>{/CNT}</td></tr>
+			<tr><td>&#123;RAND_1_5&#125;<br>&#123;RAND_1_5&#125;<br>&#123;RAND_1_5&#125;<br>&#123;RAND_1_5&#125;<br>&#123;RAND_1_5&#125;</td><td>{RAND_1_5}<br>{RAND_1_5}<br>{RAND_1_5}<br>{RAND_1_5}<br>{RAND_1_5}</td></tr>
+			<tr><td>&#123;URAND_1_5&#125;<br>&#123;URAND_1_5&#125;<br>&#123;URAND_1_5&#125;<br>&#123;URAND_1_5&#125;<br>&#123;URAND_1_5&#125;</td><td>{URAND_1_5}<br>{URAND_1_5}<br>{URAND_1_5}<br>{URAND_1_5}<br>{URAND_1_5}</td></tr>
+			<tr><td>&#123;FOR_1_5&#125;({FOR_NUM}) повторяем этот кусок от одного до пяти раз&#060;br&#062;&#123;/FOR&#125;</td><td>{FOR_1_5}({FOR_NUM}) повторяем этот кусок от одного до пяти раз<br>{/FOR}</td></tr>
+			<tr><td>&#91;&#91;one|&#91;&#91;1|2|&#91;&#91;&#91;&#91;&#123;RAND_KEY&#125;|35|44&#93;&#93;|4|5&#93;&#93;&#93;&#93;&#93;&#93;</td><td>[[one|[[1|2|[[[[{RAND_KEY}|35|44]]|4|5]]]]]]</td></tr>
+			<tr><td>Запомним: &#123;MEM_three&#125;&#91;&#91;one|&#91;&#91;1|2|&#91;&#91;&#91;&#91;&#123;RAND_KEY&#125;|35|44&#93;&#93;|4|5&#93;&#93;&#93;&#93;&#93;&#93;&#123;/MEM&#125;&lt;br&gt;Вставим: &#123;INS_three&#125;</td><td>Запомним: {MEM_three}[[one|[[1|2|[[[[{RAND_KEY}|35|44]]|4|5]]]]]]{/MEM}<br>Вставим: {INS_three}</td></tr>
+			<tr><td>&#123;ALL_MACROS&#125;</td><td>{ALL_MACROS}</td></tr>
+			<tr><td>&#123;IMG&#125;</td><td>{IMG}</td></tr>
+		</table>
+		<h2>Пример использования макросов в связке</h2>
+			Учитывайте порядок замены сверху вниз. Принцип построения вложенных макросов следующий: вложенный макрос должен стоять выше в порядке замены, чем тот макрос, в который мы вкладываем. Разберем пример по шагам выполнения:<br>
+			&#123;LINE_FILE_&#91;&#91;123.txt|1234.txt&#93;&#93;_&#123;RAND_1_469&#125;&#125;<br>
+			1 шаг, исходя из таблицы порядка дорген заменит первым макрос &#91;&#91;123.txt|1234.txt&#93;&#93;, получим:<br>
+			&#123;LINE_FILE_1234.txt_&#123;RAND_1_469&#125;&#125;<br>
+			2 шаг, дорген заменит макрос &#123;RAND_1_469&#125;, получим:<br>
+			&#123;LINE_FILE_1234.txt_218&#125;<br>
+			3 шаг, дорген заменит макрос &#123;LINE_FILE_1234.txt_218&#125;, получим:<br>
+			{LINE_FILE_[[123.txt|1234.txt]]_{RAND_1_469}}
+			<br><br>
+		Еще несколько примеров:<br>
+			&#123;LINE_FILE_&#91;&#91;123|1234&#93;&#93;.txt_&#123;RAND_1_469&#125;&#125;: {LINE_FILE_[[123|1234]].txt_{RAND_1_469}}<br>
+			&#123;LINE_FILE_123&#91;&#91;|4&#93;&#93;.txt_&#123;RAND_1_&#91;&#91;300|469&#93;&#93;&#125;&#125;: {LINE_FILE_123[[|4]].txt_{RAND_1_[[300|469]]}}<br>
+			&#123;LINE_FILE_123.txt_&#123;DOR_RAND_sign_1_100&#125;&#125;: {LINE_FILE_123.txt_{DOR_RAND_sign_1_100}}<br>
+	</body>
+</html>

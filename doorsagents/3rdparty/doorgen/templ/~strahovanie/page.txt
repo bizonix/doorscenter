@@ -1,0 +1,454 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+
+<title>{BKEYWORD} - Все о страховании в России - PAGE</title>
+<meta name="keywords" content="{BKEYWORD}, {RAND_KEY}, {RAND_KEY}">
+<meta name="description" content="Все о страховании в России - {BKEYWORD}: {RAND_KEY}">
+</head><body background="../img/5.jpg" link="#ffffff" vlink="#ffffff">
+
+<p align="CENTER">
+<img src="../img/14.jpg" alt="{RAND_KEY}"></p>
+
+<p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+<p align="CENTER"><b><font color="#ffffcc" face="Arial" size="5">
+{BKEYWORD}
+</font></b></p><b><font color="#ffffcc" face="Arial" size="5"></font>
+</b><p align="CENTER"><b><b><font color="#ff9966" face="Times New Roman" size="1">
+ВНИМАНИЕ! <br>
+НАШ САЙТ СОДЕРЖИТ МАТЕРИАЛЫ ПО СТРАХОВАНИЮ ЖИЗНИ И СОБСТВЕННОСТИ В РОССИИ.
+</font></b></b></p>
+</td></tr></tbody></table><p></p>   
+
+<p align="CENTER">
+<a href="http://seodor.ru" target="_blank">
+<img src="../img/2.gif" alt="{RAND_KEY}" border="0">
+</a></p>
+
+<p align="center"><b><font color="#ffffcc" face="Arial" size="1">
+Приветствуем вас на Всероссийском портале по вопросам страхования жизни и собственности
+и рады представить вам следующие фото-материалы "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", {RAND_ANCOR} и {RAND_ANCOR}, а также {RAND_KEY}!
+</font></b></p><b><font color="#ffffcc" face="Arial" size="1"></font>
+
+</b><p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+
+<p align="CENTER"><b><font color="#ffcc66" face="Arial" size="2">
+Наша компания осуществляет деятельность по страхованию жизни и здоровья человека<br>
+А также движимого и недвижимого имущества. Гибкие системы, отработанные годами дают вам уверенность в завтрашнем дне<br>
+Виды страхования, которыми мы занимаемся:
+</font></b></p><b><font color="#ffcc66" face="Arial" size="2"></font>
+
+</b><p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из галереи №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Обзор|Отчет}} видов страхования по темам "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", а также {RAND_ANCOR} 
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из галереи №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор}} видов страхования: "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}" и "{RAND_KEY}" 
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из галереи №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор}} типов страхования {RAND_KEY}, {RAND_KEY}, {RAND_KEY} ну и {RAND_ANCOR}.
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из галереи №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+Страхование недвижимости также сопряжено с {RAND_KEY}, {RAND_KEY} и {RAND_KEY}. Подробнее <a href="{RAND_URL}">здесь</a> почитать
+</font></font></p></td>
+</tr></tbody></table></p>
+</td></tr></tbody></table><p></p><b>   
+
+</b><p align="CENTER">
+<b><img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</b></p>
+
+<p align="CENTER"><b><b><font color="#ffcccc" face="Arial" size="2">
+Предлагаем Вам внимательно ознакомится с предлагаемым перечнем услуг по страхованию {{недвижимости|жизни|здоровья}} человека.
+</font></b></b></p>
+
+<p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+
+<p align="CENTER">
+<img src="../img/lancer.gif" alt="{RAND_KEY}">
+</p>
+
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p>
+
+<p align="center"><font color="#cc9966" face="Arial" size="1">
+Эта {{иллюстрация|картинка|скриншот}} взята с нашего строительного портала, на котором Вы можете встретить такие полезные статьи, как {RAND_KEY}, {RAND_KEY}, {RAND_KEY}, {RAND_KEY}, {RAND_KEY}, "{RAND_KEY}". Подробности этой {{иллюстрации|картинки|скриншота}} можно почитать <a href="{RAND_URL}">тут</a>.
+</font></p><font color="#cc9966" face="Arial" size="1"></font>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор|доклад|новость|уведомление|предложение}} принципов страхования {RAND_KEY}, {RAND_KEY}, {RAND_KEY} и {RAND_KEY}.
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор|доклад|новость|уведомление|предложение}} методов страхования: "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}" и "{RAND_KEY}"
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор|доклад|новость|уведомление|предложение}} видов страхования, таких как {RAND_KEY}, {RAND_KEY}, {RAND_KEY}, подробнее почитать - {RAND_ANCOR}
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Просмотров {-RAND_1000_10000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{{Фото|Видео}} {{отчет|обзор|доклад|новость|уведомление|предложение}} типов страхования, включающих {RAND_KEY}, {RAND_KEY}, {RAND_KEY}
+</font></font></p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER">
+<img src="../img/earth.gif" alt="{RAND_KEY}">
+</p>
+
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p>
+
+<p align="center"><font color="#cc9966" face="Arial" size="1">
+Возможно, Вас заинтересует также совершенно иной вид страхования - 
+"{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", 
+"{RAND_KEY}", "{RAND_KEY}" и прочее-прочее. 
+</font></p><font color="#cc9966" face="Arial" size="1"></font>
+
+<p align="CENTER">
+<img src="../img/faq.gif" alt="{RAND_KEY}">
+</p>
+
+</td></tr></tbody></table><p></p><b> 
+
+</b><p align="CENTER">
+<b><img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</b></p>
+
+<p align="center"><b><font color="#cc9966" face="Arial" size="1">
+Перейдя по ссылкам "{RAND_ANCOR}" и "{RAND_ANCOR}" Вы также найдете несколько полезных статей и заметок по {RAND_KEY} и {RAND_KEY}.<br>
+А также {{отчет|обзор|доклад|новость|уведомление|предложение}} нашего корреспондента на животрепещущую тему {RAND_KEY}, {RAND_KEY} и {RAND_KEY}!
+</font></b></p><b><font color="#cc9966" face="Arial" size="1"></font>
+
+</b><p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Отзывов {-RAND_100_1000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+Новые виды страхования охватывают следующие стороны жизни: {RAND_KEY}, {RAND_KEY}, {RAND_KEY}..
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="теплоизоляция цоколя">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Отзывов {-RAND_100_1000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+"{BRAND_KEY}", "{RAND_KEY}", "{RAND_KEY}" про все это Вы прочтете на нашем портале..
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="теплоизоляция пароизоляция">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Отзывов {-RAND_100_1000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+Основные темы нашего сайта :"{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", а также, немаловажным является {RELINKS_1_1_}
+</font></font></p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="утепление деревянных перекрытий">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+Отзывов {-RAND_100_1000}
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+Эксперты страхования полагают, что {RAND_KEY} и {RAND_KEY} будут являтся самыми востребованными услугами в области {RAND_KEY}.
+</font></font></p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+
+<p align="CENTER">
+<img src="../img/logofirma.gif" alt="{RAND_KEY}">
+</p>
+
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="50%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+{-RAND_1000_10000} запросов 
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+Яркий пример того, что не стоит пренебрегать {RAND_KEY}, {RAND_KEY} и {RAND_KEY}, если вы хотите быть уверенными в завтрашнем дне
+</font></font></p></td>
+<td height="100" valign="TOP" width="50%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="материалы для утепления дома">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+{-RAND_1000_10000} запросов 
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+{BRAND_KEY}, {RAND_KEY}, {RAND_KEY}: самые обсуждаемые темы о страховании жизни, здровья и недвижимости
+</font></font></p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER">
+<img src="../img/razdel-1.gif" alt="{RAND_KEY}">
+</p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+<td height="100" valign="TOP" width="25%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER"><table border="0" cellpadding="7" cellspacing="0" width="700"><tbody><tr>
+<td height="100" valign="TOP" width="50%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+{-RAND_100_1000} комментариев на тему
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+"{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", на нашем портале по ссылке- {RELINKS_1_1_}
+</font></font></p></td>
+<td height="100" valign="TOP" width="50%">
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="утеплитель между брусом">
+<b><font color="#ffcc00" face="Arial" size="1">
+{{Фото|Видео|Пикча|Мувис|Сэмпл}} из сборника №{-RAND_10_100}<br>
+<font color="#ffffcc" face="Arial" size="1">
+{-RAND_100_1000} комментариев на тему
+</font></font></b>
+<font color="#ffcc00" face="Arial" size="1"><font color="#ffffff" face="Verdana" size="1">
+"{RAND_KEY}", "{RAND_KEY}" и "{RAND_KEY}", в гостевой книге по <a href="{RAND_URL}">адресу</a>
+</font></font></p></td>
+</tr></tbody></table></p>
+
+<p align="CENTER">
+<img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</p>
+
+</td></tr></tbody></table><p></p>
+
+<p align="CENTER">
+<b><a href="http://seodor.ru" target="_blank">
+<img src="../img/3.gif" alt="{RAND_KEY}" border="0">
+</a></b></p>
+
+<p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+<p align="center"><b><font color="#ffcc99" face="Arial" size="2">
+НАВИГАЦИЯ ПО САЙТУ:
+</font></b><font color="#ffcc99" face="Arial" size="2"></font></p>
+<p align="CENTER">
+<img src="../img/razdel-1.gif" alt="{RAND_KEY}">
+</p>
+<p align="CENTER"><b><font color="#ffffff" face="Arial" size="3">
+{RAND_ANCOR}<br>
+{RAND_ANCOR}<br>
+{RAND_ANCOR}<br>
+{RAND_ANCOR}<br>
+</font></b><font color="#ffffff" face="Arial" size="3"></font></p></td></tr></tbody></table><p></p>
+
+<p align="center"><b><font color="#cc9966" face="Arial" size="1">
+В завершенни хотелось бы отменить, что мы сотрудничаем с крупными страховыми компаниями, предоставляющими услуги вида:<br>
+{RELINKS_2_3_, }<br>
+и оказывающими помощь в следующих сферах: {RAND_KEY}, {RAND_KEY} и {RAND_KEY}
+</font></b></p><b><font color="#cc9966" face="Arial" size="1"></font>
+
+</b><p align="CENTER">
+<b><img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</b></p>
+
+<p align="CENTER">
+<b><a href="http://seodor.ru" target="_blank">
+<img src="../img/2.gif" alt="{RAND_KEY}" border="0">
+</a></b></p>
+
+<p align="CENTER"></p><center><table border="0" cellpadding="7" cellspacing="1" width="740"><tbody><tr>
+<td background="../img/9.jpg" valign="TOP" width="25%">
+<p align="CENTER">
+
+</p><p align="CENTER">
+<img src="../img/razdel-2.gif" alt="{RAND_KEY}">
+</p>
+
+</td>
+<td background="../img/8.jpg" valign="TOP" width="50%">
+<p align="CENTER"><b><font color="#336699" face="Arial" size="5">
+{INDEX}
+</font></b></p></td>
+<td background="../img/9.jpg" valign="TOP" width="25%">
+<p align="CENTER">
+
+</p><p align="CENTER">
+<img src="../img/razdel-2.gif" alt="{RAND_KEY}">
+</p>
+
+</td>
+</tr></tbody></table></center><p></p>
+
+<p align="CENTER">
+<b><img src="../img/phone_fp.gif" alt="{RAND_KEY}">
+</b></p>
+
+<p align="CENTER">
+<b><img src="../img/email-8.gif" alt="{RAND_KEY}">
+</b></p>
+
+<p align="center"><b><b><font color="#ffffcc" face="Tahoma" size="1">
+Наш портал является простым информационным сайтом и никак не относится к рекламируемым на нем компаниям!<br>
+"Все о страховании в России" © 2010. Все права запрещены :)
+</font></b></b></p>
+{DOR_TEXT_counter.txt}
+</center></center></center></center></center></body></html>

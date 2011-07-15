@@ -1,0 +1,88 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+
+<title>{BKEYWORD} - Все о страховании в России - MAP</title>
+<meta name="keywords" content="{BKEYWORD}, {RAND_KEY}, {RAND_KEY}">
+<meta name="description" content="Все о страховании в России - {BKEYWORD}: {RAND_KEY}">
+</head><body background="../img/5.jpg" link="#ffffff" vlink="#ffffff">
+
+<p align="CENTER">
+<img src="../img/14.jpg" alt="{RAND_KEY}"></p>
+
+<p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+<p align="CENTER"><b><font color="#ffffcc" face="Arial" size="5">
+{BKEYWORD}
+</font></b></p><b><font color="#ffffcc" face="Arial" size="5"></font>
+</b><p align="CENTER"><b><b><font color="#ff9966" face="Times New Roman" size="1">
+ВНИМАНИЕ! <br>
+НАШ САЙТ СОДЕРЖИТ МАТЕРИАЛЫ ПО СТРАХОВАНИЮ ЖИЗНИ И СОБСТВЕННОСТИ В РОССИИ.
+</font></b></b></p>
+</td></tr></tbody></table><p></p>   
+
+<p align="CENTER">
+<a href="http://seodor.ru" target="_blank">
+<img src="../img/2.gif" alt="{RAND_KEY}" border="0">
+</a></p>
+
+<p align="center"><b><font color="#ffffcc" face="Arial" size="1">
+Приветствуем вас на Всероссийском портале по вопросам страхования жизни и собственности
+и рады представить вам следующие фото-материалы "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", "{RAND_KEY}", {RELINKS_1_1_} и {RELINKS_1_1_}, а также {RAND_KEY}!
+</font></b></p><b><font color="#ffffcc" face="Arial" size="1"></font>
+
+</b><p align="CENTER"></p><center><table border="3" bordercolor="#996600" cellpadding="6" cellspacing="1" width="740">
+<tbody><tr><td background="../img/10.jpg" valign="TOP">
+
+<p align="CENTER"><b><font color="#ffcc66" face="Arial" size="2">
+По следующим ссылкам вы можете найти необходимый материал на странице:<br>
+{MAP_LINKS_<br>}
+</font></b></p><b><font color="#ffcc66" face="Arial" size="2"></font>
+
+</b></td></tr></tbody></table>
+
+<p align="CENTER">
+<b><img src="../img/img{RAND_1_100}.jpg" alt="{RAND_KEY}">
+</b></p>
+
+<p align="CENTER">
+<b><a href="http://seodor.ru" target="_blank">
+<img src="../img/2.gif" alt="{RAND_KEY}" border="0">
+</a></b></p>
+
+<p align="CENTER"></p><center><table border="0" cellpadding="7" cellspacing="1" width="740"><tbody><tr>
+<td background="../img/9.jpg" valign="TOP" width="25%">
+<p align="CENTER">
+
+</p><p align="CENTER">
+<img src="../img/razdel-2.gif" alt="{RAND_KEY}">
+</p>
+
+</td>
+<td background="../img/8.jpg" valign="TOP" width="50%">
+<p align="CENTER"><b><font color="#336699" face="Arial" size="5">
+{RELINKS_1_1_}
+</font></b></p></td>
+<td background="../img/9.jpg" valign="TOP" width="25%">
+<p align="CENTER">
+
+</p><p align="CENTER">
+<img src="../img/razdel-2.gif" alt="{RAND_KEY}">
+</p>
+
+</td>
+</tr></tbody></table></center><p></p>
+
+<p align="CENTER">
+<b><img src="../img/phone_fp.gif" alt="{RAND_KEY}">
+</b></p>
+
+<p align="CENTER">
+<b><img src="../img/email-8.gif" alt="{RAND_KEY}">
+</b></p>
+
+<p align="center"><b><b><font color="#ffffcc" face="Tahoma" size="1">
+Наш портал является простым информационным сайтом и никак не относится к рекламируемым на нем компаниям!<br>
+"Все о страховании в России" © 2010. Все права запрещены :)
+</font></b></b></p>
+{DOR_TEXT_counter.txt}
+</center></center></center></center></center></body></html>
