@@ -268,20 +268,20 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             except Exception as error:
                 EventLog('error', 'Cannot generate dorway', self, error)
     def save(self, *args, **kwargs):
-        '''...'''
+        '''Создаем сайт на Piwik'''
         try:
             if self.stateSimple == 'new' and self.piwikId == None:
                 self.piwikId = int(AddSiteToPiwik(self.description))
         except Exception as error:
             EventLog('error', 'Cannot add site to Piwik', None, error)
-        '''...'''
+        '''Автогенерация сетки'''
         try:
             if self.stateSimple == 'new' and self.settings == '#gen':
                 self.settings, _, _, _ = GenerateNetConfig(2, 4, 2, 4, True)
                 self.minPagesCount, self.maxPagesCount, self.minSpamLinksPercent, self.maxSpamLinksPercent, self.makeSpam = GenerateNetParams()
         except Exception as error:
             EventLog('error', 'Cannot generate net params', None, error)
-        '''...'''
+        '''Генерация доров в сетке'''
         if self.generateNow > 0:
             self.GenerateDoorways(self.generateNow)
             self.generateNow = 0

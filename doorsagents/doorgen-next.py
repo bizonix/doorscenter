@@ -7,10 +7,6 @@ class DoorgenAgent(agent.BaseAgent):
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
-    В настройках доргена принудительно устанавливаем параметры, см. ниже. Кейворды 
-    пишем в файл так:
-    keyword1|[domain]|[ftpLogin]|[ftpPassword]|[documentRoot](os.path.join)[domainFolder]|
-    
     Параметр domainFolder всегда должен начинаться на прямой слэш.
     
     Минимальное содержимое командного файла cmd.php (для загрузки по FTP в архиве):
@@ -19,8 +15,8 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        self.appFolder = 'C:\\Program Files\\Apache Software Foundation\\Apache2.2\\htdocs\\test.home\\dorgen'  # папка с приложением
-        self.appEngine = 'http://test.home:81/dorgen/engine.php'  # запуск доргена
+        self.appFolder = '/home/sasch/public_html/test.home/doorgen'  # папка с приложением
+        self.appEngine = 'http://test.home/doorgen/engine.php'  # запуск доргена
         self.appJobFile = os.path.join(self.appFolder, 'jobs' + os.sep + 'jobs.txt')  # задания
         self.appMacrosFile = os.path.join(self.appFolder, 'lib' + os.sep + 'custom_macros.php')  # значения кастомных макросов
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
@@ -28,9 +24,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.appNetLinksFile = os.path.join(self.appFolder, 'text' + os.sep + 'netlinks.txt')  # файл со ссылками для перелинковки 
         self.appSpamLinksFile = os.path.join(self.appFolder, 'out' + os.sep + 'jobs_ancor_log.txt')  # файл со сгенерированными ссылками для спама 
         self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        if self.doorwayUrl.endswith('/'):
+            self.doorwayUrl = self.doorwayUrl[0:-1]
         self.doorwayFolder = self.appFolder + os.sep + 'out' + os.sep + 'jobs' + os.sep + 'door%d' % self._GetCurrentTaskId()
-        if not self.doorwayUrl.endswith('/'):
-            self.doorwayUrl += '/'
+        self.currentTask['spamLinksList'] = []
         '''Генерация шаблона'''
         if generateTemplate:
             if self.currentTask['templateFolder'].startswith('xgen'):

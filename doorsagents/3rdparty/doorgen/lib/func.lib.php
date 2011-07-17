@@ -49,8 +49,11 @@
 		if ($access_macros[1]) {
 			//$macros = "/{FOR_(\d*)_(\d*)}(.*){\/FOR}/Us";
 			$macros = "/{FOR\((\d*),(\d*)\)}(.*){ENDFOR}/Us";
+			$macros2 = "/{FOR\((\d*),{RAND\((\d*),(\d*)\)}\)}(.*){ENDFOR}/Us";
 			$text = preg_replace_callback($macros, "for_endfor", $text);
+			$text = preg_replace_callback($macros2, "for_endfor", $text);
 			$all_macros[] = $macros;
+			$all_macros[] = $macros2;
 		}
 
 		if ($access_macros[2]) {
@@ -537,11 +540,19 @@
 	}
 
 	function for_endfor($matches) {
-		$cp = mt_rand($matches[1], $matches[2]);
-		for ($x=1;$x<=$cp;$x++) {
+		if (!isset($matches[4])) {
+			for ($x=$matches[1];$x<=$matches[2];$x++) {
 			$tmp = $matches[3];
-			$tmp = preg_replace('/{FOR_NUM}/', $x, $tmp);
-			$res .= $tmp;
+				$tmp = preg_replace('/{FOR_NUM}/', $x, $tmp);
+				$res .= $tmp;
+			}
+		}
+		else {
+	 		for ($x=$matches[1];$x<=mt_rand($matches[2], $matches[3]);$x++) {
+			$tmp = $matches[4];
+				$tmp = preg_replace('/{FOR_NUM}/', $x, $tmp);
+				$res .= $tmp;
+			}
 		}
 		return $res;
 	}
@@ -847,6 +858,7 @@
 		$s = str_replace("{SITEMAPLINK}", "{MAPS_ }", $s);
 		$s = str_replace("{STAT}", "{DOR_MEM_x}", $s);
 		$s = str_replace("{/STAT}", "{/DOR_MEM}", $s);
+		$s = str_replace("{ALLLINK}", "{MAP_LINKS_ }", $s);
 		return $s;
 	}
 

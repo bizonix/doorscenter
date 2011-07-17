@@ -1,6 +1,9 @@
 # coding=utf8
 import os, sys, urllib, pickle, subprocess, datetime, base64
-from win32com.client import GetObject
+try:  # импорт требуется только на Windows
+    from win32com.client import GetObject
+except ImportError:
+    pass
 
 '''Для реализации агента требуется создать модуль с классом, унаследованным от 
 BaseAgent, и переопределить в нем методы _ActionOn() и _ActionOff(). 
@@ -59,12 +62,15 @@ class BaseAgent(object):
     
     def _IsHeavyLoad(self):
         '''Есть ли в процессах тяжелые задачи'''
-        heavyProcessesList = ['AGGRESSDoorgen.exe', 'xpymep.exe']
-        processesList = GetObject('winmgmts:').InstancesOf('Win32_Process')
-        processesNames = [process.Properties_('Name').Value.lower() for process in processesList]
-        for processName in heavyProcessesList:
-            if processName.lower() in processesNames:
-                return True
+        try:
+            heavyProcessesList = ['AGGRESSDoorgen.exe', 'xpymep.exe']
+            processesList = GetObject('winmgmts:').InstancesOf('Win32_Process')
+            processesNames = [process.Properties_('Name').Value.lower() for process in processesList]
+            for processName in heavyProcessesList:
+                if processName.lower() in processesNames:
+                    return True
+        except Exception:
+            pass
         return False
         
     def _GetNextTask(self):

@@ -61,7 +61,7 @@ def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, con
         return ''
 
 def AddSiteToPiwik(siteName):
-    '''...'''
+    '''Добавление сайта в Piwik'''
     try:
         fd = urllib.urlopen(r'http://searchpro.name/stat/?module=API&method=SitesManager.addSite&siteName=%s&urls=siteUrl.com&format=original&token_auth=6822e43c3b191ead08e76539ef23fa5f' % siteName)
         reply = fd.read()
@@ -218,7 +218,7 @@ def ReplaceZero(s):
         return s
 
 def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNodesCount, makeLevel2):
-    '''...'''
+    '''Генерация сетки'''
     levels1Count = 0
     levels2Count = 0
     
@@ -266,7 +266,7 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
     return netConfig, len(net), levels1Count, levels2Count
 
 def GenerateNetParams():
-    '''...'''
+    '''Генерация параметров сетки'''
     while True:
         minPagesCount = math.floor(random.normalvariate(800, 500))
         maxPagesCount = math.floor(minPagesCount * random.normalvariate(2.0, 0.7))

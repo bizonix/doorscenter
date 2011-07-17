@@ -2,10 +2,10 @@
 <settings>
 	<primary>
 		<job_file>jobs.txt</job_file>
-		<text_ancor_sitemap_links>Map #</text_ancor_sitemap_links>
+		<text_ancor_sitemap_links>Sitemap</text_ancor_sitemap_links>
 		<text_ancor_index_link>Index {MKEYWORD}</text_ancor_index_link>
 		<count_ancor_in_map>100000</count_ancor_in_map>
-		<num_perc_spam>0.05</num_perc_spam>
+		<num_perc_spam>1</num_perc_spam>
 	</primary>
 
 	<secondary>
@@ -30,11 +30,11 @@
 	</secondary>
 
 	<editor>
-		<editor_def_jobs_file>jobs/test.txt</editor_def_jobs_file>
-		<editor_def_templ_folder>templ/test_macros2</editor_def_templ_folder>
-		<editor_def_keys_file>keys/test_two.txt</editor_def_keys_file>
-		<editor_def_macros_file>templ/test_macros2/custom_macros.php</editor_def_macros_file>
-		<editor_def_text_file>text/123.txt</editor_def_text_file>
+		<editor_def_jobs_file></editor_def_jobs_file>
+		<editor_def_templ_folder></editor_def_templ_folder>
+		<editor_def_keys_file></editor_def_keys_file>
+		<editor_def_macros_file></editor_def_macros_file>
+		<editor_def_text_file></editor_def_text_file>
 		<editor_def_delete_file></editor_def_delete_file>
 	</editor>
 </settings>
