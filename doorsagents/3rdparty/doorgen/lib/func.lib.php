@@ -843,6 +843,7 @@
 	}
 
 	function aggress($s) {
+		$s = str_replace("{STAT}{ARANDKEYWORD}{/STAT}", "{BBMKEYWORD}", $s);
 		$s = str_replace("{BOSKEYWORD}", "{BKEYWORD}", $s);
 		$s = str_replace("{ABOSKEYWORD}", "{BBKEYWORD}", $s);
 		$s = str_replace("{CBOSKEYWORD}", "{BKEYWORD}", $s);
@@ -856,8 +857,6 @@
 		$s = str_replace("{RANDMYLINK}", "{RANDTEXTLINE(netlinks.txt)}", $s);
 		$s = str_replace("{INDEXLINK}", "{INDEX}", $s);
 		$s = str_replace("{SITEMAPLINK}", "{MAPS_ }", $s);
-		$s = str_replace("{STAT}", "{DOR_MEM_x}", $s);
-		$s = str_replace("{/STAT}", "{/DOR_MEM}", $s);
 		$s = str_replace("{ALLLINK}", "{MAP_LINKS_ }", $s);
 		return $s;
 	}

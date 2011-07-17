@@ -3,7 +3,7 @@
 	<primary>
 		<job_file>jobs.txt</job_file>
 		<text_ancor_sitemap_links>Sitemap</text_ancor_sitemap_links>
-		<text_ancor_index_link>Index {MKEYWORD}</text_ancor_index_link>
+		<text_ancor_index_link>Index {BBMKEYWORD}</text_ancor_index_link>
 		<count_ancor_in_map>100000</count_ancor_in_map>
 		<num_perc_spam>1</num_perc_spam>
 	</primary>
@@ -16,10 +16,10 @@
 		<out_dir>out</out_dir>
 		<jobs_dir>jobs</jobs_dir>
 		<text_dir>text</text_dir>
-		<insert_sitemaps_links_in_all_ancor_log>TRUE</insert_sitemaps_links_in_all_ancor_log>
-		<insert_sitemaps_links_in_ancor_log>TRUE</insert_sitemaps_links_in_ancor_log>
-		<insert_sitemaps_links_in_bbcode_log>TRUE</insert_sitemaps_links_in_bbcode_log>
-		<insert_sitemaps_links_in_bbcode_log_spam>TRUE</insert_sitemaps_links_in_bbcode_log_spam>
+		<insert_sitemaps_links_in_all_ancor_log>FALSE</insert_sitemaps_links_in_all_ancor_log>
+		<insert_sitemaps_links_in_ancor_log>FALSE</insert_sitemaps_links_in_ancor_log>
+		<insert_sitemaps_links_in_bbcode_log>FALSE</insert_sitemaps_links_in_bbcode_log>
+		<insert_sitemaps_links_in_bbcode_log_spam>FALSE</insert_sitemaps_links_in_bbcode_log_spam>
 		<generate_sitemap_xml>TRUE</generate_sitemap_xml>
 		<generate_robots_txt>TRUE</generate_robots_txt>
 		<generate_filezilla_project>FALSE</generate_filezilla_project>

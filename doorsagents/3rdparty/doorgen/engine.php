@@ -290,6 +290,7 @@
 	file_put_contents($out_dir."/".$log_ancor_file_name, $logs_ancor, FILE_APPEND); //сохраняем *_ancor_log.txt
 	file_put_contents($out_dir."/".$log_bbcode_file_name, $logs_bbcode, FILE_APPEND); //сохраняем *_bbcode_log.txt
 	file_put_contents($out_dir."/".$log_bbcode_file_name_spam, $logs_bbcode_spam, FILE_APPEND); //сохраняем *_bbcode_log_spam.txt
+	system('chmod -R 777 '.$out_dir);
 
 	echo "Сетка доров готова. Заняло ".(time()-$time_start)." секунд. Папка: <b><a href=\"".$out_dir."/\" target=\"_blank\">".$out_dir."</a></b><br>";
  	echo "<b>Спасибо за использование моего доргена. Всегда свежую версию вы можете найти на сайте <a href='http://seodor.ru/dorgen/' target='_blank'>http://seodor.ru/dorgen/</a></b><script>scroll(0,999999);document.title='Все готово! '</script>";

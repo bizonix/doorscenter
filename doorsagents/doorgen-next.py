@@ -15,8 +15,8 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        self.appFolder = '/home/sasch/public_html/test.home/doorgen'  # папка с приложением
-        self.appEngine = 'http://test.home/doorgen/engine.php'  # запуск доргена
+        self.appFolder = '/home/admin/public_html/searchpro.name/web/doorgen'  # папка с приложением
+        self.appEngine = 'http://searchpro.name/doorgen/engine.php'  # запуск доргена
         self.appJobFile = os.path.join(self.appFolder, 'jobs' + os.sep + 'jobs.txt')  # задания
         self.appMacrosFile = os.path.join(self.appFolder, 'lib' + os.sep + 'custom_macros.php')  # значения кастомных макросов
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
@@ -124,6 +124,11 @@ class DoorgenAgent(agent.BaseAgent):
         '''Удаляем локальную папку'''
         try:
             shutil.rmtree(self.doorwayFolder)
+        except Exception as error:
+            print('Error: %s' % error)
+        '''...'''
+        try:
+            os.unlink(self.appSpamLinksFile)
         except Exception as error:
             print('Error: %s' % error)
         return True
