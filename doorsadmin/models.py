@@ -135,7 +135,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             return [Doorway]
         elif self.type == 'xrumer':
             return [XrumerBaseR, SpamTask]
-    
+
 '''Abstract models'''
 
 class BaseDoorObjectManaged(models.Model):
@@ -286,7 +286,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             self.GenerateDoorways(self.generateNow)
             self.generateNow = 0
         super(Net, self).save(*args, **kwargs)
-    
+
 class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Тематика доров'''
     language = models.CharField('Lang.', max_length=50, choices=languages)
@@ -502,7 +502,7 @@ class Host(BaseDoorObject):
         return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
-    
+
 class IPAddress(BaseDoorObject):
     '''IP адрес'''
     address = models.IPAddressField('IP Address', unique=True)
@@ -524,7 +524,7 @@ class IPAddress(BaseDoorObject):
         return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
-    
+
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''
     name = models.CharField('Domain Name', max_length=200, unique=True)
@@ -615,17 +615,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         except Exception as error:
             EventLog('error', 'Cannot add additional domains', self, error)
         super(Domain, self).save(*args, **kwargs)
-    def delete(self, *args, **kwargs):
-        '''...'''
-        #EventLog('error', self.name)
-        #try:
-        #    error = DelDomainFromControlPanel(self.name, self.host.controlPanelType, self.host.controlPanelUrl)
-        #    if error != '':
-        #        EventLog('error', 'Cannot delete domain from control panel', self, error)
-        #except Exception as error:
-        #    EventLog('error', 'Cannot delete domain from control panel', self, error)
-        super(Domain, self).delete(*args, **kwargs)
-    
+
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
     '''Шаблон дора. Folder-based.'''
     type = models.CharField('Type', max_length=50, choices=templateTypes, default='none', blank=True)
@@ -642,7 +632,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
         return GetPagesCounter(self.doorway_set)
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
-    
+
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов. Folder-based.'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
@@ -695,7 +685,7 @@ class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
         return GetPagesCounter(self.doorway_set)
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
-    
+
 class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
     '''Менеджер генерации дорвеев'''
     net = models.ForeignKey(Net, verbose_name='Net', null=True)
@@ -745,7 +735,7 @@ class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
         except Exception as error:
             EventLog('error', 'Cannot generate dorways', self, error)
         self.save()
-        
+
 class SpamLink(models.Model):
     '''Ссылки для спама'''
     url = models.CharField('URL', max_length = 1000, default = '')
@@ -758,7 +748,7 @@ class SpamLink(models.Model):
     def IsAssigned(self):
         return self.spamTask != None
     IsAssigned.short_description = 'Ass.'
-    
+
 class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     '''Дорвей'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
@@ -1004,7 +994,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
         if self.nextSpamTaskDomainsCount == None:
             self.nextSpamTaskDomainsCount = random.randint(self.spamTaskDomainsMin, self.spamTaskDomainsMax)
         super(XrumerBaseR, self).save(*args, **kwargs)
-    
+
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
     xrumerBaseR = models.ForeignKey(XrumerBaseR, verbose_name='Base R', null=True)
