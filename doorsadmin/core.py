@@ -5,7 +5,7 @@ import datetime
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
-    #GenerateSnippets()  # фича пока отключена из-за бана парсера гуглом
+    GenerateSnippets()
     #GenerateNets()
     GenerateDoorways()
     CheckAgentsActivity()
@@ -25,20 +25,20 @@ def GenerateSnippets():
 
 def GenerateNets():
     '''Плетем сети'''
-    for net in Net.objects.filter(active=True).all(): 
+    for net in Net.objects.filter(active=True).all():
         net.UpdateNet()
 
 def GenerateDoorways():
     '''Генерируем дорвеи'''
     dd = datetime.date.today()
-    for schedule in DoorwaySchedule.objects.filter(active=True).all(): 
+    for schedule in DoorwaySchedule.objects.filter(active=True).all():
         if (schedule.dateStart <= dd) and ((schedule.dateEnd==None) or (schedule.dateEnd >= dd)):
             schedule.GenerateDoorways()
 
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''
-    for niche in Niche.objects.filter(active=True).all(): 
-        niche.GenerateSpamTasks()
+    for niche in Niche.objects.filter(active=True).all():
+        niche.GenerateSpamTasksChip()
 
 def CheckAgentsActivity():
     '''Проверяем активность агентов'''

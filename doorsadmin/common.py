@@ -60,6 +60,26 @@ def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, con
     else:
         return ''
 
+def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
+    '''...'''
+    if controlPanelType == 'ispconfig':
+        try:
+            data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
+            fd = urllib.urlopen(r'http://searchpro.name/tools/isp-del-domain.php', urllib.urlencode(data))
+            reply = fd.read()
+            fd.close()
+            return reply
+            if reply == 'ok':
+                return ''
+            elif reply != '':
+                return reply
+            else:
+                return 'unknown error'
+        except Exception as error:
+            return str(error)
+    else:
+        return ''
+
 def AddSiteToPiwik(siteName):
     '''Добавление сайта в Piwik'''
     try:

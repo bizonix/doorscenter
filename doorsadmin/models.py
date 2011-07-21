@@ -5,7 +5,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig, GenerateNetParams
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig, GenerateNetParams
 import datetime, random, re
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -140,7 +140,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
 
 class BaseDoorObjectManaged(models.Model):
     priority = models.CharField('Prt.', max_length=20, choices = taskPriorities, default='std')
-    agent = models.ForeignKey(Agent, verbose_name='Agent', null=True, blank=True)
+    agent = models.ForeignKey(Agent, verbose_name='Agent', null=True, blank=True, on_delete=models.SET_NULL)
     runTime = models.IntegerField('Run Time', null=True)
     stateManaged = models.CharField('State', max_length=50, choices = stateManaged, default='new')
     class Meta:
@@ -444,6 +444,27 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
         except Exception as error:
             EventLog('trace', 'Error in GenerateSpamTasks', self, error)
+    def GenerateSpamTasksChip(self):
+        '''...'''
+        try:
+            xrumerBaseR = self.GetRandomBaseR()
+            if xrumerBaseR:
+                '''...'''
+                xcount = SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).count()
+                if xcount < 1000:
+                    return
+                linksCount = 0
+                '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
+                for spamLink in SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).order_by('?').all()[:1000]:
+                    if linksCount == 0:
+                        linksCount = random.randint(10,15)
+                        spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
+                        spamTask.save()
+                    spamLink.spamTask = spamTask
+                    spamLink.save()
+                    linksCount -= 1
+        except Exception as error:
+            EventLog('trace', 'Error in GenerateSpamTasksChip', self, error)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''
@@ -507,7 +528,7 @@ class IPAddress(BaseDoorObject):
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''
     name = models.CharField('Domain Name', max_length=200, unique=True)
-    net = models.ForeignKey(Net, verbose_name='Net', null=True, blank=True)
+    net = models.ForeignKey(Net, verbose_name='Net', null=True, blank=True, on_delete=models.SET_NULL)
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True, blank=True)
     host = models.ForeignKey(Host, verbose_name='Host', null=True)
     registrator = models.CharField('Registrator', max_length=200, default='', blank=True)
@@ -594,6 +615,16 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         except Exception as error:
             EventLog('error', 'Cannot add additional domains', self, error)
         super(Domain, self).save(*args, **kwargs)
+    def delete(self, *args, **kwargs):
+        '''...'''
+        #EventLog('error', self.name)
+        #try:
+        #    error = DelDomainFromControlPanel(self.name, self.host.controlPanelType, self.host.controlPanelUrl)
+        #    if error != '':
+        #        EventLog('error', 'Cannot delete domain from control panel', self, error)
+        #except Exception as error:
+        #    EventLog('error', 'Cannot delete domain from control panel', self, error)
+        super(Domain, self).delete(*args, **kwargs)
     
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
     '''Шаблон дора. Folder-based.'''
@@ -720,7 +751,7 @@ class SpamLink(models.Model):
     url = models.CharField('URL', max_length = 1000, default = '')
     anchor = models.CharField('Anchor', max_length = 1000, default = '')
     doorway = models.ForeignKey('Doorway', verbose_name='Doorway')
-    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
+    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True, on_delete=models.SET_NULL)
     class Meta:
         verbose_name = 'Spam Link'
         verbose_name_plural = 'II.3 Spam Links - [large]'
@@ -738,7 +769,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     domain = models.ForeignKey(Domain, verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
     spamLinksCount = models.IntegerField('Lnks', null=True)
-    doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True)
+    doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True, on_delete=models.SET_NULL)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     class Meta:
@@ -898,7 +929,7 @@ class XrumerBaseRaw(BaseXrumerBase):
 class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     '''База R для Хрумера. File-based.'''
     niche = models.ForeignKey(Niche, verbose_name='Niche', null=True)
-    xrumerBaseRaw = models.ForeignKey(XrumerBaseRaw, verbose_name='Base Raw', null=True)
+    xrumerBaseRaw = models.ForeignKey(XrumerBaseRaw, verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey(SnippetsSet, verbose_name='Snippets', null=True, blank=True)
     nickName = models.CharField('Nick Name', max_length=200, default='')
     realName = models.CharField('Real Name', max_length=200, default='')

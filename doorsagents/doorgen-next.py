@@ -104,6 +104,7 @@ class DoorgenAgent(agent.BaseAgent):
         except Exception as error:
             print(error)
         self._Done()
+        self._Cron()
         return True
     
     def _ActionOff(self):
