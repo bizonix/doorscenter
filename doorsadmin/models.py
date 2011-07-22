@@ -1,6 +1,7 @@
 # coding=utf8
-from django.db.models import Sum, Count, Max, Q
 from django.db import models, transaction
+from django.db.models import Sum, Count, Max, Q
+from django.db.models.signals import pre_delete, post_delete
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
@@ -17,7 +18,7 @@ agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrum
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('real', 'real'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
-taskPriorities = (('zero', 'zero'), ('std', 'std'), ('high', 'high'))
+taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 
 '''Helper functions'''
 
@@ -615,6 +616,17 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         except Exception as error:
             EventLog('error', 'Cannot add additional domains', self, error)
         super(Domain, self).save(*args, **kwargs)
+
+def DomainOnDelete(sender, **kwargs):
+    '''...'''
+    domain = kwargs['instance']
+    try:
+        error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
+        if error != '':
+            EventLog('error', 'Cannot delete domain from control panel', domain, error)
+    except Exception as error:
+        EventLog('error', 'Cannot delete domain from control panel', domain, error)
+pre_delete.connect(DomainOnDelete, sender=Domain, weak=False)
 
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
     '''Шаблон дора. Folder-based.'''

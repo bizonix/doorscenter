@@ -138,7 +138,7 @@ class SpamLinkAdmin(BaseAdmin):
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['niche', 'template', 'stateManaged']
+    list_filter = ['niche', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
@@ -211,7 +211,7 @@ class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['stateManaged']
+    list_filter = ['stateManaged', 'priority']
     fieldsets = [
         (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -222,7 +222,7 @@ class SpamTaskAdmin(BaseAdminManaged):
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateManaged']
+    list_filter = ['active', 'niche', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),
@@ -243,7 +243,7 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateManaged']
+    list_filter = ['active', 'niche', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
