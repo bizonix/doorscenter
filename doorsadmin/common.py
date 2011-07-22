@@ -68,7 +68,6 @@ def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
             fd = urllib.urlopen(r'http://searchpro.name/tools/isp-del-domain.php', urllib.urlencode(data))
             reply = fd.read()
             fd.close()
-            return reply
             if reply == 'ok':
                 return ''
             elif reply != '':
