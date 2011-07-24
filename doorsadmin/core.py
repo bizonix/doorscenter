@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Net, SnippetsSet, DoorwaySchedule, Niche, Agent, Event, EventLog
+from doorsadmin.models import Net, SnippetsSet, Niche, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -31,9 +31,9 @@ def GenerateNets():
 def GenerateDoorways():
     '''Генерируем дорвеи'''
     dd = datetime.date.today()
-    for schedule in DoorwaySchedule.objects.filter(active=True).all():
-        if (schedule.dateStart <= dd) and ((schedule.dateEnd==None) or (schedule.dateEnd >= dd)):
-            schedule.GenerateDoorways()
+    for net in Net.objects.filter(active=True).all():
+        if (net.doorsPerDay > 0) and (net.dateStart <= dd) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
+            net.GenerateDoorways()
 
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''

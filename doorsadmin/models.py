@@ -215,6 +215,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     settings = models.TextField('Settings', default='#gen', blank=True)
     generateNow = models.IntegerField('Generate Now', default=0, blank=True)
     makeSpam = models.BooleanField('Spam', default=True)
+    dateStart = models.DateField('Start Date', null=True, blank=True)
+    dateEnd = models.DateField('End Date', null=True, blank=True)
+    doorsPerDay = models.IntegerField('Drs/Day', null=True, default=0)
+    doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
+    lastRun = models.DateTimeField('Last Run Date', null=True)
     class Meta:
         verbose_name = 'Net'
         verbose_name_plural = 'I.1 # Nets - [act]'
@@ -230,10 +235,10 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.domain_set, {'active': True})
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
-    def GetSchedulesCount(self):
-        return GetCounter(self.doorwayschedule_set, {'active': True})
-    GetSchedulesCount.short_description = 'Schedules'
-    GetSchedulesCount.allow_tags = True
+    def GetScheduleCount(self):
+        return '%d/%d' % (self.doorsToday, self.doorsPerDay)
+    GetScheduleCount.short_description = 'Schedule'
+    GetScheduleCount.allow_tags = True
     def UpdateNet(self):
         '''Построение сетки'''
         netChain = self.settings.split(';')
@@ -260,7 +265,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return Domain.objects.filter(Q(active=True), (Q(net=self) | Q(net=None))).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def GenerateDoorways(self, count, doorwaySchedule = None):
+    def _GenerateDoorwaysInternal(self, count):
         '''Генерируем дорвеи'''
         for _ in range(0, count):
             try:
@@ -271,14 +276,39 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                                            domain=self.GetNextDomain(), 
                                            pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domainFolder='', 
-                                           spamLinksCount=0, 
-                                           doorwaySchedule=doorwaySchedule)
+                                           spamLinksCount=0)
                 '''Число ссылок для спама задается в процентах, 
                 а в абсолютных числах должно быть не меньше трех и не больше страниц дора'''
                 p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
                 p.save()
             except Exception as error:
                 EventLog('error', 'Cannot generate dorway', self, error)
+    def _NewDayCome(self):
+        '''Настали новые сутки по сравнению с lastRun?'''
+        try:
+            return datetime.datetime.now().strftime('%d.%m.%Y') != self.lastRun.strftime('%d.%m.%Y')
+        except:
+            return True
+    def GenerateDoorways(self, count = None):
+        '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
+        try:
+            if count == None:  # число дорвеев не задано, определяем сами
+                if self._NewDayCome():  # если настал новый день
+                    if self.doorsToday > 0:  # генерим оставшиеся дорвеи за вчера, если вчера был сгенерирован хотя бы один дорвей
+                        if self.doorsPerDay - self.doorsToday > 0:
+                            self._GenerateDoorwaysInternal(self.doorsPerDay - self.doorsToday)
+                    self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
+                d = datetime.datetime.now()
+                count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsToday
+            elif self._NewDayCome():  # если число задано и настал новый день
+                self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
+            if count > 0:
+                self._GenerateDoorwaysInternal(count)  # генерим дорвеи за сегодня
+            self.lastRun = datetime.datetime.now()  # обновляем статистику
+            self.doorsToday += count
+        except Exception as error:
+            EventLog('error', 'Cannot generate dorways', self, error)
+        self.save()
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
@@ -331,10 +361,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 30 and self.active)
     GetDomainsCount.short_description = 'Domns'
     GetDomainsCount.allow_tags = True
-    def GetSchedulesCount(self):
-        return GetCounter(self.doorwayschedule_set, {'active': True}, lambda x: x <= 0 and self.active)
-    GetSchedulesCount.short_description = 'Schd.'
-    GetSchedulesCount.allow_tags = True
     def GetXrumerBasesRCount(self):
         return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
     GetXrumerBasesRCount.short_description = 'Bas. R'
@@ -709,56 +735,6 @@ class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
 
-class DoorwaySchedule(BaseDoorObject, BaseDoorObjectActivatable):
-    '''Менеджер генерации дорвеев'''
-    net = models.ForeignKey(Net, verbose_name='Net', null=True)
-    dateStart = models.DateField('Start Date', null=True, blank=True, default=datetime.date.today)
-    dateEnd = models.DateField('End Date', null=True, blank=True)
-    doorsPerDay = models.IntegerField('Drs/Day', null=True, default=1)
-    lastRun = models.DateTimeField('Last Run Date', null=True)
-    doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
-    class Meta:
-        verbose_name = 'Schedule'
-        verbose_name_plural = 'I.5 Schedules - [act]'
-    def GetDoorsTodayCount(self):
-        return '%d/%d' % (self.doorsToday, self.doorsPerDay)
-    GetDoorsTodayCount.short_description = 'Today'
-    GetDoorsTodayCount.allow_tags = True
-    def GetDoorsCount(self):
-        return GetCounter(self.doorway_set, {'stateManaged': 'done'})
-    GetDoorsCount.short_description = 'Doors'
-    GetDoorsCount.allow_tags = True
-    def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
-    GetPagesCount.short_description = 'Pages'
-    GetPagesCount.allow_tags = True
-    def _NewDayCome(self):
-        '''Настали новые сутки по сравнению с lastRun?'''
-        try:
-            return datetime.datetime.now().strftime('%d.%m.%Y') != self.lastRun.strftime('%d.%m.%Y')
-        except:
-            return True
-    def GenerateDoorways(self, count = None):
-        '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
-        try:
-            if count == None:  # число дорвеев не задано, определяем сами
-                if self._NewDayCome():  # если настал новый день
-                    if self.doorsToday > 0:  # генерим оставшиеся дорвеи за вчера, если вчера был сгенерирован хотя бы один дорвей
-                        if self.doorsPerDay - self.doorsToday > 0:
-                            self.net.GenerateDoorways(self.doorsPerDay - self.doorsToday)
-                    self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
-                d = datetime.datetime.now()
-                count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsToday
-            elif self._NewDayCome():  # если число задано и настал новый день
-                self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
-            if count > 0:
-                self.net.GenerateDoorways(count)  # генерим дорвеи за сегодня
-            self.lastRun = datetime.datetime.now()  # обновляем статистику
-            self.doorsToday += count
-        except Exception as error:
-            EventLog('error', 'Cannot generate dorways', self, error)
-        self.save()
-
 class SpamLink(models.Model):
     '''Ссылки для спама'''
     url = models.CharField('URL', max_length = 1000, default = '')
@@ -782,7 +758,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     domain = models.ForeignKey(Domain, verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
     spamLinksCount = models.IntegerField('Lnks', null=True)
-    doorwaySchedule = models.ForeignKey(DoorwaySchedule, verbose_name='Schedule', null=True, blank=True, on_delete=models.SET_NULL)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     class Meta:
@@ -912,7 +887,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
-        verbose_name_plural = 'I.6 Snippets Sets - [act, managed]'
+        verbose_name_plural = 'I.5 Snippets Sets - [act, managed]'
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
@@ -958,7 +933,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
     class Meta:
         verbose_name = 'Xrumer Base R'
-        verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
+        verbose_name_plural = 'I.6 Xrumer Bases R - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam'
