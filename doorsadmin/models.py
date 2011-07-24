@@ -1,7 +1,7 @@
 # coding=utf8
 from django.db import models, transaction
 from django.db.models import Sum, Count, Max, Q
-from django.db.models.signals import pre_delete, post_delete
+from django.db.models.signals import pre_delete
 from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
@@ -137,7 +137,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'xrumer':
             return [XrumerBaseR, SpamTask]
     def GetTasksState(self):
-        '''...'''
+        '''Состояние очередей агента'''
         countNew = 0
         countDone = 0
         countError = 0
@@ -455,13 +455,13 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         domainsList = {}  # домены задания: домен => число ссылок от него
                         domainsLeft = xrumerBaseR.nextSpamTaskDomainsCount  # сколько разных доменов надо включить в это задание
         except Exception as error:
-            EventLog('trace', 'Error in GenerateSpamTasks', self, error)
+            EventLog('error', 'Error in GenerateSpamTasks', self, error)
     def GenerateSpamTasksChip(self):
-        '''...'''
+        '''Генерация заданий для спама по методу chippa: все вперемешку'''
         try:
             xrumerBaseR = self.GetRandomBaseR()
             if xrumerBaseR:
-                '''...'''
+                '''Считаем количество потенциальных ссылок'''
                 xcount = SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(doorway__domain__net__makeSpam=True)).count()
                 if xcount < 1000:
                     return
@@ -476,7 +476,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     spamLink.save()
                     linksCount -= 1
         except Exception as error:
-            EventLog('trace', 'Error in GenerateSpamTasksChip', self, error)
+            EventLog('error', 'Error in GenerateSpamTasksChip', self, error)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''
@@ -629,7 +629,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         super(Domain, self).save(*args, **kwargs)
 
 def DomainOnDelete(sender, **kwargs):
-    '''...'''
+    '''Событие на удаление домена'''
     domain = kwargs['instance']
     try:
         error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)

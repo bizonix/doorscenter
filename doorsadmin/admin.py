@@ -7,7 +7,7 @@ class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20
 
 def GetMessageBit(rows_updated):
-    '''...'''
+    '''Текст для сообщений'''
     if rows_updated == 1:
         return "1 item was"
     else:

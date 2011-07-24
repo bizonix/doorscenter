@@ -61,7 +61,7 @@ def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, con
         return ''
 
 def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
-    '''...'''
+    '''Удаление домена из панели управления'''
     if controlPanelType == 'ispconfig':
         try:
             data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
