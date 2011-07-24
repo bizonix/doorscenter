@@ -136,6 +136,17 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             return [Doorway]
         elif self.type == 'xrumer':
             return [XrumerBaseR, SpamTask]
+    def GetTasksState(self):
+        '''...'''
+        countNew = 0
+        countDone = 0
+        countError = 0
+        for queue in self.GetQueues():
+            countNew += queue.objects.filter(stateManaged='new').count()
+            countDone += queue.objects.filter(stateManaged='done').count()
+            countError += queue.objects.filter(stateManaged='error').count()
+        return '%d - %d - %d' % (countNew, countDone, countError)
+    GetTasksState.short_description = 'Tasks'
 
 '''Abstract models'''
 
