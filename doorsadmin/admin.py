@@ -1,3 +1,4 @@
+# coding=utf8
 from django.contrib import admin
 from doorsadmin.models import *
 from django.contrib.admin.actions import delete_selected
@@ -91,16 +92,17 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'niche', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetScheduleCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'niche', 'stateSimple']
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNow')]}),
+        ('Schedule', {'fields': [('dateStart', 'dateEnd', 'doorsPerDay', 'lastRun', 'doorsToday')], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
 class HostAdmin(BaseAdminSimple):
@@ -142,17 +144,17 @@ class DoorwayAdmin(BaseAdminManaged):
     list_filter = ['niche', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount'), 'doorwaySchedule']}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['doorwaySchedule', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     #inlines = [SpamLinkInline]
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetSchedulesCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'language', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -195,18 +197,6 @@ class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-class DoorwayScheduleAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'net', 'dateStart', 'dateEnd', 'GetDoorsTodayCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
-    ordering = ['net__niche__description']
-    fieldsets = [
-        (None, {'fields': ['net', ('dateStart', 'dateEnd', 'doorsPerDay'), 'active']}),
-        ('Run', {'fields': [('lastRun', 'doorsToday')], 'classes': ['expand']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
 
 '''Spam group'''
 
@@ -268,7 +258,6 @@ admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(Net, NetAdmin)
 admin.site.register(DoorgenProfile, DoorgenProfileAdmin)
-admin.site.register(DoorwaySchedule, DoorwayScheduleAdmin)
 
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
 admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
