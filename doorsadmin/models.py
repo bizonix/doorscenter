@@ -325,8 +325,9 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             EventLog('error', 'Cannot generate net params', None, error)
         '''Генерация доров в сетке'''
         if self.generateNow > 0:
-            self.GenerateDoorways(self.generateNow)
+            n = self.generateNow
             self.generateNow = 0
+            self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
 class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
