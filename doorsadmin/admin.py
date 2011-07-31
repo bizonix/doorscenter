@@ -55,42 +55,21 @@ class BaseAdminSimple(BaseAdmin):
         self.message_user(request, "%s successfully marked as ok." % GetMessageBit(rows_updated))
     MakeStateSimpleOk.short_description = "3. Mark selected items as ok"
 
-'''Agents'''
+'''...'''
 
-class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
+class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'language', 'stateSimple']
+    ordering = ['description']
     fieldsets = [
-        (None, {'fields': ['type', 'description', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['currentTask', 'dateLastPing', 'lastError', 'dateAdded', 'dateChanged']
-
-class EventAdmin(BaseAdmin):
-    list_display = ('pk', 'date', 'type', 'object', 'text')
-    list_filter = ['type']
-    fieldsets = [
-        (None, {'fields': ['date', ('type', 'object'), 'text']}),
-    ]
-    readonly_fields = ['date', 'type', 'object', 'text']
-
-'''Domains group'''
-
-class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'net', 'niche', 'stateSimple']
-    search_fields = ['name']
-    fieldsets = [
-        (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
-        ('Net', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
-        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2', 'useOwnDNS')], 'classes': ['expanded']}),
-        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
+        (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
+        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    
+    list_per_page = 100
+
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetScheduleCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'niche', 'stateSimple']
@@ -103,67 +82,6 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
-    list_per_page = 100
-
-class HostAdmin(BaseAdminSimple):
-    list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
-    list_filter = ['stateSimple']
-    fieldsets = [
-        (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl', 'controlPanelServerId')]}),
-        ('FTP Account', {'fields': [('ftpLogin', 'ftpPassword', 'ftpPort'), 'rootDocumentTemplate'], 'classes': ['expanded']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-class IPAddressAdmin(BaseAdminSimple):
-    list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
-    list_filter = ['stateSimple']
-    ordering = ['address']
-    fieldsets = [
-        (None, {'fields': ['address', 'host']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-'''Doorways group'''
-    
-class SpamLinkInline(admin.TabularInline):
-    model = SpamLink
-    extra = 1
-
-class SpamLinkAdmin(BaseAdmin):
-    list_display = ('pk', 'url', 'anchor', 'spamTask')
-    fieldsets = [
-        (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
-    ]
-
-class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['niche', 'template', 'stateManaged', 'priority']
-    search_fields = ['domain__name']
-    fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount')]}),
-        ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    #inlines = [SpamLinkInline]
-
-class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'language', 'stateSimple']
-    ordering = ['description']
-    fieldsets = [
-        (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
@@ -188,30 +106,6 @@ class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
-    fieldsets = [
-        (None, {'fields': ['description', 'settings', 'active']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-'''Spam group'''
-
-class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['stateManaged', 'priority']
-    fieldsets = [
-        (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
-    inlines = [SpamLinkInline]
-    list_per_page = 100
-
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
     list_filter = ['active', 'niche', 'stateManaged', 'priority']
@@ -222,16 +116,6 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
-
-class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
-    fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
@@ -245,22 +129,132 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     ]
     readonly_fields = ['nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
-admin.site.register(Agent, AgentAdmin)
-admin.site.register(Event, EventAdmin)
+class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'GetDomainUrl', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'net', 'niche', 'stateSimple']
+    search_fields = ['name']
+    fieldsets = [
+        (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
+        ('Net', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
+        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2', 'useOwnDNS')], 'classes': ['expanded']}),
+        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-admin.site.register(Domain, DomainAdmin)
-admin.site.register(Host, HostAdmin)
-admin.site.register(IPAddress, IPAddressAdmin)
+class DoorwayAdmin(BaseAdminManaged):
+    list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
+    list_filter = ['niche', 'template', 'stateManaged', 'priority']
+    search_fields = ['domain__name']
+    fieldsets = [
+        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount')]}),
+        ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
+        ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    #inlines = [SpamLinkInline]
 
-admin.site.register(SpamLink, SpamLinkAdmin)
-admin.site.register(Doorway, DoorwayAdmin)
+class SpamLinkInline(admin.TabularInline):
+    model = SpamLink
+    extra = 1
+
+class SpamLinkAdmin(BaseAdmin):
+    list_display = ('pk', 'url', 'anchor', 'spamTask')
+    fieldsets = [
+        (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
+    ]
+
+class SpamTaskAdmin(BaseAdminManaged):
+    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
+    list_filter = ['stateManaged', 'priority']
+    fieldsets = [
+        (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    inlines = [SpamLinkInline]
+    list_per_page = 100
+
+class HostAdmin(BaseAdminSimple):
+    list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
+    list_filter = ['stateSimple']
+    fieldsets = [
+        (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl', 'controlPanelServerId')]}),
+        ('FTP Account', {'fields': [('ftpLogin', 'ftpPassword', 'ftpPort'), 'rootDocumentTemplate'], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+
+class IPAddressAdmin(BaseAdminSimple):
+    list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
+    list_filter = ['stateSimple']
+    ordering = ['address']
+    fieldsets = [
+        (None, {'fields': ['address', 'host']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+
+class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'stateSimple']
+    fieldsets = [
+        (None, {'fields': ['description', 'settings', 'active']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+
+class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'stateSimple']
+    fieldsets = [
+        (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+
+class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'stateSimple']
+    fieldsets = [
+        (None, {'fields': ['type', 'description', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['currentTask', 'dateLastPing', 'lastError', 'dateAdded', 'dateChanged']
+
+class EventAdmin(BaseAdmin):
+    list_display = ('pk', 'date', 'type', 'object', 'text')
+    list_filter = ['type']
+    fieldsets = [
+        (None, {'fields': ['date', ('type', 'object'), 'text']}),
+    ]
+    readonly_fields = ['date', 'type', 'object', 'text']
+
 admin.site.register(Niche, NicheAdmin)
+admin.site.register(Net, NetAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
-admin.site.register(Net, NetAdmin)
-admin.site.register(DoorgenProfile, DoorgenProfileAdmin)
-
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
-admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
 admin.site.register(XrumerBaseR, XrumerBaseRAdmin)
+
+admin.site.register(Domain, DomainAdmin)
+admin.site.register(Doorway, DoorwayAdmin)
+admin.site.register(SpamLink, SpamLinkAdmin)
 admin.site.register(SpamTask, SpamTaskAdmin)
+
+admin.site.register(Host, HostAdmin)
+admin.site.register(IPAddress, IPAddressAdmin)
+admin.site.register(DoorgenProfile, DoorgenProfileAdmin)
+admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
+
+admin.site.register(Agent, AgentAdmin)
+admin.site.register(Event, EventAdmin)
