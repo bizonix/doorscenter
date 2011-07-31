@@ -222,7 +222,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     lastRun = models.DateTimeField('Last Run Date', null=True)
     class Meta:
         verbose_name = 'Net'
-        verbose_name_plural = 'I.1 # Nets - [act]'
+        verbose_name_plural = 'I.2 Nets - [act]'
     def GetDoorsCount(self):
         return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
@@ -337,11 +337,15 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     tdsSchemes = models.CharField('TDS Schemes', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Niche'
-        verbose_name_plural = 'I.2 Niches - [act]'
+        verbose_name_plural = 'I.1 # Niches - [act]'
     def GetStopWordsCount(self):
         return len(self.stopwordsList.split('\n'))
     GetStopWordsCount.short_description = 'Stopw.'
     GetStopWordsCount.allow_tags = True
+    def GetNetsCount(self):
+        return GetCounter(self.net_set, {'active': True})
+    GetNetsCount.short_description = 'Nets'
+    GetNetsCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'

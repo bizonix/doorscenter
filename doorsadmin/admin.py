@@ -154,7 +154,7 @@ class DoorwayAdmin(BaseAdminManaged):
     #inlines = [SpamLinkInline]
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'language', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'language', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -164,7 +164,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    list_per_page = 50
+    list_per_page = 100
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
@@ -210,6 +210,7 @@ class SpamTaskAdmin(BaseAdminManaged):
     ]
     readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
     inlines = [SpamLinkInline]
+    list_per_page = 100
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
