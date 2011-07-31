@@ -12,7 +12,7 @@ import datetime, random, re
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
 stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
-languages = (('ru', 'ru'), ('en', 'en'))
+languages = (('en', 'en'), ('ru', 'ru'))
 encodings = (('cp1251', 'cp1251'), ('utf-8', 'utf-8'))
 agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrumer'))
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('real', 'real'))
