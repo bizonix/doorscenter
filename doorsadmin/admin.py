@@ -163,6 +163,7 @@ class SpamLinkInline(admin.TabularInline):
 
 class SpamLinkAdmin(BaseAdmin):
     list_display = ('pk', 'url', 'anchor', 'spamTask')
+    search_fields = ['url', 'anchor']
     fieldsets = [
         (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
     ]
