@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Net, SnippetsSet, Niche, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -9,6 +9,7 @@ def CronHourly():
     #GenerateNets()
     GenerateDoorways()
     CheckAgentsActivity()
+    RenewBasesR()
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
@@ -53,3 +54,10 @@ def ClearEventLog():
     '''Удаляем старые записи из лога событий'''
     dt = datetime.datetime.now() - datetime.timedelta(30)  # старше 30 дней
     Event.objects.filter(date__lt=dt).delete()
+
+def RenewBasesR():
+    '''...'''
+    for xrumerBaseR in XrumerBaseR.objects.filter(Q(active=True), Q(stateManaged='done')).all():
+        if xrumerBaseR.linksCount < 2:  # in thousands
+            xrumerBaseR.stateManaged = 'new'
+            xrumerBaseR.save()
