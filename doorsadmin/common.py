@@ -291,7 +291,8 @@ def GenerateNetParams():
         maxPagesCount = math.floor(minPagesCount * random.normalvariate(2.0, 0.7))
         if (maxPagesCount > minPagesCount * 1.2) and (minPagesCount > 300):
             break
-    makeSpam = random.randint(0, 100) < 50
+    #makeSpam = random.randint(0, 100) < 50
+    makeSpam = True
     if makeSpam:
         while True:
             minSpamLinksPercent = random.randint(1, 3)
