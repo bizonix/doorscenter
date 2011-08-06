@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig, GenerateNetParams
-import datetime, random, re
+import datetime, random, re, MySQLdb
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -1025,3 +1025,35 @@ class Event(models.Model):
         verbose_name_plural = 'IV.2 Events'
     def __unicode__(self):
         return '%s: %s' % (self.type, self.text)
+
+class CustomQuery(models.Model):
+    '''Кастомные запросы'''
+    description = models.CharField('Description', max_length=200, default='', blank=True)
+    host = models.CharField('Host', max_length=50, default='localhost')
+    user = models.CharField('User', max_length=50, default='admin')
+    password = models.CharField('Password', max_length=50, default='')
+    database = models.CharField('Database', max_length=50, default='')
+    sql = models.TextField('SQL', default='')
+    class Meta:
+        verbose_name = 'Custom Query'
+        verbose_name_plural = 'IV.3 Custom Queries'
+    def GetResult(self):
+        try:
+            db = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
+            try:
+                cursor = db.cursor()
+                try:
+                    cursor.execute(self.sql)
+                    results = cursor.fetchall()
+                except Exception as error:
+                    results = error
+                cursor.close()
+            except Exception as error:
+                results = error
+            db.close()
+        except Exception as error:
+            results = error
+        return str(results)
+    GetResult.short_description = 'Result'
+    GetResult.allow_tags = True
+    

@@ -239,6 +239,12 @@ class EventAdmin(BaseAdmin):
     ]
     readonly_fields = ['date', 'type', 'object', 'text']
 
+class CustomQueryAdmin(BaseAdmin):
+    list_display = ('pk', 'description', 'GetResult')
+    fieldsets = [
+        (None, {'fields': ['description', ('host', 'database'), ('user', 'password'), 'sql']}),
+    ]
+
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Net, NetAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
@@ -258,3 +264,4 @@ admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
+admin.site.register(CustomQuery, CustomQueryAdmin)
