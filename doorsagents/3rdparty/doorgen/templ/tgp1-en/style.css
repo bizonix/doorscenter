@@ -1,0 +1,24 @@
+body { background-color: rgb(35, 45, 97); background-image: url('bgblue.gif'); margin: 0px; font-size: 12px; font-family: Tahoma,Verdana,Arial,Geneva,sans-serif; line-height: 18px; color: rgb(59, 109, 130); font-weight: normal; }
+table { font-size: 12px; font-family: Tahoma,Verdana,Arial,Geneva,sans-serif; line-height: 18px; color: rgb(59, 109, 130); font-weight: normal; }
+td { font-size: 12px; font-family: Tahoma,Verdana,Arial,Geneva,sans-serif; line-height: 18px; color: rgb(59, 109, 130); font-weight: normal; }
+a:link { color: rgb(204, 0, 0); text-decoration: none; }
+a:visited { color: rgb(204, 0, 0); text-decoration: none; }
+a:hover { text-decoration: none; color: rgb(204, 68, 68); }
+a:active { text-decoration: none; color: rgb(204, 68, 68); }
+a:hover img { rgb(204, 68, 68); }
+.thumb { border: 1px solid rgb(153, 153, 153); }
+h1 { font-family: Georgia,"Times New Roman",Times,serif; font-size: 28px; color: rgb(255, 226, 178); padding: 10px 0px; font-weight: bold; margin: 0px; }
+h2 { font-family: Georgia,"Times New Roman",Times,serif; font-size: 24px; color: rgb(255, 226, 178); padding: 10px 0px; font-weight: bold; margin: 0px; }
+.txtsmall { color: rgb(170, 170, 238); font-family: Tahoma,Verdana,Arial,Geneva,sans-serif; font-size: 12px; text-decoration: none; font-variant: normal; font-weight: normal; line-height: 1; }
+.txttop { color: rgb(170, 170, 238); font-family: Tahoma,Verdana,Arial,Geneva,sans-serif; font-size: 12px; text-decoration: none; font-variant: normal; font-weight: normal; }
+.maintable { background-color: rgb(255, 226, 176); border-right: 2px solid rgb(0, 0, 0); border-left: 2px solid rgb(0, 0, 0); width: 960px; }
+.leftup {  }
+.leftdown {  }
+.rightup {  }
+.rightdown {  }
+.up {  }
+.down {  }
+.left {  }
+.right {  }
+.center {  }
+.style2 { text-align: left; width: 33%; }

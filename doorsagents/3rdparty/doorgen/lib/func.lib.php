@@ -94,7 +94,7 @@
 
 		if ($access_macros[4]) {
 			//$macros = "/{RAND_(\d*)_(\d*)}/U";
-			$macros = "/{RAND\((\d*),(\d*)\)}/U";
+			$macros = "/({(RAND)\((\d*),(\d*)\)}|{(COUNTRAND)})/U";
 			$text = preg_replace_callback($macros, "rand_number", $text);
 			$all_macros[] = $macros;
 		}
@@ -345,8 +345,15 @@
 		return $z;
 	}
 
+	$rand_number_mem = 0;
 	function rand_number($matches) {
-		$z = mt_rand($matches[1], $matches[2]); //сгенерировать случайное значение из указанных границ
+		global $rand_number_mem;
+		if ($matches[2] == 'RAND') {
+			$z = mt_rand($matches[3], $matches[4]); //сгенерировать случайное значение из указанных границ
+			$rand_number_mem = $z;
+		}
+		else
+			$z = $rand_number_mem;
 		return $z;
 	}
 
@@ -858,6 +865,7 @@
 		$s = str_replace("{INDEXLINK}", "{INDEX}", $s);
 		$s = str_replace("{SITEMAPLINK}", "{MAPS_ }", $s);
 		$s = str_replace("{ALLLINK}", "{MAP_LINKS_ }", $s);
+		$s = str_replace("{I}", "{FOR_NUM}", $s);
 		return $s;
 	}
 
