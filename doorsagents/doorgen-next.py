@@ -15,8 +15,8 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        self.appFolder = '/home/admin/public_html/searchpro.name/web/doorgen'  # папка с приложением
-        self.appEngine = 'http://searchpro.name/doorgen/engine.php'  # запуск доргена
+        self.appFolder = r'C:\Program Files\Apache Software Foundation\Apache2.2\htdocs\test.home\doorgen'  # папка с приложением
+        self.appEngine = 'http://test.home:81/doorgen/engine.php'  # запуск доргена
         self.appJobFile = os.path.join(self.appFolder, 'jobs' + os.sep + 'jobs.txt')  # задания
         self.appMacrosFile = os.path.join(self.appFolder, 'lib' + os.sep + 'custom_macros.php')  # значения кастомных макросов
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
