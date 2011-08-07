@@ -127,7 +127,7 @@ class DoorgenAgent(agent.BaseAgent):
             shutil.rmtree(self.doorwayFolder)
         except Exception as error:
             print('Error: %s' % error)
-        '''...'''
+        '''Удаляем файл со ссылками'''
         try:
             os.unlink(self.appSpamLinksFile)
         except Exception as error:

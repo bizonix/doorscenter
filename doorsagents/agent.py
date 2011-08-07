@@ -61,6 +61,8 @@ class BaseAgent(object):
         return os.path.isfile(self.maintenanceFileName)
     
     def _IsHeavyLoad(self):
+        '''...'''
+        return False
         '''Есть ли в процессах тяжелые задачи'''
         try:
             heavyProcessesList = ['AGGRESSDoorgen.exe', 'xpymep.exe']

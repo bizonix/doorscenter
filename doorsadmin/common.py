@@ -61,14 +61,13 @@ def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, con
         return ''
 
 def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
-    '''...'''
+    '''Удаление домена из панели управления'''
     if controlPanelType == 'ispconfig':
         try:
             data = {'domainName': domainName, 'controlPanelUrl': controlPanelUrl}
             fd = urllib.urlopen(r'http://searchpro.name/tools/isp-del-domain.php', urllib.urlencode(data))
             reply = fd.read()
             fd.close()
-            return reply
             if reply == 'ok':
                 return ''
             elif reply != '':
@@ -292,7 +291,8 @@ def GenerateNetParams():
         maxPagesCount = math.floor(minPagesCount * random.normalvariate(2.0, 0.7))
         if (maxPagesCount > minPagesCount * 1.2) and (minPagesCount > 300):
             break
-    makeSpam = random.randint(0, 100) < 50
+    #makeSpam = random.randint(0, 100) < 50
+    makeSpam = True
     if makeSpam:
         while True:
             minSpamLinksPercent = random.randint(1, 3)

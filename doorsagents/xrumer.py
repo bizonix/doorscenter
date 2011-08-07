@@ -12,8 +12,8 @@ class XrumerAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'c:\\work\\xrumer7beta61'  # папка с приложением
-        self.appCaption = 'XRumer 7.0 beta-6.1, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
+        self.appFolder = 'c:\\work\\xrumer707pre'  # папка с приложением
+        self.appCaption = 'XRumer 7.07 Elite [TEST Ver., PRE-RELEASE 17.07], Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
