@@ -462,6 +462,12 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
+class Net2(Net):
+    class Meta:
+        verbose_name = 'Net (descr.)'
+        verbose_name_plural = 'I.2.1 Nets (descr.) - [act]'
+        proxy = True
+
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов. Folder-based.'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
@@ -866,6 +872,15 @@ class SpamLink(models.Model):
     def IsAssigned(self):
         return self.spamTask != None
     IsAssigned.short_description = 'Ass.'
+    IsAssigned.allow_tags = True
+    def GetSpamTaskState(self):
+        '''...'''
+        if (self.spamTask):
+            return self.spamTask.stateManaged
+        else:
+            return '-'
+    GetSpamTaskState.short_description = 'Spam State'
+    GetSpamTaskState.allow_tags = True
 
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''

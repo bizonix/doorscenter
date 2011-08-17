@@ -84,6 +84,16 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
+class Net2Admin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'niche', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
+    list_filter = ['active', 'niche', 'stateSimple']
+    ordering = ['description']
+    fieldsets = [
+        (None, {'fields': ['description']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['expanded']}),
+    ]
+    list_per_page = 100
+
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'niche', 'stateSimple']
@@ -162,7 +172,7 @@ class SpamLinkInline(admin.TabularInline):
     extra = 1
 
 class SpamLinkAdmin(BaseAdmin):
-    list_display = ('pk', 'url', 'anchor', 'spamTask')
+    list_display = ('pk', 'url', 'anchor', 'spamTask', 'GetSpamTaskState')
     search_fields = ['url', 'anchor']
     fieldsets = [
         (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
@@ -247,6 +257,7 @@ class CustomQueryAdmin(BaseAdmin):
 
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Net, NetAdmin)
+admin.site.register(Net2, Net2Admin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)

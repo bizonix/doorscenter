@@ -13,7 +13,7 @@ def CronHourly():
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
-    GenerateSpamTasks()
+    #GenerateSpamTasks()
     ClearEventLog()
 
 def GenerateSnippets():
