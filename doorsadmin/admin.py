@@ -71,7 +71,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetScheduleCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetScheduleCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'niche', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -85,7 +85,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class Net2Admin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
+    list_display = ('pk', 'description', 'niche', 'template', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
     list_filter = ['active', 'niche', 'stateSimple']
     ordering = ['description']
     fieldsets = [
