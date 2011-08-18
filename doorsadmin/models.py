@@ -465,7 +465,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
 class Net2(Net):
     class Meta:
         verbose_name = 'Net (descr.)'
-        verbose_name_plural = 'I.2.1 Nets (descr.) - [act]'
+        verbose_name_plural = 'I.2.1 Nets (descr.)'
         proxy = True
 
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
