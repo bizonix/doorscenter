@@ -287,7 +287,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         '''Генерация заданий сразу в несколько баз'''
         try:
             '''Получаем список баз R для данной ниши'''
-            xrumerBasesR = XrumerBaseR.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).all()
+            xrumerBasesR = XrumerBaseR.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?').all()
             xrumerBasesRCount = len(xrumerBasesR)
             '''Инициализация списков: список ссылок и список количеств оставшихся доменов'''
             linksLists = []
@@ -297,7 +297,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 linksLists.append([])
                 domainsCounts.append(random.randint(xrumerBasesR[n].spamTaskDomainsMin, xrumerBasesR[n].spamTaskDomainsMax))
             '''Цикл по доменам с заданиями на спам'''
-            domains = Domain.objects.filter(niche=self).all()
+            domains = Domain.objects.filter(niche=self).order_by('pk').all()
             for domain in domains:
                 '''Получаем список непроспамленных ссылок домена'''
                 spamLinks = self.GetSpamDomainLinks(domain).all()
