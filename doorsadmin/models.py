@@ -509,10 +509,10 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
-class Net2(Net):
+class NetDescription(Net):
     class Meta:
-        verbose_name = 'Net (descr.)'
-        verbose_name_plural = 'I.2.1 Nets (descr.)'
+        verbose_name = 'Net Description'
+        verbose_name_plural = 'I.2.1 Net Descriptions'
         proxy = True
 
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):

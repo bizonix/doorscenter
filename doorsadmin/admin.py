@@ -59,7 +59,7 @@ class BaseAdminSimple(BaseAdmin):
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'language', 'stateSimple']
+    list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
@@ -72,7 +72,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'minPagesCount', 'maxPagesCount', 'GetScheduleCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateSimple']
+    list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNow')]}),
@@ -84,9 +84,9 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastRun', 'doorsToday', 'lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
-class Net2Admin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'template', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateSimple']
+class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description']}),
@@ -96,7 +96,7 @@ class Net2Admin(BaseAdminSimple, BaseAdminActivatable):
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateSimple']
+    list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': ['niche', ('localFolder', 'keywordsCount', 'encoding'), 'active']}),
@@ -107,7 +107,7 @@ class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'type', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateSimple']
+    list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'type'), 'localFolder', 'active']}),
@@ -118,7 +118,7 @@ class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('pk', 'niche', 'localFile', 'keywordsCount', 'interval', 'GetDateLastParsedAgo', 'phrasesCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateManaged', 'priority']
+    list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': ['niche', ('localFile', 'keywordsCount'), ('interval', 'dateLastParsed'), 'active']}),
@@ -129,7 +129,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['active', 'niche', 'stateManaged', 'priority']
+    list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
         (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
@@ -141,7 +141,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'GetDomainUrl', 'niche', 'net', 'makeSpam', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'niche', 'net', 'stateSimple']
+    list_filter = ['niche', 'net', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
         (None, {'fields': ['name', ('niche', 'net', 'host', 'maxDoorsCount'), ('active', 'makeSpam')]}),
@@ -155,7 +155,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
-    list_filter = ['niche', 'template', 'stateManaged', 'priority']
+    list_filter = ['niche', 'domain__net', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
@@ -257,7 +257,7 @@ class CustomQueryAdmin(BaseAdmin):
 
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Net, NetAdmin)
-admin.site.register(Net2, Net2Admin)
+admin.site.register(NetDescription, NetDescriptionAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
