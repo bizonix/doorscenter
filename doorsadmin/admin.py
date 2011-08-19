@@ -140,11 +140,11 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'net', 'niche', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'net', 'niche', 'stateSimple']
+    list_display = ('pk', 'GetDomainUrl', 'niche', 'net', 'makeSpam', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['active', 'niche', 'net', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
-        (None, {'fields': ['name', ('net', 'niche', 'host', 'maxDoorsCount'), 'active']}),
+        (None, {'fields': ['name', ('niche', 'net', 'host', 'maxDoorsCount'), ('active', 'makeSpam')]}),
         ('Net', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
         ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2', 'useOwnDNS')], 'classes': ['expanded']}),
         ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
@@ -154,11 +154,11 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
+    list_display = ('pk', 'GetNet', 'niche', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')
     list_filter = ['niche', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount')]}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -172,10 +172,10 @@ class SpamLinkInline(admin.TabularInline):
     extra = 1
 
 class SpamLinkAdmin(BaseAdmin):
-    list_display = ('pk', 'url', 'anchor', 'spamTask', 'GetSpamTaskState')
+    list_display = ('pk', 'url', 'anchor', 'makeSpam', 'spamTask', 'GetSpamTaskState')
     search_fields = ['url', 'anchor']
     fieldsets = [
-        (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask')]}),
+        (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask', 'makeSpam')]}),
     ]
 
 class SpamTaskAdmin(BaseAdminManaged):

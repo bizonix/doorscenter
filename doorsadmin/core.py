@@ -13,7 +13,7 @@ def CronHourly():
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
-    #GenerateSpamTasks()
+    GenerateSpamTasks()
     ClearEventLog()
 
 def GenerateSnippets():
@@ -39,7 +39,7 @@ def GenerateDoorways():
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''
     for niche in Niche.objects.filter(active=True).all():
-        niche.GenerateSpamTasksChip()
+        niche.GenerateSpamTasksMultiple()
 
 def CheckAgentsActivity():
     '''Проверяем активность агентов'''
