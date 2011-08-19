@@ -3,7 +3,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: keywordsList, templateFolder, doorgenSettings, domain, domainFolder, 
+    Входные: keywordsList, templateFolder, domain, domainFolder, 
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
@@ -184,8 +184,9 @@ class DoorgenAgent(agent.BaseAgent):
     def _ActionOn(self):
         self._Settings(True)
         '''Установка настроек'''
-        with open(self.appSettingsFile, 'w') as fd:
-            fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
+        # в связи с удалением doorgenSettings участок нуждается в модификации
+        #with open(self.appSettingsFile, 'w') as fd:
+        #    fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
         common.ModifyIniFile(self.appTuningsFile, self.appTuningsDict)
         with open(self.appLinksPattern1File, 'w') as fd:
             fd.write(self.appLinksPattern1Contents)
@@ -224,7 +225,6 @@ class DoorgenAgent(agent.BaseAgent):
     def _ActionOff(self):
         self._Settings()
         '''Выходные параметры'''
-        self.currentTask['doorgenSettings'] = []
         self.currentTask['keywordsList'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []

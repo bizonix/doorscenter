@@ -75,7 +75,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': ['description', ('niche', 'keywordsSet', 'template', 'doorgenProfile'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNow')]}),
+        (None, {'fields': ['description', ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'doorsPerDay', 'lastRun', 'doorsToday')], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -158,7 +158,7 @@ class DoorwayAdmin(BaseAdminManaged):
     list_filter = ['niche', 'domain__net', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template', 'doorgenProfile'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['collapse']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -206,16 +206,6 @@ class IPAddressAdmin(BaseAdminSimple):
     ordering = ['address']
     fieldsets = [
         (None, {'fields': ['address', 'host']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
-class DoorgenProfileAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
-    fieldsets = [
-        (None, {'fields': ['description', 'settings', 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -270,7 +260,6 @@ admin.site.register(SpamTask, SpamTaskAdmin)
 
 admin.site.register(Host, HostAdmin)
 admin.site.register(IPAddress, IPAddressAdmin)
-admin.site.register(DoorgenProfile, DoorgenProfileAdmin)
 admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
 
 admin.site.register(Agent, AgentAdmin)

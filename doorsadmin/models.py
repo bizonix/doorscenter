@@ -386,7 +386,6 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
-    doorgenProfile = models.ForeignKey('DoorgenProfile', verbose_name='Prof.', null=True)
     minPagesCount = models.IntegerField('Min Pgs', null=True, default=500)
     maxPagesCount = models.IntegerField('Max Pgs', null=True, default=900)
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
@@ -451,7 +450,6 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 p = Doorway.objects.create(niche=self.niche, 
                                            template=self.template, 
                                            keywordsSet=self.keywordsSet, 
-                                           doorgenProfile=self.doorgenProfile, 
                                            domain=self.GetNextDomain(), 
                                            pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domainFolder='', 
@@ -784,7 +782,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
-    doorgenProfile = models.ForeignKey('DoorgenProfile', verbose_name='Prof.', null=True)
     pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey('Domain', verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
@@ -827,7 +824,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return({
                 'keywordsList': EncodeListForAgent(self.keywordsList), 
                 'templateFolder': self.template.localFolder, 
-                'doorgenSettings': EncodeListForAgent(self.doorgenProfile.settings), 
+                'doorgenSettings': EncodeListForAgent(''),  # deprecated 
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
                 'netLinksList': EncodeListForAgent(self.netLinksList),
@@ -1023,26 +1020,11 @@ class IPAddress(BaseDoorObject):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
 
-class DoorgenProfile(BaseDoorObject, BaseDoorObjectActivatable):
-    '''Профиль доргена'''
-    settings = models.TextField('Settings', default='')
-    class Meta:
-        verbose_name = 'Doorgen Profile'
-        verbose_name_plural = 'III.3 Profiles - [act]'
-    def GetDoorsCount(self):
-        return GetCounter(self.doorway_set, {'stateManaged': 'done'})
-    GetDoorsCount.short_description = 'Doors'
-    GetDoorsCount.allow_tags = True
-    def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
-    GetPagesCount.short_description = 'Pages'
-    GetPagesCount.allow_tags = True
-
 class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера. File-based.'''
     class Meta:
         verbose_name = 'Xrumer Base Raw'
-        verbose_name_plural = 'III.4 Xrumer Bases Raw - [act]'
+        verbose_name_plural = 'III.3 Xrumer Bases Raw - [act]'
     def GetXrumerBasesRCount(self):
         return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesRCount.short_description = 'Bases R'

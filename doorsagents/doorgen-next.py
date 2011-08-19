@@ -3,7 +3,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: keywordsList, templateFolder, doorgenSettings, domain, domainFolder, 
+    Входные: keywordsList, templateFolder, domain, domainFolder, 
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
@@ -109,7 +109,6 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _ActionOff(self):
         '''Выходные параметры'''
-        self.currentTask['doorgenSettings'] = []
         self.currentTask['keywordsList'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
