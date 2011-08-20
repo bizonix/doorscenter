@@ -56,7 +56,7 @@ def ClearEventLog():
     Event.objects.filter(date__lt=dt).delete()
 
 def RenewBasesR():
-    '''...'''
+    '''Регенерируем изношенные базы'''
     for xrumerBaseR in XrumerBaseR.objects.filter(Q(active=True), Q(stateManaged='done')).all():
         if xrumerBaseR.linksCount < 2:  # in thousands
             xrumerBaseR.stateManaged = 'new'

@@ -61,7 +61,7 @@ class BaseAgent(object):
         return os.path.isfile(self.maintenanceFileName)
     
     def _IsHeavyLoad(self):
-        '''...'''
+        '''Отключено по причине неактуальности'''
         return False
         '''Есть ли в процессах тяжелые задачи'''
         try:

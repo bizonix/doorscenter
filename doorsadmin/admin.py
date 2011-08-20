@@ -4,15 +4,17 @@ from doorsadmin.models import *
 from django.contrib.admin.actions import delete_selected
 delete_selected.short_description = '9. Delete selected items'
 
-class BaseAdmin(admin.ModelAdmin):
-    list_per_page = 20
-
 def GetMessageBit(rows_updated):
     '''Текст для сообщений'''
     if rows_updated == 1:
         return "1 item was"
     else:
         return "%s items were" % rows_updated
+
+'''Базовые классы'''
+
+class BaseAdmin(admin.ModelAdmin):
+    list_per_page = 20
 
 class BaseAdminActivatable(BaseAdmin):
     actions = ['MakeActive', 'MakeInactive']
@@ -55,7 +57,7 @@ class BaseAdminSimple(BaseAdmin):
         self.message_user(request, "%s successfully marked as ok." % GetMessageBit(rows_updated))
     MakeStateSimpleOk.short_description = "3. Mark selected items as ok"
 
-'''...'''
+'''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')

@@ -300,14 +300,14 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             domains = Domain.objects.filter(niche=self).order_by('pk').all()
             for domain in domains:
                 '''Получаем список непроспамленных ссылок домена'''
-                spamLinks = self.GetSpamDomainLinks(domain).all()
+                spamLinks = self.GetSpamDomainLinks(domain).order_by('pk').all()
                 '''Распределяем их по базам'''
                 for n in range(xrumerBasesRCount):
                     if len(spamLinks) == 0:
                         break
                     xrumerBaseR = xrumerBasesR[n]
                     linksCount = random.randint(xrumerBaseR.spamTaskDomainLinksMin, xrumerBaseR.spamTaskDomainLinksMax)
-                    for spamLink in spamLinks[:linksCount-1]:
+                    for spamLink in spamLinks[:linksCount]:
                         linksLists[n].append(spamLink.pk)
                     spamLinks = spamLinks[linksCount:]
                     domainsCounts[n] -= 1
@@ -750,7 +750,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             s1 = '%d' % n1
         else:
             s1 = '-'
-        return '%s/%d' % (s1, self.spamLinksCount)
+        return '%s/%d' % (s1, self.spamLinksCount + 1)  # дополнительная ссылка - карта сайта
     GetSpamLinksCount.short_description = 'Lnks'
     GetSpamLinksCount.allow_tags = True
     def GetSpamLinksList(self):
@@ -863,7 +863,7 @@ class SpamLink(models.Model):
     IsAssigned.short_description = 'Ass.'
     IsAssigned.allow_tags = True
     def GetSpamTaskState(self):
-        '''...'''
+        '''Состояние задания на спам'''
         if (self.spamTask):
             return self.spamTask.stateManaged
         else:
