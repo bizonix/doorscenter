@@ -29,10 +29,10 @@ class BaseAdmin(admin.ModelAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdmin):
-    list_display = ('pk', 'name', 'GetDonorsCount', 'GetArticlesCount', 'GetSitesCount', 'active', 'dateAdded')
-    ordering = ['name']
+    list_display = ('pk', 'priority', 'name', 'GetDonorsCount', 'GetArticlesCount', 'GetSitesCount', 'active', 'dateAdded')
+    ordering = ['priority']
     fieldsets = [
-        (None, {'fields': ['name']}),
+        (None, {'fields': [('name', 'priority')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 

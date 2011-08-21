@@ -42,6 +42,7 @@ class BaseSapeObject(models.Model):
 class Niche(BaseSapeObject):
     '''Ниша'''
     name = models.CharField('Name', max_length=50, default='')
+    priority = models.IntegerField('Priority', default=10, blank=True)
     class Meta:
         verbose_name = 'Niche'
         verbose_name_plural = 'I.1 # Niches'
