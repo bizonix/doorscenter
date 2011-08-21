@@ -62,7 +62,7 @@ class Niche(BaseSapeObject):
 
 class Donor(BaseSapeObject):
     '''Донор статей'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche')
+    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     url = models.URLField('Url', default='')
     class Meta:
         verbose_name = 'Donor'
@@ -80,8 +80,8 @@ class Donor(BaseSapeObject):
 
 class Article(BaseSapeObject):
     '''Статья'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche')
-    donor = models.ForeignKey('Donor', verbose_name='Donor')
+    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
+    donor = models.ForeignKey('Donor', verbose_name='Donor', null=True)
     title = models.CharField('Title', max_length=500, default='')
     textFile = models.CharField('Text File', max_length=500, default='')
     class Meta:
@@ -118,13 +118,13 @@ class Hosting(BaseSapeObject):
     
 class HostingAccount(BaseSapeObject):
     '''Аккаунт на хостинге'''
-    hosting = models.ForeignKey('Hosting', verbose_name='Hosting')
+    hosting = models.ForeignKey('Hosting', verbose_name='Hosting', null=True)
     login = models.CharField('Login', max_length=50, default='')
     password = models.CharField('Login', max_length=50, default='')
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
-    costPerMonth = models.FloatField('Cost/month', blank=True)
-    paymentDay = models.IntegerField('Pay day', blank=True)
+    costPerMonth = models.FloatField('Cost/month', null=True, blank=True)
+    paymentDay = models.IntegerField('Pay day', null=True, blank=True)
     class Meta:
         verbose_name = 'Hosting Account'
         verbose_name_plural = 'II.2 Hosting Accounts'
@@ -137,26 +137,30 @@ class HostingAccount(BaseSapeObject):
 
 class Site(BaseSapeObject):
     '''Сайт с доменом'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche')
+    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     articles = models.ManyToManyField('Article', verbose_name='Articles', symmetrical=False, null=True, blank=True)
-    pagesCount = models.IntegerField('Pages', blank=True)
+    pagesCount = models.IntegerField('Pages', default=random.randint(200,300), blank=True)
     url = models.URLField('URL')
-    ipAddress = models.IPAddressField('IP Address', blank=True)
-    hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Account')
-    sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Account')
-    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task')
-    linksIndexCount = models.IntegerField('Links Index', blank=True)
-    linksIndexDate = models.DateField('Links Index Date', blank=True)
-    botsVisitsCount = models.IntegerField('Bots Visits', blank=True)
-    botsVisitsDate = models.DateField('Bots Visits Date', blank=True)
-    siteIndexCount = models.IntegerField('Site Index', blank=True)
-    siteIndexDate = models.DateField('Site Index Date', blank=True)
-    state = models.CharField('State', max_length=50, choices=siteStates, default='')
+    ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
+    hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Account', null=True, blank=True)
+    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
+    sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Account', null=True, blank=True)
+    linksIndexCount = models.IntegerField('Links Index', null=True, blank=True)
+    linksIndexDate = models.DateField('Links Index Date', null=True, blank=True)
+    botsVisitsCount = models.IntegerField('Bots Visits', null=True, blank=True)
+    botsVisitsDate = models.DateField('Bots Visits Date', null=True, blank=True)
+    siteIndexCount = models.IntegerField('Site Index', null=True, blank=True)
+    siteIndexDate = models.DateField('Site Index Date', null=True, blank=True)
+    state = models.CharField('State', max_length=50, choices=siteStates)
     class Meta:
         verbose_name = 'Site'
         verbose_name_plural = 'III.1 # Sites - [large]'
     def __unicode__(self):
         return self.url
+    def GetUrl(self):
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
+    GetUrl.short_description = 'Url'
+    GetUrl.allow_tags = True
     def GetSpamDate(self) :
         return self.spamTask.spamDate
     GetSpamDate.short_description = 'Spam Date'
@@ -164,8 +168,8 @@ class Site(BaseSapeObject):
 
 class SpamTask(BaseSapeObject):
     '''Задание на спам'''
-    spamDate = models.DateField('Spam Date', blank=True)
-    spamLinks = models.TextField('Spammed Links', blank=True)
+    spamDate = models.DateField('Spam Date', null=True, blank=True)
+    spamLinks = models.TextField('Spammed Links', null=True, blank=True)
     state = models.CharField('State', max_length=50, choices=spamStates, default='')
     class Meta:
         verbose_name = 'Spam Task'
@@ -185,7 +189,7 @@ class SapeAccount(BaseSapeObject):
     email = models.CharField('Email', max_length=50, default='', blank=True)
     hash = models.CharField('Hash code', max_length=50, default='', blank=True)
     maxSitesCount = models.IntegerField('Max Sites', default=random.randint(70,100))
-    WMR = models.ForeignKey('WMR', verbose_name='WMR', blank=True)
+    WMR = models.ForeignKey('WMR', verbose_name='WMR', null=True, blank=True)
     class Meta:
         verbose_name = 'Sape Account'
         verbose_name_plural = 'IV.1 # Sape Accounts'
@@ -211,7 +215,7 @@ class WMID(BaseSapeObject):
 
 class WMR(BaseSapeObject):
     '''Кошелек WebMoney'''
-    WMID = models.ForeignKey('WMID', verbose_name='WMID')
+    WMID = models.ForeignKey('WMID', verbose_name='WMID', null=True)
     WMR = models.CharField('WMR', max_length=50, default='')
     class Meta:
         verbose_name = 'WMR'

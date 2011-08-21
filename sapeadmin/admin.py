@@ -30,6 +30,7 @@ class BaseAdmin(admin.ModelAdmin):
 
 class NicheAdmin(BaseAdmin):
     list_display = ('pk', 'name', 'GetDonorsCount', 'GetArticlesCount', 'GetSitesCount', 'active', 'dateAdded')
+    ordering = ['name']
     fieldsets = [
         (None, {'fields': ['name']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -37,6 +38,9 @@ class NicheAdmin(BaseAdmin):
 
 class DonorAdmin(BaseAdmin):
     list_display = ('pk', 'niche', 'GetUrl', 'GetArticlesCount', 'active', 'dateAdded')
+    list_filter = ['niche']
+    ordering = ['niche', 'url']
+    search_fields = ['url']
     fieldsets = [
         (None, {'fields': ['niche', 'url']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -44,6 +48,9 @@ class DonorAdmin(BaseAdmin):
 
 class ArticleAdmin(BaseAdmin):
     list_display = ('pk', 'niche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
+    list_filter = ['niche', 'donor']
+    ordering = ['niche', 'donor', 'title']
+    search_fields = ['title']
     fieldsets = [
         (None, {'fields': [('niche', 'donor'), 'title', 'textFile']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -51,6 +58,7 @@ class ArticleAdmin(BaseAdmin):
 
 class HostingAdmin(BaseAdmin):
     list_display = ('pk', 'name', 'active', 'GetAccountsCount', 'GetSitesCount', 'dateAdded')
+    ordering = ['name']
     fieldsets = [
         (None, {'fields': ['name', 'mainUrl', ('controlUrl', 'billingUrl'), ('ns1', 'ns2')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -58,20 +66,25 @@ class HostingAdmin(BaseAdmin):
     
 class HostingAccountAdmin(BaseAdmin):
     list_display = ('pk', 'hosting', 'login', 'costPerMonth', 'paymentDay', 'GetSitesCount', 'active', 'dateAdded')
+    list_filter = ['hosting']
+    ordering = ['hosting', 'login']
     fieldsets = [
         (None, {'fields': ['hosting', ('login', 'password'), ('ns1', 'ns2'), ('costPerMonth', 'paymentDay')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
 class SiteAdmin(BaseAdmin):
-    list_display = ('pk', 'active', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetUrl', 'sapeAccount', 'linksIndexCount', 'botsVisitsCount', 'siteIndexCount', 'state', 'active', 'dateAdded')
+    list_filter = ['niche', 'hostingAccount', 'sapeAccount', 'state']
+    search_fields = ['url']
     fieldsets = [
-        (None, {'fields': []}),
+        (None, {'fields': [('niche', 'state'), ('url', 'pagesCount'), ('hostingAccount', 'spamTask', 'sapeAccount'), ('linksIndexCount', 'linksIndexDate'), ('botsVisitsCount', 'botsVisitsDate'), ('siteIndexCount', 'siteIndexDate')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
 class SpamTaskAdmin(BaseAdmin):
     list_display = ('pk', 'spamDate', 'GetSitesCount', 'state', 'active', 'dateAdded')
+    list_filter = ['state']
     fieldsets = [
         (None, {'fields': [('spamDate', 'state'), 'spamLinks']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -79,6 +92,7 @@ class SpamTaskAdmin(BaseAdmin):
 
 class SapeAccountAdmin(BaseAdmin):
     list_display = ('pk', 'spamTask', 'login', 'maxSitesCount', 'WMR', 'GetSitesCount', 'active', 'dateAdded')
+    list_filter = ['WMR']
     fieldsets = [
         (None, {'fields': ['spamTask', ('login', 'password', 'email'), 'hash', ('maxSitesCount', 'WMR')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -86,6 +100,7 @@ class SapeAccountAdmin(BaseAdmin):
 
 class WMIDAdmin(BaseAdmin):
     list_display = ('pk', 'WMID', 'GetWMRsCount', 'active', 'dateAdded')
+    ordering = ['WMID']
     fieldsets = [
         (None, {'fields': ['WMID']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
@@ -93,6 +108,8 @@ class WMIDAdmin(BaseAdmin):
 
 class WMRAdmin(BaseAdmin):
     list_display = ('pk', 'WMID', 'WMR', 'GetAccountsCount', 'active', 'dateAdded')
+    list_filter = ['WMID']
+    ordering = ['WMR']
     fieldsets = [
         (None, {'fields': [('WMID', 'WMR')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
