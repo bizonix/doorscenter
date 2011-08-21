@@ -39,14 +39,74 @@ class BaseSapeObject(models.Model):
 
 '''Real models'''
 
+class Niche(BaseSapeObject):
+    '''Ниша'''
+    name = models.CharField('Name', max_length=50, default='')
+    class Meta:
+        verbose_name = 'Niche'
+        verbose_name_plural = 'I.1 # Niches'
+    def __unicode__(self):
+        return self.name
+    def GetDonorsCount(self):
+        return GetCounter(self.donor_set, {'active': True})
+    GetDonorsCount.short_description = 'Donors'
+    GetDonorsCount.allow_tags = True
+    def GetArticlesCount(self):
+        return GetCounter(self.article_set, {'active': True})
+    GetArticlesCount.short_description = 'Articles'
+    GetArticlesCount.allow_tags = True
+    def GetSitesCount(self):
+        return GetCounter(self.site_set, {'active': True})
+    GetSitesCount.short_description = 'Sites'
+    GetSitesCount.allow_tags = True
+
+class Donor(BaseSapeObject):
+    '''Донор статей'''
+    niche = models.ForeignKey('Niche', verbose_name='Niche')
+    url = models.URLField('Url', default='')
+    class Meta:
+        verbose_name = 'Donor'
+        verbose_name_plural = 'I.2 Donors'
+    def __unicode__(self):
+        return self.url
+    def GetUrl(self):
+        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
+    GetUrl.short_description = 'Url'
+    GetUrl.allow_tags = True
+    def GetArticlesCount(self):
+        return GetCounter(self.article_set, {'active': True})
+    GetArticlesCount.short_description = 'Articles'
+    GetArticlesCount.allow_tags = True
+
+class Article(BaseSapeObject):
+    '''Статья'''
+    niche = models.ForeignKey('Niche', verbose_name='Niche')
+    donor = models.ForeignKey('Donor', verbose_name='Donor')
+    title = models.CharField('Title', max_length=500, default='')
+    textFile = models.CharField('Text File', max_length=500, default='')
+    class Meta:
+        verbose_name = 'Article'
+        verbose_name_plural = 'I.3 Articles'
+    def __unicode__(self):
+        return self.title
+    def GetSitesCount(self):
+        return GetCounter(self.site_set, {'active': True})
+    GetSitesCount.short_description = 'Sites'
+    GetSitesCount.allow_tags = True
+
 class Hosting(BaseSapeObject):
     '''Хостинг'''
     name = models.CharField('Name', max_length=50, default='')
-    mainUrl = models.URLField('Main Url', default='http://', blank=True)
-    controlUrl = models.URLField('Control Url', default='http://', blank=True)
-    billingUrl = models.URLField('Billing Url', default='http://', blank=True)
+    mainUrl = models.URLField('Main Url', default='', blank=True)
+    controlUrl = models.URLField('Control Url', default='', blank=True)
+    billingUrl = models.URLField('Billing Url', default='', blank=True)
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
+    class Meta:
+        verbose_name = 'Hosting'
+        verbose_name_plural = 'II.1 # Hostings'
+    def __unicode__(self):
+        return self.name
     def GetAccountsCount(self):
         return GetCounter(self.hostingaccount_set, {'active': True})
     GetAccountsCount.short_description = 'Accounts'
@@ -65,42 +125,11 @@ class HostingAccount(BaseSapeObject):
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
     costPerMonth = models.FloatField('Cost/month', blank=True)
     paymentDay = models.IntegerField('Pay day', blank=True)
-    def GetSitesCount(self):
-        return GetCounter(self.site_set, {'active': True})
-    GetSitesCount.short_description = 'Sites'
-    GetSitesCount.allow_tags = True
-
-class Niche(BaseSapeObject):
-    '''Ниша'''
-    name = models.CharField('Name', max_length=50, default='')
-    def GetDonorsCount(self):
-        return GetCounter(self.donor_set, {'active': True})
-    GetDonorsCount.short_description = 'Donors'
-    GetDonorsCount.allow_tags = True
-    def GetArticlesCount(self):
-        return GetCounter(self.article_set, {'active': True})
-    GetArticlesCount.short_description = 'Articles'
-    GetArticlesCount.allow_tags = True
-    def GetSitesCount(self):
-        return GetCounter(self.site_set, {'active': True})
-    GetSitesCount.short_description = 'Sites'
-    GetSitesCount.allow_tags = True
-
-class Donor(BaseSapeObject):
-    '''Донор статей'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche')
-    url = models.URLField('Url', default='http://')
-    def GetArticlesCount(self):
-        return GetCounter(self.article_set, {'active': True})
-    GetArticlesCount.short_description = 'Articles'
-    GetArticlesCount.allow_tags = True
-
-class Article(BaseSapeObject):
-    '''Статья'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche')
-    donor = models.ForeignKey('Donor', verbose_name='Donor')
-    title = models.CharField('Title', max_length=500, default='')
-    textFile = models.CharField('Text File', max_length=500, default='')
+    class Meta:
+        verbose_name = 'Hosting Account'
+        verbose_name_plural = 'II.2 Hosting Accounts'
+    def __unicode__(self):
+        return self.login
     def GetSitesCount(self):
         return GetCounter(self.site_set, {'active': True})
     GetSitesCount.short_description = 'Sites'
@@ -123,30 +152,45 @@ class Site(BaseSapeObject):
     siteIndexCount = models.IntegerField('Site Index', blank=True)
     siteIndexDate = models.DateField('Site Index Date', blank=True)
     state = models.CharField('State', max_length=50, choices=siteStates, default='')
+    class Meta:
+        verbose_name = 'Site'
+        verbose_name_plural = 'III.1 # Sites - [large]'
+    def __unicode__(self):
+        return self.url
     def GetSpamDate(self) :
         return self.spamTask.spamDate
     GetSpamDate.short_description = 'Spam Date'
     GetSpamDate.allow_tags = True
 
+class SpamTask(BaseSapeObject):
+    '''Задание на спам'''
+    spamDate = models.DateField('Spam Date', blank=True)
+    spamLinks = models.TextField('Spammed Links', blank=True)
+    state = models.CharField('State', max_length=50, choices=spamStates, default='')
+    class Meta:
+        verbose_name = 'Spam Task'
+        verbose_name_plural = 'III.2 Spam Tasks'
+    def __unicode__(self):
+        return '#%s' % self.pk
+    def GetSitesCount(self):
+        return GetCounter(self.site_set, {'active': True})
+    GetSitesCount.short_description = 'Sites'
+    GetSitesCount.allow_tags = True
+
 class SapeAccount(BaseSapeObject):
     '''Аккаунт в Sape'''
+    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True)
     login = models.CharField('Login', max_length=50, default='')
     password = models.CharField('Password', max_length=50, default='')
     email = models.CharField('Email', max_length=50, default='', blank=True)
     hash = models.CharField('Hash code', max_length=50, default='', blank=True)
     maxSitesCount = models.IntegerField('Max Sites', default=random.randint(70,100))
     WMR = models.ForeignKey('WMR', verbose_name='WMR', blank=True)
-    def GetSitesCount(self):
-        return GetCounter(self.site_set, {'active': True})
-    GetSitesCount.short_description = 'Sites'
-    GetSitesCount.allow_tags = True
-
-class SpamTask(BaseSapeObject):
-    '''Задание на спам'''
-    spamDate = models.DateField('Spam Date', blank=True)
-    spamLinks = models.TextField('Spammed Links', blank=True)
-    sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Account', blank=True)
-    state = models.CharField('State', max_length=50, choices=spamStates, default='')
+    class Meta:
+        verbose_name = 'Sape Account'
+        verbose_name_plural = 'IV.1 # Sape Accounts'
+    def __unicode__(self):
+        return self.login
     def GetSitesCount(self):
         return GetCounter(self.site_set, {'active': True})
     GetSitesCount.short_description = 'Sites'
@@ -155,6 +199,11 @@ class SpamTask(BaseSapeObject):
 class WMID(BaseSapeObject):
     '''Аккаунт WebMoney'''
     WMID = models.CharField('WMID', max_length=50, default='')
+    class Meta:
+        verbose_name = 'WMID'
+        verbose_name_plural = 'IV.2 WMIDs'
+    def __unicode__(self):
+        return self.WMID
     def GetWMRsCount(self):
         return GetCounter(self.wmr_set, {'active': True})
     GetWMRsCount.short_description = 'WMRs'
@@ -162,14 +211,24 @@ class WMID(BaseSapeObject):
 
 class WMR(BaseSapeObject):
     '''Кошелек WebMoney'''
-    WMR = models.CharField('WMR', max_length=50, default='')
     WMID = models.ForeignKey('WMID', verbose_name='WMID')
+    WMR = models.CharField('WMR', max_length=50, default='')
+    class Meta:
+        verbose_name = 'WMR'
+        verbose_name_plural = 'IV.3 WMRs'
+    def __unicode__(self):
+        return self.WMR
     def GetAccountsCount(self):
         return GetCounter(self.sapeaccount_set, {'active': True})
     GetAccountsCount.short_description = 'Accounts'
     GetAccountsCount.allow_tags = True
 
-class YandexUpdates(BaseSapeObject):
-    '''Текстовые апдейты Яндекса'''
+class YandexUpdate(BaseSapeObject):
+    '''Текстовый апдейт Яндекса'''
     dateUpdate = models.DateField('Update Date')
     dateIndex = models.DateField('Index Date')
+    class Meta:
+        verbose_name = 'Yandex Update'
+        verbose_name_plural = 'V.1 # Yandex Updates'
+    def __unicode__(self):
+        return str(self.dateUpdate)

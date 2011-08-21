@@ -15,6 +15,7 @@ def GetMessageBit(rows_updated):
 
 class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20
+    readonly_fields = ['dateAdded', 'dateChanged']
     actions = ['MakeActive', 'MakeInactive']
     def MakeActive(self, request, queryset):
         rows_updated = queryset.update(active=True)
@@ -27,3 +28,95 @@ class BaseAdmin(admin.ModelAdmin):
 
 '''Реальные классы'''
 
+class NicheAdmin(BaseAdmin):
+    list_display = ('pk', 'name', 'GetDonorsCount', 'GetArticlesCount', 'GetSitesCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['name']}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class DonorAdmin(BaseAdmin):
+    list_display = ('pk', 'niche', 'GetUrl', 'GetArticlesCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['niche', 'url']}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class ArticleAdmin(BaseAdmin):
+    list_display = ('pk', 'niche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': [('niche', 'donor'), 'title', 'textFile']}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class HostingAdmin(BaseAdmin):
+    list_display = ('pk', 'name', 'active', 'GetAccountsCount', 'GetSitesCount', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['name', 'mainUrl', ('controlUrl', 'billingUrl'), ('ns1', 'ns2')]}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+    
+class HostingAccountAdmin(BaseAdmin):
+    list_display = ('pk', 'hosting', 'login', 'costPerMonth', 'paymentDay', 'GetSitesCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['hosting', ('login', 'password'), ('ns1', 'ns2'), ('costPerMonth', 'paymentDay')]}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class SiteAdmin(BaseAdmin):
+    list_display = ('pk', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': []}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class SpamTaskAdmin(BaseAdmin):
+    list_display = ('pk', 'spamDate', 'GetSitesCount', 'state', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': [('spamDate', 'state'), 'spamLinks']}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class SapeAccountAdmin(BaseAdmin):
+    list_display = ('pk', 'spamTask', 'login', 'maxSitesCount', 'WMR', 'GetSitesCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['spamTask', ('login', 'password', 'email'), 'hash', ('maxSitesCount', 'WMR')]}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class WMIDAdmin(BaseAdmin):
+    list_display = ('pk', 'WMID', 'GetWMRsCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': ['WMID']}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class WMRAdmin(BaseAdmin):
+    list_display = ('pk', 'WMID', 'WMR', 'GetAccountsCount', 'active', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': [('WMID', 'WMR')]}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+class YandexUpdateAdmin(BaseAdmin):
+    list_display = ('pk', 'dateUpdate', 'dateIndex')
+    fieldsets = [
+        (None, {'fields': [('dateUpdate', 'dateIndex')]}),
+        ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
+    ]
+
+admin.site.register(Niche, NicheAdmin)
+admin.site.register(Donor, DonorAdmin)
+admin.site.register(Article, ArticleAdmin)
+
+admin.site.register(Hosting, HostingAdmin)
+admin.site.register(HostingAccount, HostingAccountAdmin)
+
+admin.site.register(Site, SiteAdmin)
+
+admin.site.register(SapeAccount, SapeAccountAdmin)
+admin.site.register(SpamTask, SpamTaskAdmin)
+admin.site.register(WMID, WMIDAdmin)
+admin.site.register(WMR, WMRAdmin)
+
+admin.site.register(YandexUpdate, YandexUpdateAdmin)
