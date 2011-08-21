@@ -74,7 +74,7 @@ class HostingAccountAdmin(BaseAdmin):
     ]
 
 class SiteAdmin(BaseAdmin):
-    list_display = ('pk', 'niche', 'GetUrl', 'sapeAccount', 'linksIndexCount', 'botsVisitsCount', 'siteIndexCount', 'state', 'active', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetUrl', 'GetSpamDate', 'GetLinksIndexCount', 'linksIndexDate', 'GetBotsVisitsCount', 'botsVisitsDate', 'GetSiteIndexCount', 'siteIndexDate', 'sapeAccount', 'state', 'active', 'dateAdded')
     list_filter = ['niche', 'hostingAccount', 'sapeAccount', 'state']
     search_fields = ['url']
     fieldsets = [

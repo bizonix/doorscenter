@@ -146,12 +146,12 @@ class Site(BaseSapeObject):
     hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Account', null=True, blank=True)
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
     sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Account', null=True, blank=True)
-    linksIndexCount = models.IntegerField('Links Index', null=True, blank=True)
-    linksIndexDate = models.DateField('Links Index Date', null=True, blank=True)
-    botsVisitsCount = models.IntegerField('Bots Visits', null=True, blank=True)
-    botsVisitsDate = models.DateField('Bots Visits Date', null=True, blank=True)
-    siteIndexCount = models.IntegerField('Site Index', null=True, blank=True)
-    siteIndexDate = models.DateField('Site Index Date', null=True, blank=True)
+    linksIndexCount = models.IntegerField('L.i.', null=True, default=0, blank=True)  # Links Index
+    linksIndexDate = models.DateField('L.i. date', null=True, blank=True)  # Links Index Date
+    botsVisitsCount = models.IntegerField('B.v.', null=True, default=0, blank=True)  # Bots Visits
+    botsVisitsDate = models.DateField('B.v. date', null=True, blank=True)  # Bots Visits Date
+    siteIndexCount = models.IntegerField('S.i.', null=True, default=0, blank=True)  # Site Index 
+    siteIndexDate = models.DateField('S.i. date', null=True, blank=True)  # Site Index Date
     state = models.CharField('State', max_length=50, choices=siteStates)
     class Meta:
         verbose_name = 'Site'
@@ -162,10 +162,22 @@ class Site(BaseSapeObject):
         return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
     GetUrl.short_description = 'Url'
     GetUrl.allow_tags = True
-    def GetSpamDate(self) :
+    def GetSpamDate(self):
         return self.spamTask.spamDate
     GetSpamDate.short_description = 'Spam Date'
     GetSpamDate.allow_tags = True
+    def GetLinksIndexCount(self):
+        return '<a href="http://blogs.yandex.ru/search.xml?link=%s&noreask=1" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.linksIndexCount)
+    GetLinksIndexCount.short_description = 'L.i.'
+    GetLinksIndexCount.allow_tags = True
+    def GetBotsVisitsCount(self):
+        return '<a href="%sbots.php" target="_blank">%d</a>' % (self.url, self.botsVisitsCount)
+    GetBotsVisitsCount.short_description = 'B.v.'
+    GetBotsVisitsCount.allow_tags = True
+    def GetSiteIndexCount(self):
+        return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.siteIndexCount)
+    GetSiteIndexCount.short_description = 'L.i.'
+    GetSiteIndexCount.allow_tags = True
 
 class SpamTask(BaseSapeObject):
     '''Задание на спам'''
