@@ -94,6 +94,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.admin',
     'doorsadmin',
+    'sapeadmin',
     'south'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
