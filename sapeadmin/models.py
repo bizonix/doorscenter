@@ -124,8 +124,8 @@ class HostingAccount(BaseSapeObject):
     password = models.CharField('Login', max_length=50, default='')
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
-    costPerMonth = models.FloatField('Cost/month', null=True, blank=True)
-    paymentDay = models.IntegerField('Pay day', null=True, blank=True)
+    costPerMonth = models.FloatField('Cost/month, rub.', null=True, blank=True)
+    paidTill = models.DateField('Paid till', null=True, blank=True)
     class Meta:
         verbose_name = 'Hosting Account'
         verbose_name_plural = 'II.2 Hosting Accounts'

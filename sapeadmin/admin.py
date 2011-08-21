@@ -65,11 +65,11 @@ class HostingAdmin(BaseAdmin):
     ]
     
 class HostingAccountAdmin(BaseAdmin):
-    list_display = ('pk', 'hosting', 'login', 'costPerMonth', 'paymentDay', 'GetSitesCount', 'active', 'dateAdded')
+    list_display = ('pk', 'hosting', 'login', 'costPerMonth', 'paidTill', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['hosting']
     ordering = ['hosting', 'login']
     fieldsets = [
-        (None, {'fields': ['hosting', ('login', 'password'), ('ns1', 'ns2'), ('costPerMonth', 'paymentDay')]}),
+        (None, {'fields': ['hosting', ('login', 'password'), ('ns1', 'ns2'), ('costPerMonth', 'paidTill')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
