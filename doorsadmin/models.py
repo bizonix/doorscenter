@@ -262,27 +262,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GetSpamDomainLinks(self, domain):
         '''Ссылки по домену, которые надо спамить'''
         return SpamLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
-    def GenerateSpamTasksChip(self):
-        '''Генерация заданий для спама по методу chippa: все вперемешку'''
-        try:
-            xrumerBaseR = self.GetRandomBaseR()
-            if xrumerBaseR:
-                '''Считаем количество потенциальных ссылок'''
-                xcount = self.GetSpamLinks().count()
-                if xcount < 1000:
-                    return
-                linksCount = 0
-                '''Цикл по ссылкам для спама, ниша доров которых совпадает с нишей базы'''
-                for spamLink in self.GetSpamLinks().order_by('?').all()[:1000]:
-                    if linksCount == 0:
-                        linksCount = random.randint(10,15)
-                        spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
-                        spamTask.save()
-                    spamLink.spamTask = spamTask
-                    spamLink.save()
-                    linksCount -= 1
-        except Exception as error:
-            EventLog('error', 'Error in GenerateSpamTasksChip', self, error)
     def GenerateSpamTasksMultiple(self):
         '''Генерация заданий сразу в несколько баз'''
         try:
@@ -337,13 +316,14 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     settings = models.TextField('Settings', default='#gen', blank=True)
-    generateNow = models.IntegerField('Generate Now', default=0, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
+    domainGroup = models.CharField('Group', max_length=50, default='', blank=True)
+    domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # Domains per day
+    doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # Doors per day
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
-    doorsPerDay = models.IntegerField('Drs/Day', null=True, default=0)
-    doorsToday = models.IntegerField('Drs ths Day', null=True, default=0)
-    lastRun = models.DateTimeField('Last Run Date', null=True)
+    addDomainsNow = models.IntegerField('Add domains now', default=0, blank=True)
+    generateNow = models.IntegerField('Generate Now', default=0, blank=True)
     class Meta:
         verbose_name = 'Net'
         verbose_name_plural = 'I.2 Nets - [act]'
@@ -359,27 +339,6 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.domain_set, {'active': True})
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
-    def GetScheduleCount(self):
-        return '%d/%d' % (self.doorsToday, self.doorsPerDay)
-    GetScheduleCount.short_description = 'Schedule'
-    GetScheduleCount.allow_tags = True
-    def UpdateNet(self):
-        '''Построение сетки'''
-        netChain = self.settings.split(';')
-        netDomains = self.domain_set.order_by('pk')
-        if (netDomains.count() < len(netChain)) and (self.settings != ''):
-            '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша пустая или совпадает с нишой сетки'''
-            for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), Q(active=True)).all():
-                domain.linkedDomains.clear()
-                '''Цикл по доменам, к которым надо привязать новый домен'''
-                for n in netChain[netDomains.count()].split('-')[1:]:
-                    domain.linkedDomains.add(netDomains[int(n) - 1])
-                domain.net = self
-                domain.save()
-                '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
-                netDomains = self.domain_set.order_by('pk')
-                if netDomains.count() >= len(netChain):
-                    return
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -389,8 +348,31 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return Domain.objects.filter(Q(active=True), (Q(net=self) | Q(net=None))).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def _GenerateDoorwaysInternal(self, count):
-        '''Генерируем дорвеи'''
+    def BuildNet(self, count = None):
+        '''Построение сетки'''
+        if self.settings == '':
+            return
+        if count == None:
+            count = self.domainsPerDay
+        netChain = self.settings.split(';')
+        netDomains = self.domain_set.order_by('pk')
+        '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша и группа пустые или совпадают с параметрами сетки'''
+        for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), (Q(group=self.domainGroup) | Q(group='')), Q(active=True)).order_by('-group', 'pk').all():  # сначала берем домены из группы, затем без группы
+            if (count <= 0) or (netDomains.count() >= len(netChain)):
+                return
+            domain.linkedDomains.clear()
+            '''Цикл по доменам, к которым надо привязать новый домен'''
+            for n in netChain[netDomains.count()].split('-')[1:]:
+                domain.linkedDomains.add(netDomains[int(n) - 1])
+            domain.net = self
+            domain.save()
+            count -= 1
+            '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
+            netDomains = self.domain_set.order_by('pk')
+    def GenerateDoorways(self, count = None):
+        '''Генерация дорвеев'''
+        if count == None:
+            count = self.doorsPerDay
         for _ in range(0, count):
             try:
                 p = Doorway.objects.create(niche=self.niche, 
@@ -401,37 +383,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                                            domainFolder='', 
                                            spamLinksCount=0)
                 '''Число ссылок для спама задается в процентах, 
-                а в абсолютных числах должно быть не меньше трех и не больше страниц дора'''
+                а в абсолютных числах должно быть не меньше трех и не больше количества страниц дора'''
                 p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
                 p.save()
             except Exception as error:
-                EventLog('error', 'Cannot generate dorway', self, error)
-    def _NewDayCome(self):
-        '''Настали новые сутки по сравнению с lastRun?'''
-        try:
-            return datetime.datetime.now().strftime('%d.%m.%Y') != self.lastRun.strftime('%d.%m.%Y')
-        except:
-            return True
-    def GenerateDoorways(self, count = None):
-        '''Определяем сколько дорвеев надо сгенерировать и генерируем'''
-        try:
-            if count == None:  # число дорвеев не задано, определяем сами
-                if self._NewDayCome():  # если настал новый день
-                    if self.doorsToday > 0:  # генерим оставшиеся дорвеи за вчера, если вчера был сгенерирован хотя бы один дорвей
-                        if self.doorsPerDay - self.doorsToday > 0:
-                            self._GenerateDoorwaysInternal(self.doorsPerDay - self.doorsToday)
-                    self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
-                d = datetime.datetime.now()
-                count = int(round(self.doorsPerDay * (d.hour * 60.0 + d.minute) / (24 * 60))) - self.doorsToday
-            elif self._NewDayCome():  # если число задано и настал новый день
-                self.doorsToday = 0  # обнуляем число сгенерированных за сегодня дорвеев
-            if count > 0:
-                self._GenerateDoorwaysInternal(count)  # генерим дорвеи за сегодня
-            self.lastRun = datetime.datetime.now()  # обновляем статистику
-            self.doorsToday += count
-        except Exception as error:
-            EventLog('error', 'Cannot generate dorways', self, error)
-        self.save()
+                EventLog('error', 'Error in GenerateDoorways', self, error)
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
@@ -446,7 +402,12 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 self.minPagesCount, self.maxPagesCount, self.minSpamLinksPercent, self.maxSpamLinksPercent, self.makeSpam = GenerateNetParams()
         except Exception as error:
             EventLog('error', 'Cannot generate net params', None, error)
-        '''Генерация доров в сетке'''
+        '''Немендленное добавление доменов в сеть'''
+        if self.addDomainsNow > 0:
+            n = self.addDomainsNow
+            self.addDomainsNow = 0
+            self.BuildNet(n)
+        '''Немедленная генерация доров в сетке'''
         if self.generateNow > 0:
             n = self.generateNow
             self.generateNow = 0
@@ -566,19 +527,6 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     GetSpamTasksCount.allow_tags = True
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
-    def GetDomainPosition(self, domain):
-        '''Как давно домен спамился по этой базе'''
-        n = 1
-        for spamTask in self.spamtask_set.order_by('-pk').all():
-            for spamLink in spamTask.spamlink_set.all():
-                if spamLink.doorway.domain == domain:
-                    EventLog('trace', 'Domain position: %d' % n)
-                    return n
-            n += 1
-            if n > 10:  # дальше проверять не надо
-                return 1000
-        EventLog('trace', 'Domain position: %d' % 1000)
-        return 1000
     def GetTaskDetailsCommon(self):
         '''Подготовка данных для работы агента - общая часть для задания на спам'''
         return {'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
@@ -632,6 +580,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=25)
     makeSpam = models.BooleanField('Sp.', default=True)
+    group = models.CharField('Group', max_length=50, default='', blank=True)
     class Meta:
         verbose_name = 'Domain'
         verbose_name_plural = 'II.1 # Domains - [act, large]'
@@ -668,8 +617,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     def GetNetLinksList(self):
         '''Получение ссылок для перелинковки'''
         linksList = []
-        for domain in self.linkedDomains.filter(pk__lt=self.pk).all():
-            for doorway in domain.doorway_set.filter(stateManaged='done').all():
+        for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
+            for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def save(self, *args, **kwargs):
@@ -700,7 +649,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                                               ipAddress=self.ipAddress, 
                                               nameServer1=self.nameServer1, 
                                               nameServer2=self.nameServer2, 
-                                              useOwnDNS=self.useOwnDNS, 
+                                              useOwnDNS=self.useOwnDNS,
+                                              group=self.group, 
                                               remarks='').save()
                     except Exception as error:
                         EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
@@ -734,6 +684,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     class Meta:
         verbose_name = 'Doorway'
         verbose_name_plural = 'II.2 Doorways - [large, managed]'
+    def __unicode__(self):
+        return 'http://%s%s' % (self.domain.name, self.domainFolder)
     def GetNet(self):
         return self.domain.net
     GetNet.short_description = 'Net'
@@ -858,6 +810,8 @@ class SpamLink(models.Model):
     class Meta:
         verbose_name = 'Spam Link'
         verbose_name_plural = 'II.3 Spam Links - [large]'
+    def __unicode__(self):
+        return self.url
     def IsAssigned(self):
         return self.spamTask != None
     IsAssigned.short_description = 'Ass.'
