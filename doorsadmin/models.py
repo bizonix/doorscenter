@@ -100,7 +100,7 @@ class BaseDoorObjectActivatable(models.Model):
 class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     analyticsId = models.CharField('Analytics Id', max_length=50, default='', blank=True)
-    piwikId = models.IntegerField('Piwik Id', null=True, blank=True)
+    piwikId = models.IntegerField('Pwk', null=True, blank=True)
     cyclikId = models.IntegerField('Cyclik Id', null=True, blank=True)
     class Meta:
         abstract = True
@@ -311,8 +311,8 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
-    minPagesCount = models.IntegerField('Min Pgs', null=True, default=500)
-    maxPagesCount = models.IntegerField('Max Pgs', null=True, default=900)
+    minPagesCount = models.IntegerField('Pgs1', null=True, default=500)
+    maxPagesCount = models.IntegerField('Pgs2', null=True, default=900)
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     settings = models.TextField('Settings', default='#gen', blank=True)
