@@ -240,7 +240,6 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
     '''Генерация сетки'''
     levels1Count = 0
     levels2Count = 0
-    
     '''Generate net level 1'''
     net = [[]]
     queue1 = [1]
@@ -254,7 +253,6 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
         queue1 = []
         queue1.extend(queue2)
         levels1Count += 1
-    
     '''Generate net level 2'''
     if makeLevel2:
         queue2 = []
@@ -271,7 +269,6 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
                 queue1 = []
                 queue1.extend(queue2)
                 queue2 = []
-    
     '''Make net config string'''
     netConfig = ''
     for n in range(len(net)):
@@ -280,7 +277,6 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
             netConfig += '-' + ('%d' % net[n][nn])
         netConfig += ';'
     netConfig = netConfig[:-1]
-    
     '''Results'''
     return netConfig, len(net), levels1Count, levels2Count
 

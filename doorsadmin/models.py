@@ -414,7 +414,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         '''Автогенерация сетки'''
         try:
             if self.stateSimple == 'new' and self.settings == '#gen':
-                self.settings, _, _, _ = GenerateNetConfig(2, 3, 2, 4, True)
+                self.settings, _, _, _ = GenerateNetConfig(2, 5, 2, 4, False)
                 self.minPagesCount, self.maxPagesCount, self.minSpamLinksPercent, self.maxSpamLinksPercent, self.makeSpam = GenerateNetParams()
         except Exception as error:
             EventLog('error', 'Cannot generate net params', None, error)
