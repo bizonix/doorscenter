@@ -24,7 +24,7 @@ def CheckBotVisits():
             pass
         fd.close()
         site.botsVisitsCount = visitsCount
-        if (site.botsVisitsDate == None) and (visitsCount / site.pagesCount * 1.0 >= 0.85):
+        if (site.botsVisitsDate == None) and (float(visitsCount) / site.pagesCount >= 0.85):
             site.botsVisitsDate = datetime.datetime.now()
         if visitsCount >= site.pagesCount:
             site.state = 'bot-visited'
