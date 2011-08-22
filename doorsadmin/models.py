@@ -482,6 +482,8 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     class Meta:
         verbose_name = 'Template'
         verbose_name_plural = 'I.4 Templates - [act]'
+    def __unicode__(self):
+        return self.localFolder
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
