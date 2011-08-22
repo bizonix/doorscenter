@@ -2,7 +2,7 @@
 from django.db import models
 import random
 
-siteStates = (('new', 'new'), ('ready', 'ready'), ('built', 'built'), ('uploaded', 'uploaded'), 
+siteStates = (('new', 'new'), ('registered', 'registered'), ('prepared', 'prepared'), ('built', 'built'), ('uploaded', 'uploaded'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
               ('site-indexed', 'site-indexed'), ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
               ('sape-price1', 'sape-price1'), ('sape-price2', 'sape-price2'), ('sape-price3', 'sape-price3'), 
@@ -243,7 +243,7 @@ class WMR(BaseSapeObject):
 
 class YandexUpdate(BaseSapeObject):
     '''Текстовый апдейт Яндекса'''
-    dateUpdate = models.DateField('Update Date')
+    dateUpdate = models.DateField('Update Date', unique=True)
     dateIndex = models.DateField('Index Date')
     class Meta:
         verbose_name = 'Yandex Update'

@@ -74,7 +74,7 @@ class HostingAccountAdmin(BaseAdmin):
     ]
 
 class SiteAdmin(BaseAdmin):
-    list_display = ('pk', 'niche', 'GetUrl', 'GetSpamDate', 'GetLinksIndexCount', 'linksIndexDate', 'GetBotsVisitsCount', 'botsVisitsDate', 'GetSiteIndexCount', 'siteIndexDate', 'sapeAccount', 'state', 'active', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetUrl', 'pagesCount', 'GetSpamDate', 'GetLinksIndexCount', 'linksIndexDate', 'GetBotsVisitsCount', 'botsVisitsDate', 'GetSiteIndexCount', 'siteIndexDate', 'sapeAccount', 'state', 'active', 'dateAdded')
     list_filter = ['niche', 'hostingAccount', 'sapeAccount', 'state']
     search_fields = ['url']
     fieldsets = [
@@ -116,11 +116,12 @@ class WMRAdmin(BaseAdmin):
     ]
 
 class YandexUpdateAdmin(BaseAdmin):
-    list_display = ('pk', 'dateUpdate', 'dateIndex')
+    list_display = ('pk', 'dateIndex', 'dateUpdate')
     fieldsets = [
-        (None, {'fields': [('dateUpdate', 'dateIndex')]}),
+        (None, {'fields': [('dateIndex', 'dateUpdate')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
+    readonly_fields = ['dateIndex', 'dateUpdate', 'dateAdded', 'dateChanged']
 
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Donor, DonorAdmin)
