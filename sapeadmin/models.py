@@ -243,8 +243,8 @@ class WMR(BaseSapeObject):
 
 class YandexUpdate(BaseSapeObject):
     '''Текстовый апдейт Яндекса'''
-    dateUpdate = models.DateField('Update Date', unique=True)
-    dateIndex = models.DateField('Index Date')
+    dateIndex = models.DateField('Index Date', unique=True)
+    dateUpdate = models.DateField('Update Date')
     class Meta:
         verbose_name = 'Yandex Update'
         verbose_name_plural = 'V.1 # Yandex Updates'
