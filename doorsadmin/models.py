@@ -336,9 +336,13 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetDomainsCount(self):
-        return GetCounter(self.domain_set, {'active': True})
+        return '%d/%d' % (self.domain_set.count(), self.GetNetSize())
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
+    def GetNetSize(self):
+        return len(self.settings.split(';'))
+    GetNetSize.short_description = 'Net Size'
+    GetNetSize.allow_tags = True
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
