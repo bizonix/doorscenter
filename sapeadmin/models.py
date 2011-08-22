@@ -83,6 +83,7 @@ class Article(BaseSapeObject):
     '''Статья'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     donor = models.ForeignKey('Donor', verbose_name='Donor', null=True)
+    url = models.URLField('Url', default='')
     title = models.CharField('Title', max_length=500, default='')
     textFile = models.CharField('Text File', max_length=500, default='')
     class Meta:

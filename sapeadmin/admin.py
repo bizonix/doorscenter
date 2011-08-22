@@ -52,7 +52,7 @@ class ArticleAdmin(BaseAdmin):
     ordering = ['niche', 'donor', 'title']
     search_fields = ['title']
     fieldsets = [
-        (None, {'fields': [('niche', 'donor'), 'title', 'textFile']}),
+        (None, {'fields': [('niche', 'donor'), 'url', 'title', 'textFile']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
