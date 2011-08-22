@@ -26,17 +26,27 @@ def GenerateSnippets():
 
 def GenerateNets():
     '''Плетем сети'''
+    limitBase = 20
+    limitActual = limitBase
     dd = datetime.date.today()
     for net in Net.objects.filter(active=True).order_by('pk').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            net.BuildNet()
+            limitActual = net.BuildNet(None, limitActual)
+        if limitActual <= 0:
+            break
+    EventLog('info', 'Nets limit: %d/%d' % (limitBase - limitActual, limitBase))
 
 def GenerateDoorways():
     '''Генерируем дорвеи'''
+    limitBase = 20
+    limitActual = limitBase
     dd = datetime.date.today()
     for net in Net.objects.filter(active=True).order_by('pk').all():
         if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            net.GenerateDoorways()
+            limitActual = net.GenerateDoorways(None, limitActual)
+        if limitActual <= 0:
+            break
+    EventLog('info', 'Doors limit: %d/%d' % (limitBase - limitActual, limitBase))
 
 def GenerateSpamTasks():
     '''Генерируем задания для спама'''

@@ -348,32 +348,43 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             return Domain.objects.filter(Q(active=True), (Q(net=self) | Q(net=None))).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def BuildNet(self, count = None):
-        '''Построение сетки'''
+    def BuildNet(self, count = None, limit = 9999):
+        '''Построение сетки. Аргументы: count - сколько доменов присоединять, limit - максимальное количество. Возвращает обновленный лимит.'''
         if self.settings == '':
-            return
+            return limit
         if count == None:
             count = self.domainsPerDay
         netChain = self.settings.split(';')
         netDomains = self.domain_set.order_by('pk')
         '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша и группа пустые или совпадают с параметрами сетки'''
         for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), (Q(group=self.domainGroup) | Q(group='')), Q(active=True)).order_by('-group', 'pk').all():  # сначала берем домены из группы, затем без группы
-            if (count <= 0) or (netDomains.count() >= len(netChain)):
-                return
-            domain.linkedDomains.clear()
-            '''Цикл по доменам, к которым надо привязать новый домен'''
-            for n in netChain[netDomains.count()].split('-')[1:]:
-                domain.linkedDomains.add(netDomains[int(n) - 1])
-            domain.net = self
-            domain.save()
-            count -= 1
-            '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
-            netDomains = self.domain_set.order_by('pk')
-    def GenerateDoorways(self, count = None):
-        '''Генерация дорвеев'''
+            if (count <= 0) or (limit <= 0) or (netDomains.count() >= len(netChain)):
+                break
+            try:
+                domain.linkedDomains.clear()
+                '''Цикл по доменам, к которым надо привязать новый домен'''
+                for n in netChain[netDomains.count()].split('-')[1:]:
+                    domain.linkedDomains.add(netDomains[int(n) - 1])
+                domain.net = self
+                domain.save()
+                count -= 1
+                limit -= 1
+                '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
+                netDomains = self.domain_set.order_by('pk')
+            except Exception as error:
+                EventLog('error', 'Error in BuildNet', self, error)
+        '''Если сеть полностью построена'''
+        if netDomains.count() >= len(netChain):
+            self.domainsPerDay = 0
+            self.save()
+        return limit
+    def GenerateDoorways(self, count = None, limit = 9999):
+        '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, limit - максимальное количество. Возвращает обновленный лимит.'''
         if count == None:
             count = self.doorsPerDay
         for _ in range(0, count):
+            if (limit <= 0):
+                break
             try:
                 p = Doorway.objects.create(niche=self.niche, 
                                            template=self.template, 
@@ -382,12 +393,13 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                                            pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domainFolder='', 
                                            spamLinksCount=0)
-                '''Число ссылок для спама задается в процентах, 
-                а в абсолютных числах должно быть не меньше трех и не больше количества страниц дора'''
+                '''Число ссылок для спама задается в процентах, а в абсолютных числах должно быть не меньше трех и не больше количества страниц дора'''
                 p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
                 p.save()
+                limit -= 1
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
+        return limit
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
