@@ -143,7 +143,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['niche', 'net', 'active', 'stateSimple']
+    list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
         (None, {'fields': [('name', 'group'), ('niche', 'net', 'host', 'maxDoorsCount'), ('active', 'makeSpam')]}),
