@@ -47,9 +47,9 @@ class DonorAdmin(BaseAdmin):
     ]
 
 class ArticleAdmin(BaseAdmin):
-    list_display = ('pk', 'donor__niche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
-    list_filter = ['niche', 'donor']
-    ordering = ['niche', 'donor', 'title']
+    list_display = ('pk', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
+    list_filter = ['donor__niche', 'donor']
+    ordering = ['donor__niche', 'donor', 'title']
     search_fields = ['title']
     fieldsets = [
         (None, {'fields': ['donor', 'url', 'title', 'fileName']}),
@@ -91,10 +91,10 @@ class SpamTaskAdmin(BaseAdmin):
     ]
 
 class SapeAccountAdmin(BaseAdmin):
-    list_display = ('pk', 'spamTask', 'login', 'maxSitesCount', 'WMR', 'GetSitesCount', 'active', 'dateAdded')
+    list_display = ('pk', 'login', 'maxSitesCount', 'WMR', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['WMR']
     fieldsets = [
-        (None, {'fields': ['spamTask', ('login', 'password', 'email'), 'hash', ('maxSitesCount', 'WMR')]}),
+        (None, {'fields': [('login', 'password', 'email'), 'hash', ('maxSitesCount', 'WMR')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
