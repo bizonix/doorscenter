@@ -47,12 +47,12 @@ class DonorAdmin(BaseAdmin):
     ]
 
 class ArticleAdmin(BaseAdmin):
-    list_display = ('pk', 'niche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
+    list_display = ('pk', 'donor__niche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['niche', 'donor']
     ordering = ['niche', 'donor', 'title']
     search_fields = ['title']
     fieldsets = [
-        (None, {'fields': [('niche', 'donor'), 'url', 'title', 'textFile']}),
+        (None, {'fields': ['donor', 'url', 'title', 'fileName']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 

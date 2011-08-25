@@ -64,12 +64,12 @@ class Niche(BaseSapeObject):
 class Donor(BaseSapeObject):
     '''Донор статей'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
-    url = models.URLField('Url', default='')
+    url = models.URLField('Url', default='', unique=True)
     class Meta:
         verbose_name = 'Donor'
         verbose_name_plural = 'I.2 Donors'
     def __unicode__(self):
-        return self.url
+        return '#%d' % self.pk
     def GetUrl(self):
         return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
     GetUrl.short_description = 'Url'
@@ -81,11 +81,11 @@ class Donor(BaseSapeObject):
 
 class Article(BaseSapeObject):
     '''Статья'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     donor = models.ForeignKey('Donor', verbose_name='Donor', null=True)
     url = models.URLField('Url', default='')
     title = models.CharField('Title', max_length=500, default='')
-    textFile = models.CharField('Text File', max_length=500, default='')
+    fileName = models.CharField('File Name', max_length=500, default='')
+    fileDigest = models.CharField('File Digest', max_length=50, default='', unique=True)
     class Meta:
         verbose_name = 'Article'
         verbose_name_plural = 'I.3 Articles'
@@ -197,7 +197,6 @@ class SpamTask(BaseSapeObject):
 
 class SapeAccount(BaseSapeObject):
     '''Аккаунт в Sape'''
-    spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True)
     login = models.CharField('Login', max_length=50, default='')
     password = models.CharField('Password', max_length=50, default='')
     email = models.CharField('Email', max_length=50, default='', blank=True)
