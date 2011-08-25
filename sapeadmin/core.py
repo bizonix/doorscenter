@@ -1,7 +1,7 @@
 # coding=utf8
 #from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
-import urllib, re, datetime, MySQLdb, hashlib, os
+import urllib, re, datetime, MySQLdb, hashlib, os, sys
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
@@ -27,14 +27,15 @@ def ImportArticles(host, user, password, database, localFolder):
                 cursor.execute('select count(*) from `text`')
                 row = cursor.fetchone()
                 count = row[0]
+                print('Total articles: %d' % count)
                 '''Загружаем статьи'''
                 part = 100
                 for n in range(count / part + 1):
-                    print('Part #%d' % n)
-                    cursor.execute('select b.`url` as donorurl, a.`url`, a.`title`, a.`content` from `text` a left join `project` b on (a.`idproject`=b.`id`) limit %d, %d' % (n * part, part))
+                    print('Article #%d ...' % (n * part + 1))
+                    cursor.execute('select b.`url` as donorurl, a.`url`, a.`title`, a.`content` from `text` a inner join `project` b on (a.`idproject`=b.`id`) limit %d, %d' % (n * part, part))
                     for row in cursor.fetchall():
-                        '''Получаем данные статьи'''
                         try:
+                            '''Получаем данные статьи'''
                             donorUrl = row[0]
                             url = row[1]
                             title = row[2]
@@ -43,16 +44,14 @@ def ImportArticles(host, user, password, database, localFolder):
                             md5.update(text)
                             fileDigest = md5.hexdigest()
                             fileName = os.path.join(localFolder, fileDigest + '.txt')
-                            '''Сохраняем статью в файл'''
+                            '''Ищем или добавляем донора'''
                             try:
-                                fd = open(fileName, 'w')
-                                fd.write(text)
-                                fd.close()
+                                donor, _ = Donor.objects.get_or_create(url=donorUrl)
                             except Exception as error:
-                                print('Error writing article: %s' % error)
+                                print('Error adding a donor: %s' % error)
+                                sys.exit(0)
                             '''Добавляем статью в базу'''
                             try:
-                                donor = Donor.objects.get(url=donorUrl)
                                 article = Article.objects.create(donor=donor,
                                                                  url=url,
                                                                  title=title,
@@ -61,8 +60,15 @@ def ImportArticles(host, user, password, database, localFolder):
                                 article.save()
                             except Exception as error:
                                 pass
+                            '''Сохраняем статью в файл'''
+                            try:
+                                fd = open(fileName, 'w')
+                                fd.write(text)
+                                fd.close()
+                            except Exception as error:
+                                print('Error writing an article to file: %s' % error)
                         except Exception as error:
-                            print('Error getting article: %s' % error)
+                            print('Error getting an article: %s' % error)
             except Exception as error:
                 print('Error in ImportArticles: %s' %  error)
             cursor.close()
