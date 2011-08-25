@@ -91,6 +91,10 @@ class Article(BaseSapeObject):
         verbose_name_plural = 'I.3 Articles'
     def __unicode__(self):
         return self.title
+    def GetNiche(self):
+        return self.donor.niche
+    GetNiche.short_description = 'Niche'
+    GetNiche.allow_tags = True
     def GetSitesCount(self):
         return GetCounter(self.site_set, {'active': True})
     GetSitesCount.short_description = 'Sites'
@@ -144,9 +148,9 @@ class Site(BaseSapeObject):
     pagesCount = models.IntegerField('Pages', default=random.randint(200,300), blank=True)
     url = models.URLField('URL')
     ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
-    hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Account', null=True, blank=True)
+    hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Acc.', null=True, blank=True)
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
-    sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Account', null=True, blank=True)
+    sapeAccount = models.ForeignKey('SapeAccount', verbose_name='Sape Acc.', null=True, blank=True)
     linksIndexCount = models.IntegerField('L.i.', null=True, default=0, blank=True)  # Links Index
     linksIndexDate = models.DateField('L.i. date', null=True, blank=True)  # Links Index Date
     botsVisitsCount = models.IntegerField('B.v.', null=True, default=0, blank=True)  # Bots Visits
@@ -177,7 +181,7 @@ class Site(BaseSapeObject):
     GetBotsVisitsCount.allow_tags = True
     def GetSiteIndexCount(self):
         return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.siteIndexCount)
-    GetSiteIndexCount.short_description = 'L.i.'
+    GetSiteIndexCount.short_description = 'S.i.'
     GetSiteIndexCount.allow_tags = True
 
 class SpamTask(BaseSapeObject):

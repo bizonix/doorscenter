@@ -47,7 +47,7 @@ class DonorAdmin(BaseAdmin):
     ]
 
 class ArticleAdmin(BaseAdmin):
-    list_display = ('pk', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
+    list_display = ('pk', 'GetNiche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['donor__niche', 'donor']
     ordering = ['donor__niche', 'donor', 'title']
     search_fields = ['title']
