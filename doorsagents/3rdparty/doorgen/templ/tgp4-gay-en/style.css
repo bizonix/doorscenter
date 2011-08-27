@@ -1,0 +1,10 @@
+* { font-family: verdana,Arial; font-weight: normal; color: black; }
+a:hover { font-family: verdana,Arial; font-weight: normal; color: black; text-decoration: none; }
+img { border: 1px solid Black; }
+.top3 { font-size: 13pt; font-family: Tahoma,Helvetica,Arial,Sans-serif; font-weight: bold; color: black; }
+a.top3 { font-size: 13pt; font-family: Tahoma,Helvetica,Arial,Sans-serif; font-weight: bold; color: black; }
+a.top3:hover { font-size: 13pt; font-family: Tahoma,Helvetica,Arial,Sans-serif; font-weight: bold; color: black; text-decoration: none; }
+a.toplist { font-size: 11pt; font-family: Tahoma,Helvetica,Arial,Sans-serif; font-weight: normal; color: black; text-decoration: none; }
+a.toplist:hover { font-size: 11pt; font-family: Tahoma,Helvetica,Arial,Sans-serif; font-weight: normal; color: black; text-decoration: underline; }
+h1 {margin: 0}
+h2 {text-align: center}
