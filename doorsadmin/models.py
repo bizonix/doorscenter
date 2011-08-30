@@ -39,7 +39,7 @@ def EventLog(type, text, object=None, addErrorMessage=None):
                              text=text).save()
         transaction.commit()
         if type == 'error':
-            send_mail('Doors Center', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
+            send_mail('Doors Administration', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
 
 def ObjectLog(object, changeMessage):
     '''Запись в историю объекта'''
