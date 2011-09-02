@@ -15,7 +15,7 @@ stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error'
 languages = (('en', 'en'), ('ru', 'ru'))
 encodings = (('cp1251', 'cp1251'), ('utf-8', 'utf-8'))
 agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrumer'))
-hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('real', 'real'))
+hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('dedicated', 'dedicated'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
@@ -39,7 +39,7 @@ def EventLog(type, text, object=None, addErrorMessage=None):
                              text=text).save()
         transaction.commit()
         if type == 'error':
-            send_mail('Doors Center', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
+            send_mail('Doors Administration', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
 
 def ObjectLog(object, changeMessage):
     '''Запись в историю объекта'''

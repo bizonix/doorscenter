@@ -48,12 +48,18 @@
 
 		if ($access_macros[1]) {
 			//$macros = "/{FOR_(\d*)_(\d*)}(.*){\/FOR}/Us";
-			$macros = "/{FOR\((\d*),(\d*)\)}(.*){ENDFOR}/Us";
+			$macros1 = "/{FOR\((\d*),(\d*)\)}(.*){ENDFOR}/Us";
 			$macros2 = "/{FOR\((\d*),{RAND\((\d*),(\d*)\)}\)}(.*){ENDFOR}/Us";
-			$text = preg_replace_callback($macros, "for_endfor", $text);
+			$macros3 = "/{FORX\((\d*),(\d*)\)}(.*){ENDFORX}/Us";
+			$macros4 = "/{FORX\((\d*),{RAND\((\d*),(\d*)\)}\)}(.*){ENDFORX}/Us";
+			$text = preg_replace_callback($macros1, "for_endfor", $text);
 			$text = preg_replace_callback($macros2, "for_endfor", $text);
-			$all_macros[] = $macros;
+			$text = preg_replace_callback($macros3, "for_endfor", $text);
+			$text = preg_replace_callback($macros4, "for_endfor", $text);
+			$all_macros[] = $macros1;
 			$all_macros[] = $macros2;
+			$all_macros[] = $macros3;
+			$all_macros[] = $macros4;
 		}
 
 		if ($access_macros[2]) {

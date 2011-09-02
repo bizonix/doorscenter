@@ -176,7 +176,7 @@ class Site(BaseSapeObject):
     GetLinksIndexCount.short_description = 'L.i.'
     GetLinksIndexCount.allow_tags = True
     def GetBotsVisitsCount(self):
-        return '<a href="%sbots.php" target="_blank">%d</a>' % (self.url, self.botsVisitsCount)
+        return '<a href="%sbots.php" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.botsVisitsCount, float(self.botsVisitsCount) / self.pagesCount * 100)
     GetBotsVisitsCount.short_description = 'B.v.'
     GetBotsVisitsCount.allow_tags = True
     def GetSiteIndexCount(self):

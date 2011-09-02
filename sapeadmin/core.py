@@ -1,6 +1,7 @@
 # coding=utf8
 #from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
+from django.core.mail import send_mail
 import urllib, re, datetime, MySQLdb, hashlib, os, sys
 
 def CronDaily():
@@ -121,5 +122,6 @@ def CheckYandexUpdates():
     update = update[6:10] + '-' + update[3:5] + '-' + update[0:2]
     try:
         YandexUpdate.objects.create(dateUpdate=datetime.datetime.now(), dateIndex=update).save()
+        send_mail('Sape Administration', 'Yandex text update', 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
     except Exception:
         pass

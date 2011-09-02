@@ -13,7 +13,7 @@ def CronDaily():
     '''Функция вызывается по расписанию'''
     GenerateNets()
     GenerateDoorways()
-    #GenerateSpamTasks()
+    GenerateSpamTasks()
     ClearEventLog()
 
 def GenerateSnippets():

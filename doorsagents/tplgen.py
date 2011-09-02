@@ -9,8 +9,12 @@ class TemplateGenerator1(object):
     def __init__(self, code, tplPath):
         '''Пример кода: "xgen1-adult-596".'''
         params = code.split('-')
-        if params[0] == 'xgen1':
-            self._Generate('/images/' + params[1], params[2], tplPath)
+        genKind = params[0]
+        tplKind = params[1]
+        imgCount = params[2]
+        tdsSchema = params[3]
+        if genKind == 'xgen1':
+            self._Generate(tplKind, '/images/' + tplKind, imgCount, tdsSchema, tplPath)
             print('done')
     
     def _GetRandomColor(self):
@@ -33,27 +37,41 @@ class TemplateGenerator1(object):
         s = s.replace('{{strTableEntries}}', self._GetTableEntry())
         return s
     
-    def _GetPage(self, strTpl, imgPath, imgCount, minEntries, maxEntries):
+    def _GetPage(self, strTpl, tplKind, imgPath, imgCount, tdsSchema, minEntries, maxEntries):
         '''Генерация страницы'''
         s = ''
         for _ in range(random.randint(minEntries, maxEntries)):
             s += self._GetEntry()
         s = strTpl.replace('{{strEntries}}', s)
+        s = s.replace('{{tplKind}}', tplKind)
         s = s.replace('{{imgPath}}', imgPath)
         s = s.replace('{{imgCount}}', '%s' % imgCount)
+        s = s.replace('{{tdsSchema}}', tdsSchema)
+        s = s.replace('{{numBackground}}', '%s' % random.randint(1,750))
         s = s.replace('{{rndColor1}}', self._GetRandomColor())
         s = s.replace('{{rndColor2}}', self._GetRandomColor())
         s = s.replace('{{rndColor3}}', self._GetRandomColor())
         return s
     
-    def _Generate(self, imgPath, imgCount, tplPath):
+    def _Generate(self, tplKind, imgPath, imgCount, tdsSchema, tplPath):
         '''Генерация шаблона: индекс и карта'''
         if not os.path.exists(tplPath):
             os.makedirs(tplPath)
         with open(os.path.join(tplPath, 'index.html'), 'w') as fd:
-            fd.write(self._GetPage(strIndex, imgPath, imgCount, 25, 40))
+            fd.write(self._GetPage(strIndex, tplKind, imgPath, imgCount, tdsSchema, 25, 40))
         with open(os.path.join(tplPath, 'dp_sitemap.html'), 'w') as fd:
-            fd.write(self._GetPage(strSitemap, imgPath, imgCount, 2, 3))
+            fd.write(self._GetPage(strSitemap, tplKind, imgPath, imgCount, tdsSchema, 2, 3))
+        with open(os.path.join(tplPath, '.htaccess'), 'w') as fd:
+            fd.write(strHtAccess)
+        with open(os.path.join(tplPath, 'cmd.php'), 'w') as fd:
+            fd.write(strCmd)
+        with open(os.path.join(tplPath, 'robots.txt'), 'w') as fd:
+            fd.write(strRobots)
+        tplPathScript = os.path.join(tplPath, 'script')
+        if not os.path.exists(tplPathScript):
+            os.makedirs(tplPathScript)
+        with open(os.path.join(tplPathScript, 'register.html'), 'w') as fd:
+            fd.write(strRegister.replace('{{tdsSchema}}', tdsSchema))
     
 if __name__ == '__main__':
-    agent = TemplateGenerator1('xgen1-adult-596', '/home/sasch/public_html/test.home/tplview')
+    agent = TemplateGenerator1('xgen1-adult-596-27', '/home/sasch/public_html/test.home/tplview')

