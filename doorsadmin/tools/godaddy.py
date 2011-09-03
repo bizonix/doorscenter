@@ -1,45 +1,28 @@
 # coding=utf8
 from suds import WebFault
 from suds.client import Client
-import xml.dom.minidom, uuid, sys
+import xml.dom.minidom, uuid, logging
 
-import logging
-logging.basicConfig(level=logging.INFO)
-#logging.getLogger('suds.client').setLevel(logging.DEBUG)
-
-class GoDaddyAPI():
-    def __init__(self):
-        self.url = 'https://api.ote.wildwestdomains.com/wswwdapi/wapi.asmx?wsdl'
-        self.client = Client(self.url)
-        self.credential = self.client.factory.create('Credential')
-        self.credential.Account = '1000656'
-        self.credential.Password = '43KoqW82'
+class GoDaddyAPIBase(object):
+    def __init__(self, log = False):
+        if log:
+            logging.basicConfig(level=logging.INFO)
+            logging.getLogger('suds.client').setLevel(logging.DEBUG)
         
-    def _GetCLTRID(self):
+    def _GetCltrId(self):
         '''Get GUID'''
         return str(uuid.uuid4())
     
-    def _Reset(self):
-        '''Reset certifcation steps'''
-        request = '<wapi clTRID=\'%s\' account=\'%s\' pwd=\'%s\'><manage><script cmd=\'reset\' /></manage></wapi>' % (self._GetCLTRID(), self.credential.Account, self.credential.Password)
-        response = self.client.service.ProcessRequest(request)
-        expectedResponse = 'scripting status reset'
-        return response == expectedResponse
-    
-    def _GetProductId(self, tld, period):
+    def _GetProductId(self, action, tld, period):
         '''Product IDs'''
-        if (tld == 'biz') and (period == 2):
+        if (action == 'buy') and (tld == 'biz') and (period == 2):
             return 350077
-        if (tld == 'us') and (period == 2):
+        if (action == 'buy') and (tld == 'us') and (period == 2):
             return 350127
-    
-    def Print(self):
-        '''Print self-documentation'''
-        print(self.client)
     
     def Describe(self):
         '''The Describe method'''
-        response = self.client.service.Describe(self._GetCLTRID(), self.credential)
+        response = self.client.service.Describe(self._GetCltrId(), self.credential)
         '''Parsing request'''
         dict = {}
         dom = xml.dom.minidom.parseString(response)
@@ -50,7 +33,7 @@ class GoDaddyAPI():
     
     def Poll(self):
         '''The Poll method'''
-        response = self.client.service.Poll(self._GetCLTRID(), self.credential, 'req')
+        response = self.client.service.Poll(self._GetCltrId(), self.credential, 'req')
         '''Parsing request'''
         resources = []
         dom = xml.dom.minidom.parseString(response)
@@ -59,8 +42,8 @@ class GoDaddyAPI():
         return resources
         
     def Info(self, resourceId):
-        '''The OrderDomainPrivacy method'''
-        response = self.client.service.Info(self._GetCLTRID(), self.credential, resourceId)
+        '''The Info method'''
+        response = self.client.service.Info(self._GetCltrId(), self.credential, resourceId)
         '''Parsing request'''
         info = {}
         dom = xml.dom.minidom.parseString(response)
@@ -69,10 +52,63 @@ class GoDaddyAPI():
             info[attributes.item(n).name] = attributes.item(n).value
         return info
 
+    def CheckAvailability(self, domains):
+        '''The CheckAvailability method'''
+        sDomainArray  = self.client.factory.create('ArrayOfString')
+        sDomainArray.string = domains
+        response = self.client.service.CheckAvailability(self._GetCltrId(), self.credential, sDomainArray)
+        '''Parsing request'''
+        results = {}
+        dom = xml.dom.minidom.parseString(response.decode('utf-8').encode('utf-16'))
+        for domainElement in dom.getElementsByTagName('domain'):
+            results[domainElement.attributes['name'].value.lower()] = domainElement.attributes['avail'].value == '1'
+        return results
+    
+    def OrderDomains(self, shopper, registrant, nexus, domains, nameServers, period):
+        '''The OrderDomains method'''
+        nsArray = self.client.factory.create('ArrayOfNS')
+        for nameServer in nameServers:
+            NS = self.client.factory.create('NS')
+            NS.name = nameServer
+            nsArray.NS.append(NS)
+        items = self.client.factory.create('ArrayOfDomainRegistration')
+        for domain in domains:
+            sld, _, tld = domain.partition('.')
+            order = self.client.factory.create('OrderItem')
+            order.productid = self._GetProductId('buy', tld, period)
+            order.quantity = 1
+            order.duration = 1
+            domainRegistration = self.client.factory.create('DomainRegistration')
+            domainRegistration.order = order
+            domainRegistration.sld = sld
+            domainRegistration.tld = tld
+            domainRegistration.period = period
+            domainRegistration.registrant = registrant
+            if tld == 'us':
+                domainRegistration.nexus = nexus
+            domainRegistration.nsArray = nsArray
+            domainRegistration.autorenewflag = 0
+            items.DomainRegistration.append(domainRegistration)
+        response = self.client.service.OrderDomains(self._GetCltrId(), self.credential, shopper, items)
+        '''Parsing request'''
+        dom = xml.dom.minidom.parseString(response)
+        userId = dom.getElementsByTagName('response')[0].attributes['user'].value
+        orderId = dom.getElementsByTagName('orderid')[0].childNodes[0].data
+        return userId, orderId
+        
+class GoDaddyAPITest(GoDaddyAPIBase):
+    '''Test mode'''
+    def __init__(self, log = False):
+        self.url = 'https://api.ote.wildwestdomains.com/wswwdapi/wapi.asmx?wsdl'
+        self.client = Client(self.url)
+        self.credential = self.client.factory.create('Credential')
+        self.credential.Account = '1000656'
+        self.credential.Password = '43KoqW82'
+        super(GoDaddyAPITest, self).__init__(log)
+
     def Certification(self):
         '''The certification program'''
-        '''TEST MODE ONLY'''
-        if self._Reset():
+        if self.Reset():
             '''Init'''
             print('Reset')
             resources = self.Poll()
@@ -109,22 +145,15 @@ class GoDaddyAPI():
         else:
             print('Unable to reset')
     
-    def CheckAvailability(self, domains):
-        '''The ProcessRequest method'''
-        '''TEST MODE ONLY'''
-        sDomainArray  = self.client.factory.create('ArrayOfString')
-        sDomainArray.string = domains
-        response = self.client.service.CheckAvailability(self._GetCLTRID(), self.credential, sDomainArray)
-        '''Parsing request'''
-        results = {}
-        dom = xml.dom.minidom.parseString(response)
-        for domainElement in dom.getElementsByTagName('domain'):
-            results[domainElement.attributes['name'].value] = domainElement.attributes['avail'].value == '1'
-        return results
+    def Reset(self):
+        '''Reset certifcation steps'''
+        request = '<wapi clTRID=\'%s\' account=\'%s\' pwd=\'%s\'><manage><script cmd=\'reset\' /></manage></wapi>' % (self._GetCltrId(), self.credential.Account, self.credential.Password)
+        response = self.client.service.ProcessRequest(request)
+        expectedResponse = 'scripting status reset'
+        return response == expectedResponse
     
     def OrderDomains(self, domains, nameServers, period):
-        '''The ProcessRequest method'''
-        '''TEST MODE ONLY'''
+        '''The OrderDomains method'''
         shopper = self.client.factory.create('Shopper')
         shopper.user = 'createNew'
         shopper.pwd = 'abcde'
@@ -145,39 +174,10 @@ class GoDaddyAPI():
         nexus = self.client.factory.create('Nexus')
         nexus.category = 'citizen of US'
         nexus.use = 'personal'
-        nsArray = self.client.factory.create('ArrayOfNS')
-        for nameServer in nameServers:
-            NS = self.client.factory.create('NS')
-            NS.name = nameServer
-            nsArray.NS.append(NS)
-        items = self.client.factory.create('ArrayOfDomainRegistration')
-        for domain in domains:
-            sld, _, tld = domain.partition('.')
-            order = self.client.factory.create('OrderItem')
-            order.productid = self._GetProductId(tld, period)
-            order.quantity = 1
-            order.duration = 1
-            domainRegistration = self.client.factory.create('DomainRegistration')
-            domainRegistration.order = order
-            domainRegistration.sld = sld
-            domainRegistration.tld = tld
-            domainRegistration.period = period
-            domainRegistration.registrant = registrant
-            if tld == 'us':
-                domainRegistration.nexus = nexus
-            domainRegistration.nsArray = nsArray
-            domainRegistration.autorenewflag = 0
-            items.DomainRegistration.append(domainRegistration)
-        response = self.client.service.OrderDomains(self._GetCLTRID(), self.credential, shopper, items)
-        '''Parsing request'''
-        dom = xml.dom.minidom.parseString(response)
-        userId = dom.getElementsByTagName('response')[0].attributes['user'].value
-        orderId = dom.getElementsByTagName('orderid')[0].childNodes[0].data
-        return userId, orderId
+        return super(GoDaddyAPITest, self).OrderDomains(shopper, registrant, nexus, domains, nameServers, period)
         
     def OrderDomainPrivacy(self, domain, resourceId, userId):
         '''The OrderDomainPrivacy method'''
-        '''TEST MODE ONLY'''
         shopper = self.client.factory.create('Shopper')
         shopper.user = userId
         shopper.dbpuser = 'createNew'
@@ -195,7 +195,7 @@ class GoDaddyAPI():
         domainByProxy.tld = tld
         domainByProxy.resourceid = resourceId
         dbpItems.DomainByProxy.append(domainByProxy)
-        response = self.client.service.OrderDomainPrivacy(self._GetCLTRID(), self.credential, shopper, dbpItems)
+        response = self.client.service.OrderDomainPrivacy(self._GetCltrId(), self.credential, shopper, dbpItems)
         '''Parsing request'''
         dom = xml.dom.minidom.parseString(response)
         dbpUserId = dom.getElementsByTagName('response')[0].attributes['dbpuser'].value
@@ -204,7 +204,6 @@ class GoDaddyAPI():
     
     def OrderPrivateDomainRenewals(self, domains, domainResources, dbpResources, userId, dbpUserId, dbpUserPwd):
         '''The OrderPrivateDomainRenewals method'''
-        '''TEST MODE ONLY'''
         shopper = self.client.factory.create('Shopper')
         shopper.user = userId
         shopper.dbpuser = dbpUserId
@@ -237,7 +236,7 @@ class GoDaddyAPI():
             resourceRenewal.order = order
             resourceRenewal.resourceid = resourceId
             dbpItems.ResourceRenewal.append(resourceRenewal)
-        response = self.client.service.OrderPrivateDomainRenewals(self._GetCLTRID(), self.credential, shopper, items, dbpItems)
+        response = self.client.service.OrderPrivateDomainRenewals(self._GetCltrId(), self.credential, shopper, items, dbpItems)
         '''Parsing request'''
         dom = xml.dom.minidom.parseString(response)
         orderId = dom.getElementsByTagName('orderid')[0].childNodes[0].data
@@ -245,7 +244,6 @@ class GoDaddyAPI():
     
     def OrderDomainTransfers(self, domain):
         '''The OrderDomainTransfers method'''
-        '''TEST MODE ONLY'''
         shopper = self.client.factory.create('Shopper')
         shopper.user = 'createNew'
         shopper.pwd = 'ghijk'
@@ -274,13 +272,36 @@ class GoDaddyAPI():
         domainTransfer.tld = tld
         items = self.client.factory.create('ArrayOfDomainTransfer')
         items.DomainTransfer.append(domainTransfer)
-        response = self.client.service.OrderDomainTransfers(self._GetCLTRID(), self.credential, shopper, items)
+        response = self.client.service.OrderDomainTransfers(self._GetCltrId(), self.credential, shopper, items)
         '''Parsing request'''
         dom = xml.dom.minidom.parseString(response)
         userId = dom.getElementsByTagName('response')[0].attributes['user'].value
         orderId = dom.getElementsByTagName('orderid')[0].childNodes[0].data
         return userId, orderId
 
-api = GoDaddyAPI()
-api.Certification()
-sys.exit(0)
+class GoDaddyAPIReal(GoDaddyAPIBase):
+    '''Real mode'''
+    def __init__(self, log = False):
+        self.url = 'https://api.wildwestdomains.com/wswwdapi/wapi.asmx?wsdl'
+        self.client = Client(self.url)
+        self.credential = self.client.factory.create('Credential')
+        self.credential.Account = '476475'
+        self.credential.Password = 'ek6sBq2g'
+        super(GoDaddyAPIReal, self).__init__(log)
+
+    def OrderDomains(self, domains, nameServers, period):
+        '''The OrderDomains method'''
+        #shopper = self.client.factory.create('Shopper')
+        #registrant = self.client.factory.create('ContactInfo')
+        #return super(GoDaddyAPITest, self).OrderDomains(shopper, registrant, None, domains, nameServers, period)
+
+def main():
+    '''Test'''    
+    #apiTest = GoDaddyAPITest()
+    #apiTest.Certification()
+    '''Real'''
+    apiReal = GoDaddyAPIReal()
+    print(apiReal.CheckAvailability(['google.com', 'google.net', 'lasjdgaee.com']))
+
+if __name__ == "__main__":
+    main()
