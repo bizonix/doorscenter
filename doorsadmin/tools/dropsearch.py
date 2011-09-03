@@ -1,5 +1,5 @@
 # coding=utf8
-import urllib, urllib2, json, sys, godaddy, time
+import urllib, urllib2, json, sys, godaddy, time, datetime
 
 opener = urllib2.build_opener()
 opener.addheaders.append(('Host', 'seodor.ru'))
@@ -16,7 +16,9 @@ opener.addheaders.append(('Cookie', 'ids=392716%2C360667%2C412156%2C398503%2C378
 opener.addheaders.append(('Pragma', 'no-cache'))
 opener.addheaders.append(('Cache-Control', 'no-cache'))
 
-data = {'ids': '', 'min_year': '1996', 'max_year': '2008', 'min_record': '0', 'max_record': '999999', 'min_pr': '0', 'max_pr': '10', 'min_tic': '0', 'max_tic': '9999999', 'info_zone': 'on', 'min_backlinks': '0', 'max_backlinks': '1000', 'min_alexa_rank': '0', 'max_alexa_rank': '999999999', 'min_google_index': '10', 'max_google_index': '999999999', 'min_yahoo_index': '0', 'max_yahoo_index': '999999999', 'min_yandex_index': '0', 'max_yandex_index': '999999999', 'min_time_expire': '01-01-1970', 'max_time_expire': '04-09-2011', 'sort': 'google_index', 'sort_type': 'desc', 'page': '1'}
+data = {'ids': '', 'min_year': '1996', 'max_year': '2008', 'min_record': '0', 'max_record': '999999', 'min_pr': '0', 'max_pr': '10', 'min_tic': '0', 'max_tic': '9999999', 'min_backlinks': '0', 'max_backlinks': '1000', 'min_alexa_rank': '0', 'max_alexa_rank': '999999999', 'min_google_index': '10', 'max_google_index': '999999999', 'min_yahoo_index': '0', 'max_yahoo_index': '999999999', 'min_yandex_index': '0', 'max_yandex_index': '999999999', 'min_time_expire': '01-01-1970', 'max_time_expire': '04-09-2011', 'sort': 'google_index', 'sort_type': 'desc', 'page': '1'}
+data['max_time_expire'] = datetime.date.today().strftime('%d-%m-%Y')
+data['com_zone'] = 'on'
 
 '''Parsing the seodor/drop'''
 domainsParsed = []
@@ -29,7 +31,7 @@ for page in range(1,6):  # to +1
             domainsParsed.append(item['domain'])
     fd.close()
     time.sleep(2)
-print('Parsed %d domains.' % len(domainsParsed))
+print('%d domains parsed.' % len(domainsParsed))
 
 '''Checking domains availability'''
 gdApi = godaddy.GoDaddyAPIReal()
