@@ -279,26 +279,3 @@ def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNo
     netConfig = netConfig[:-1]
     '''Results'''
     return netConfig, len(net), levels1Count, levels2Count
-
-def GenerateNetParams():
-    '''Генерация параметров сетки'''
-    while True:
-        minPagesCount = math.floor(random.normalvariate(800, 500))
-        maxPagesCount = math.floor(minPagesCount * random.normalvariate(2.0, 0.7))
-        if (maxPagesCount > minPagesCount * 1.2) and (minPagesCount > 300):
-            break
-    #makeSpam = random.randint(0, 100) < 50
-    makeSpam = True
-    if makeSpam:
-        while True:
-            minSpamLinksPercent = random.randint(1, 3)
-            maxSpamLinksPercent = random.randint(3, 5)
-            if (maxSpamLinksPercent > minSpamLinksPercent):
-                break
-    else:
-        while True:
-            minSpamLinksPercent = random.randint(10, 100)
-            maxSpamLinksPercent = random.randint(20, 100)
-            if (maxSpamLinksPercent > minSpamLinksPercent):
-                break
-    return minPagesCount, maxPagesCount, minSpamLinksPercent, maxSpamLinksPercent, makeSpam

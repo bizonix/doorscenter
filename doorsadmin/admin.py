@@ -77,7 +77,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateNow')]}),
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -94,6 +94,19 @@ class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
         (None, {'fields': ['description']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['expanded']}),
     ]
+    list_per_page = 100
+
+class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetNetsCount', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateSimple']
+    ordering = ['description']
+    fieldsets = [
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
+        ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
@@ -250,6 +263,7 @@ class CustomQueryAdmin(BaseAdmin):
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Net, NetAdmin)
 admin.site.register(NetDescription, NetDescriptionAdmin)
+admin.site.register(NetPlan, NetPlanAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)

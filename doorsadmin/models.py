@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig, GenerateNetParams
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 import datetime, random, re, MySQLdb
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -323,10 +323,11 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
     addDomainsNow = models.IntegerField('Add domains now', default=0, blank=True)
-    generateNow = models.IntegerField('Generate Now', default=0, blank=True)
+    generateDoorsNow = models.IntegerField('Generate Now', default=0, blank=True)
+    netPlan = models.ForeignKey('NetPlan', verbose_name='Net Plan', null=True, blank=True, on_delete=models.SET_NULL)
     class Meta:
         verbose_name = 'Net'
-        verbose_name_plural = 'I.2 Nets - [act]'
+        verbose_name_plural = 'I.3.a Nets - [act]'
     def GetDoorsCount(self):
         return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
@@ -405,36 +406,81 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return limit
     def save(self, *args, **kwargs):
-        '''Создаем сайт на Piwik'''
-        try:
-            if self.stateSimple == 'new' and self.piwikId == None:
-                self.piwikId = int(AddSiteToPiwik(self.description))
-        except Exception as error:
-            EventLog('error', 'Cannot add site to Piwik', None, error)
-        '''Автогенерация сетки'''
-        try:
-            if self.stateSimple == 'new' and self.settings == '#gen':
-                self.settings, _, _, _ = GenerateNetConfig(2, 5, 2, 4, False)
-                self.minPagesCount, self.maxPagesCount, self.minSpamLinksPercent, self.maxSpamLinksPercent, self.makeSpam = GenerateNetParams()
-        except Exception as error:
-            EventLog('error', 'Cannot generate net params', None, error)
-        '''Немендленное добавление доменов в сеть'''
-        if self.addDomainsNow > 0:
-            n = self.addDomainsNow
-            self.addDomainsNow = 0
-            self.BuildNet(n)
-        '''Немедленная генерация доров в сетке'''
-        if self.generateNow > 0:
-            n = self.generateNow
-            self.generateNow = 0
-            self.GenerateDoorways(n)
+        '''Исключаем обработку планов сеток'''
+        if self.__class__.__name__ == 'Net':
+            '''Создаем сайт на Piwik'''
+            try:
+                if self.stateSimple == 'new' and self.piwikId == None:
+                    self.piwikId = int(AddSiteToPiwik(self.description))
+            except Exception as error:
+                EventLog('error', 'Cannot add site to Piwik', None, error)
+            '''Автогенерация сетки'''
+            try:
+                if self.stateSimple == 'new' and self.settings == '#gen':
+                    self.settings, _, _, _ = GenerateNetConfig(2, 5, 2, 4, False)
+            except Exception as error:
+                EventLog('error', 'Cannot generate net params', None, error)
+            '''Немендленное добавление доменов в сеть'''
+            if self.addDomainsNow > 0:
+                n = self.addDomainsNow
+                self.addDomainsNow = 0
+                self.BuildNet(n)
+            '''Немедленная генерация доров в сетке'''
+            if self.generateDoorsNow > 0:
+                n = self.generateDoorsNow
+                self.generateDoorsNow = 0
+                self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
 class NetDescription(Net):
+    '''Класс для отображения еще одной строки в админке'''
     class Meta:
         verbose_name = 'Net Description'
-        verbose_name_plural = 'I.2.a Net Descriptions'
+        verbose_name_plural = 'I.3.b Net Descriptions'
         proxy = True
+
+class NetPlan(Net):
+    '''План по созданию сеток'''
+    netsCount = models.IntegerField('Plan', default=1, null=True, blank=True)
+    generateNetsNow = models.IntegerField('Generate Now', default=0, blank=True)
+    class Meta:
+        verbose_name = 'Net Plan'
+        verbose_name_plural = 'I.2 Net Plans'
+    def GetDomainsCount(self):
+        return '%d' % self.GetNetSize()
+    GetDomainsCount.short_description = 'Domains'
+    GetDomainsCount.allow_tags = True
+    def GetNetsCount(self):
+        return '%d/%d' % (self.net_set.count(), self.netsCount)
+    GetNetsCount.short_description = 'Nets'
+    GetNetsCount.allow_tags = True
+    def GenerateNets(self, count = 1):
+        '''Генерация сетей'''
+        while (self.net_set.count() < self.netsCount) and (count > 0):
+            net = Net.objects.create(description='%s %.3d' % (self.description, self.net_set.count() + 1),
+                                     niche=self.niche,
+                                     template=self.template,
+                                     keywordsSet=self.keywordsSet,
+                                     minPagesCount=self.minPagesCount,
+                                     maxPagesCount=self.maxPagesCount,
+                                     minSpamLinksPercent=self.minSpamLinksPercent,
+                                     maxSpamLinksPercent=self.maxSpamLinksPercent,
+                                     settings=self.settings,
+                                     makeSpam=self.makeSpam,
+                                     domainGroup=self.domainGroup,
+                                     domainsPerDay=self.domainsPerDay,
+                                     doorsPerDay=self.doorsPerDay,
+                                     dateStart=datetime.date.today(),
+                                     netPlan=self)
+            net.save()
+            count -= 1
+    def save(self, *args, **kwargs):
+        '''Немедленная сетей'''
+        if self.generateNetsNow > 0:
+            n = self.generateNetsNow
+            self.generateNetsNow = 0
+            self.GenerateNets(n)
+        super(NetPlan, self).save(*args, **kwargs)
 
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов. Folder-based.'''
@@ -444,7 +490,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     keywordsCount = models.FloatField('Keys Count, k.', null=True, blank=True)
     class Meta:
         verbose_name = 'Keywords Set'
-        verbose_name_plural = 'I.3 Keywords Sets - [act]'
+        verbose_name_plural = 'I.4 Keywords Sets - [act]'
     def GetLocalFolder(self):
         s = self.localFolder
         s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/keywords/', '.../')
@@ -481,7 +527,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     localFolder = models.CharField('Local Folder', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Template'
-        verbose_name_plural = 'I.4 Templates - [act]'
+        verbose_name_plural = 'I.5 Templates - [act]'
     def __unicode__(self):
         return self.localFolder
     def GetDoorsCount(self):
@@ -503,7 +549,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
-        verbose_name_plural = 'I.5 Snippets Sets - [act, managed]'
+        verbose_name_plural = 'I.6 Snippets Sets - [act, managed]'
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
@@ -538,7 +584,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
     class Meta:
         verbose_name = 'Xrumer Base R'
-        verbose_name_plural = 'I.6 Xrumer Bases R - [act, managed]'
+        verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam'
