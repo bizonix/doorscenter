@@ -317,7 +317,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
-    domainGroup = models.CharField('Group', max_length=50, default='', blank=True)
+    domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
     domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # Domains per day
     doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # Doors per day
     dateStart = models.DateField('Start Date', null=True, blank=True)
@@ -441,7 +441,7 @@ class NetDescription(Net):
 
 class NetPlan(Net):
     '''План по созданию сеток'''
-    netsCount = models.IntegerField('Plan', default=1, null=True, blank=True)
+    netsCount = models.IntegerField('Plan', default=5, null=True, blank=True)
     generateNetsNow = models.IntegerField('Generate Now', default=0, blank=True)
     class Meta:
         verbose_name = 'Net Plan'
