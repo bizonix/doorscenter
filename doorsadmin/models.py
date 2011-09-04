@@ -417,7 +417,7 @@ class Net(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             '''Автогенерация сетки'''
             try:
                 if self.stateSimple == 'new' and self.settings == '#gen':
-                    self.settings, _, _, _ = GenerateNetConfig(2, 5, 2, 4, False)
+                    self.settings, _, _, _ = GenerateNetConfig(2, 3, 2, 3, False)
             except Exception as error:
                 EventLog('error', 'Cannot generate net params', None, error)
             '''Немендленное добавление доменов в сеть'''
