@@ -6,10 +6,12 @@ delete_selected.short_description = '9. Delete selected items'
 
 def GetMessageBit(rows_updated):
     '''Текст для сообщений'''
-    if rows_updated == 1:
-        return "1 item was"
+    if rows_updated == 0:
+        return "No items were"
+    elif rows_updated == 1:
+        return "1 item was successfully"
     else:
-        return "%s items were" % rows_updated
+        return "%s items were successfully" % rows_updated
 
 '''Базовые классы'''
 
@@ -20,41 +22,41 @@ class BaseAdminActivatable(BaseAdmin):
     actions = ['MakeActive', 'MakeInactive']
     def MakeActive(self, request, queryset):
         rows_updated = queryset.update(active=True)
-        self.message_user(request, "%s successfully enabled." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s enabled." % GetMessageBit(rows_updated))
     MakeActive.short_description = "1. Enable selected items"
     def MakeInactive(self, request, queryset):
         rows_updated = queryset.update(active=False)
-        self.message_user(request, "%s successfully disabled." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s disabled." % GetMessageBit(rows_updated))
     MakeInactive.short_description = "2. Disable selected items"
 
 class BaseAdminManaged(BaseAdmin):
     actions = ['MakeStateManagedNew', 'MakeStateManagedDone', 'MakePriorityHigh', 'MakePriorityStd', 'MakePriorityZero']
     def MakeStateManagedNew(self, request, queryset):
         rows_updated = queryset.update(stateManaged='new')
-        self.message_user(request, "%s successfully marked as new." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as new." % GetMessageBit(rows_updated))
     MakeStateManagedNew.short_description = "3. Mark selected items as new"
     def MakeStateManagedDone(self, request, queryset):
         rows_updated = queryset.update(stateManaged='done')
-        self.message_user(request, "%s successfully marked as done." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as done." % GetMessageBit(rows_updated))
     MakeStateManagedDone.short_description = "4. Mark selected items as done"
     def MakePriorityHigh(self, request, queryset):
         rows_updated = queryset.update(priority='high')
-        self.message_user(request, "%s successfully marked as priority high." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as priority high." % GetMessageBit(rows_updated))
     MakePriorityHigh.short_description = "5. Mark selected items as priority high"
     def MakePriorityStd(self, request, queryset):
         rows_updated = queryset.update(priority='std')
-        self.message_user(request, "%s successfully marked as priority std." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as priority std." % GetMessageBit(rows_updated))
     MakePriorityStd.short_description = "6. Mark selected items as priority std"
     def MakePriorityZero(self, request, queryset):
         rows_updated = queryset.update(priority='zero')
-        self.message_user(request, "%s successfully marked as priority zero." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as priority zero." % GetMessageBit(rows_updated))
     MakePriorityZero.short_description = "7. Mark selected items as priority zero"
 
 class BaseAdminSimple(BaseAdmin):
     actions = ['MakeStateSimpleOk']
     def MakeStateSimpleOk(self, request, queryset):
         rows_updated = queryset.update(stateSimple='ok')
-        self.message_user(request, "%s successfully marked as ok." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s marked as ok." % GetMessageBit(rows_updated))
     MakeStateSimpleOk.short_description = "3. Mark selected items as ok"
 
 '''Реальные классы'''
@@ -108,6 +110,13 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
+    actions = ['GenerateNets']
+    def GenerateNets(self, request, queryset):
+        nets_generated = 0
+        for netPlan in queryset:
+            nets_generated += netPlan.GenerateNets()
+        self.message_user(request, "%s generated." % GetMessageBit(nets_generated))
+    GenerateNets.short_description = "8. Generate a net"
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')

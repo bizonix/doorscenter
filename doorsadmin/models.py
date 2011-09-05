@@ -411,30 +411,28 @@ class Net(BaseNet):
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return limit
     def save(self, *args, **kwargs):
-        '''Исключаем обработку планов сеток'''
-        if self.__class__.__name__ == 'Net':
-            '''Создаем сайт на Piwik'''
-            try:
-                if self.stateSimple == 'new' and self.piwikId == None:
-                    self.piwikId = int(AddSiteToPiwik(self.description))
-            except Exception as error:
-                EventLog('error', 'Cannot add site to Piwik', None, error)
-            '''Автогенерация сетки'''
-            try:
-                if self.stateSimple == 'new' and self.settings == '#gen':
-                    self.settings, _, _, _ = GenerateNetConfig(2, 3, 2, 3, False)
-            except Exception as error:
-                EventLog('error', 'Cannot generate net params', None, error)
-            '''Немендленное добавление доменов в сеть'''
-            if self.addDomainsNow > 0:
-                n = self.addDomainsNow
-                self.addDomainsNow = 0
-                self.BuildNet(n)
-            '''Немедленная генерация доров в сетке'''
-            if self.generateDoorsNow > 0:
-                n = self.generateDoorsNow
-                self.generateDoorsNow = 0
-                self.GenerateDoorways(n)
+        '''Создаем сайт на Piwik'''
+        try:
+            if self.stateSimple == 'new' and self.piwikId == None:
+                self.piwikId = int(AddSiteToPiwik(self.description))
+        except Exception as error:
+            EventLog('error', 'Cannot add site to Piwik', None, error)
+        '''Автогенерация сетки'''
+        try:
+            if self.stateSimple == 'new' and self.settings == '#gen':
+                self.settings, _, _, _ = GenerateNetConfig(2, 3, 2, 3, False)
+        except Exception as error:
+            EventLog('error', 'Cannot generate net params', None, error)
+        '''Немендленное добавление доменов в сеть'''
+        if self.addDomainsNow > 0:
+            n = self.addDomainsNow
+            self.addDomainsNow = 0
+            self.BuildNet(n)
+        '''Немедленная генерация доров в сетке'''
+        if self.generateDoorsNow > 0:
+            n = self.generateDoorsNow
+            self.generateDoorsNow = 0
+            self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
 class NetDescription(Net):
@@ -461,6 +459,7 @@ class NetPlan(BaseNet):
     GetDomainsCount.allow_tags = True
     def GenerateNets(self, count = 1):
         '''Генерация сетей'''
+        netsGenerated = 0
         while (self.net_set.count() < self.netsCount) and (count > 0):
             net = Net.objects.create(description='%s %.3d' % (self.description, self.net_set.count() + 1),
                                      niche=self.niche,
@@ -479,6 +478,8 @@ class NetPlan(BaseNet):
                                      netPlan=self)
             net.save()
             count -= 1
+            netsGenerated += 1
+        return netsGenerated
     def save(self, *args, **kwargs):
         '''Немедленная сетей'''
         if self.generateNetsNow > 0:
