@@ -294,16 +294,16 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     if domainsCounts[n] == 0:
                         spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
                         spamTask.save()
-                        print("spam task pk: %d" % spamTask.pk)
+                        #print("spam task pk: %d" % spamTask.pk)
                         for pk in linksLists[n]:
                             spamLink = SpamLink.objects.get(pk=pk)
                             spamLink.spamTask = spamTask
                             spamLink.save()
-                            print("- (%d) %s" % (pk, spamLink.url))
+                            #print("- (%d) %s" % (pk, spamLink.url))
                         linksLists[n] = []
                         domainsCounts[n] = random.randint(xrumerBasesR[n].spamTaskDomainsMin, xrumerBasesR[n].spamTaskDomainsMax)
         except Exception as error:
-            print(error)
+            #print(error)
             EventLog('error', 'Error in GenerateSpamTasksMultiple', self, error)
 
 class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):

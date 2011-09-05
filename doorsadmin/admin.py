@@ -107,7 +107,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     def GenerateSpamTasks(self, request, queryset):
         '''Генерируем задания для спама по нише ПЕРВОЙ ВЫДЕЛЕННОЙ сети'''
         for net in queryset:
-            net.niche.GenerateDoorways(1)
+            net.niche.GenerateSpamTasksMultiple()
             break
         self.message_user(request, "%s generated." % GetMessageBit(1))
     GenerateSpamTasks.short_description = "c. Generate spam tasks"
