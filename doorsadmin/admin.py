@@ -87,6 +87,30 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
+    actions = ['BuildNet', 'GenerateDoorways', 'GenerateSpamTasks']
+    def BuildNet(self, request, queryset):
+        '''Добавляем в сеть один домен'''
+        processed = 0
+        for net in queryset:
+            net.BuildNet(1)
+            processed += 1
+        self.message_user(request, "%s added." % GetMessageBit(processed))
+    BuildNet.short_description = "a. Add a domain"
+    def GenerateDoorways(self, request, queryset):
+        '''Генерируем в сети один дорвей'''
+        processed = 0
+        for net in queryset:
+            net.GenerateDoorways(1)
+            processed += 1
+        self.message_user(request, "%s generated." % GetMessageBit(processed))
+    GenerateDoorways.short_description = "b. Generate a doorway"
+    def GenerateSpamTasks(self, request, queryset):
+        '''Генерируем задания для спама по нише ПЕРВОЙ ВЫДЕЛЕННОЙ сети'''
+        for net in queryset:
+            net.niche.GenerateDoorways(1)
+            break
+        self.message_user(request, "%s generated." % GetMessageBit(1))
+    GenerateSpamTasks.short_description = "c. Generate spam tasks"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
@@ -112,11 +136,12 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
     actions = ['GenerateNets']
     def GenerateNets(self, request, queryset):
-        nets_generated = 0
+        '''Генерируем одну сеть по плану сеток'''
+        processed = 0
         for netPlan in queryset:
-            nets_generated += netPlan.GenerateNets()
-        self.message_user(request, "%s generated." % GetMessageBit(nets_generated))
-    GenerateNets.short_description = "8. Generate a net"
+            processed += netPlan.GenerateNets(1)
+        self.message_user(request, "%s generated." % GetMessageBit(processed))
+    GenerateNets.short_description = "a. Generate a net"
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
