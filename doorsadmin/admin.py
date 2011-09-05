@@ -290,6 +290,7 @@ class EventAdmin(BaseAdmin):
 
 class CustomQueryAdmin(BaseAdmin):
     list_display = ('pk', 'description', 'GetResult')
+    ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', ('host', 'database'), ('user', 'password'), 'sql']}),
     ]
