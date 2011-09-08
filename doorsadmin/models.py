@@ -315,6 +315,8 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     maxPagesCount = models.IntegerField('Pgs2', null=True, default=900)
     minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
     maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
+    minMaxSpamLinksCount = models.IntegerField('Min Max Lnk', null=True, default=10)
+    maxMaxSpamLinksCount = models.IntegerField('Max Max Lnk', null=True, default=15)
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
@@ -401,10 +403,11 @@ class Net(BaseNet):
                                            keywordsSet=self.keywordsSet, 
                                            domain=self.GetNextDomain(), 
                                            pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
-                                           domainFolder='', 
-                                           spamLinksCount=0)
-                '''Число ссылок для спама задается в процентах, а в абсолютных числах должно быть не меньше трех и не больше количества страниц дора'''
-                p.spamLinksCount = min(p.pagesCount, max(3, int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)))
+                                           domainFolder='')
+                p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
+                p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
+                p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
+                p.spamLinksCount = min(p.spamLinksCount, p.pagesCount)  # максимум число страниц дора.
                 p.save()
                 limit -= 1
             except Exception as error:
@@ -469,6 +472,8 @@ class NetPlan(BaseNet):
                                      maxPagesCount=self.maxPagesCount,
                                      minSpamLinksPercent=self.minSpamLinksPercent,
                                      maxSpamLinksPercent=self.maxSpamLinksPercent,
+                                     minMaxSpamLinksCount=self.minMaxSpamLinksCount,
+                                     maxMaxSpamLinksCount=self.maxMaxSpamLinksCount,
                                      settings=self.settings,
                                      makeSpam=self.makeSpam,
                                      domainGroup=self.domainGroup,
@@ -570,7 +575,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         self.phrasesCount = data['phrasesCount'] 
         self.dateLastParsed = datetime.datetime.now()
         if self.phrasesCount <= 5000:
-            EventLog('warning', 'Too few snippets found (%d)' % self.phrasesCount, self)
+            EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
 
 class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     '''База R для Хрумера. File-based.'''
@@ -643,12 +648,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     registrator = models.CharField('Registrator', max_length=200, default='', blank=True)
     dateRegistered = models.DateField('Registered', default=datetime.date.today, null=True, blank=True)
     dateExpires = models.DateField('Expires', default=NextYearDate, null=True, blank=True)
-    ipAddress = models.ForeignKey('IPAddress', verbose_name='IP Address', null=True, blank=True)
-    nameServer1 = models.CharField('Nameserver #1', max_length=200, default='', blank=True)
-    nameServer2 = models.CharField('Nameserver #2', max_length=200, default='', blank=True)
+    ipAddress = models.ForeignKey('IPAddress', verbose_name='IP Address', null=True)
+    nameServer1 = models.CharField('NS 1', max_length=200, default='', blank=True)
+    nameServer2 = models.CharField('NS 2', max_length=200, default='', blank=True)
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
-    maxDoorsCount = models.IntegerField('Max Doors', default=25)
+    bulkAddDomains = models.TextField('More Domains', default='', blank=True)
+    maxDoorsCount = models.IntegerField('Max Doors', default=10, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     class Meta:
@@ -692,9 +698,10 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def save(self, *args, **kwargs):
-        '''Новый домен добавляем в панель управления'''
+        '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
         try:
-            if self.stateSimple == 'new':
+            '''Новый домен добавляем в панель управления'''
+            if (self.name != '#') and (self.stateSimple == 'new'):
                 error = AddDomainToControlPanel(self.name, self.ipAddress.address, self.useOwnDNS, self.host.controlPanelType, self.host.controlPanelUrl, self.host.controlPanelServerId)
                 if error != '':
                     self.lastError = error
@@ -702,15 +709,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                     self.save()
         except Exception as error:
             EventLog('error', 'Cannot add domain to control panel', self, error)
-        '''Если в примечании указаны еще домены, то добавляем их с теми же параметрами'''
-        keyword = 'add:'
-        try:
-            if self.remarks.startswith(keyword):
-                self.remarks = self.remarks[len(keyword):]
-                for domainName in self.remarks.splitlines():
+        '''Групповое добавление доменов с теми же параметрами'''
+        if (self.name == '#') and (self.bulkAddDomains != ''):
+            for domainName in self.bulkAddDomains.splitlines():
+                if domainName != '':
                     try:
-                        Domain.objects.create(name=domainName, 
-                                              net=self.net,
+                        domain = Domain.objects.create(name=domainName, 
+                                              net=self.net, 
                                               niche=self.niche, 
                                               host=self.host, 
                                               registrator=self.registrator, 
@@ -719,13 +724,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                                               ipAddress=self.ipAddress, 
                                               nameServer1=self.nameServer1, 
                                               nameServer2=self.nameServer2, 
-                                              useOwnDNS=self.useOwnDNS,
-                                              group=self.group, 
-                                              remarks='').save()
+                                              useOwnDNS=self.useOwnDNS, 
+                                              group=self.group)
+                        domain.save()
                     except Exception as error:
                         EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
-        except Exception as error:
-            EventLog('error', 'Cannot add additional domains', self, error)
+        '''Всегда очищаем поле группового добавления доменов'''
+        self.bulkAddDomains = ''
         super(Domain, self).save(*args, **kwargs)
 
 def DomainOnDelete(sender, **kwargs):

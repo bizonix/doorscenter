@@ -79,7 +79,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
         ('Analytics', {'fields': [('piwikId', 'analyticsId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -127,7 +127,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -193,10 +193,9 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
-        (None, {'fields': [('name', 'group'), ('niche', 'net', 'host', 'maxDoorsCount'), ('active', 'makeSpam')]}),
-        ('Net', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
-        ('Addresses', {'fields': [('ipAddress', 'nameServer1', 'nameServer2', 'useOwnDNS')], 'classes': ['expanded']}),
-        ('Dates', {'fields': [('dateRegistered', 'dateExpires')], 'classes': ['expanded']}),
+        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group', 'maxDoorsCount'), ('nameServer1', 'nameServer2', 'useOwnDNS'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
+        ('Net properties', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
+        ('Bulk add domains', {'fields': [('bulkAddDomains')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
