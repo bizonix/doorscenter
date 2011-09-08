@@ -40,6 +40,6 @@ def GenDomainNames(zone, count):
     namesAvailableList = [name for name in namesAvailableDict if namesAvailableDict[name]]
     return namesAvailableList
 
-names = GenDomainNames('.info', 20)
+names = GenDomainNames('.info', 10)
 print('%d names:' % len(names))
 print('\n'.join(names))

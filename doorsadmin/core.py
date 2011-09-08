@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Niche, Net, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
+from doorsadmin.models import Net, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -13,9 +13,13 @@ def CronDaily():
     '''Функция вызывается по расписанию'''
     GenerateNets()
     GenerateDoorways()
-    GenerateSpamTasks()
+    #GenerateSpamTasks()  # вызывается по событию апдейта агента доргена
     ClearEventLog()
 
+def Helper():
+    '''Запуск из командной строки'''
+    GenerateNets()
+    
 def GenerateSnippets():
     '''Перегенерируем сниппеты'''
     dt = datetime.datetime.now()
@@ -47,11 +51,6 @@ def GenerateDoorways():
         if limitActual <= 0:
             break
     EventLog('info', 'Doors limit: %d/%d' % (limitBase - limitActual, limitBase))
-
-def GenerateSpamTasks():
-    '''Генерируем задания для спама'''
-    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-        niche.GenerateSpamTasksMultiple()
 
 def RenewBasesR():
     '''Регенерируем изношенные базы'''

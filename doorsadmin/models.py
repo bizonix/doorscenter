@@ -1004,9 +1004,6 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     class Meta:
         verbose_name = 'Agent'
         verbose_name_plural = 'IV.1 # Agents - [act]'
-    def GetDateLastPingAgo(self):
-        return PrettyDate(self.dateLastPing)
-    GetDateLastPingAgo.short_description = 'Last Ping'
     def GetQueues(self):
         '''Очереди каких объектов обрабатывает агент?'''
         if self.type == 'snippets':
@@ -1015,6 +1012,21 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             return [Doorway]
         elif self.type == 'xrumer':
             return [XrumerBaseR, SpamTask]
+    def OnUpdate(self):
+        '''Событие апдейта задачи'''
+        try:
+            if self.type == 'doorgen':
+                if Doorway.objects.filter(stateManaged='new').count() == 0:
+                    '''Генерируем задания для спама'''  # def GenerateSpamTasks():
+                    for niche in Niche.objects.filter(active=True).order_by('pk').all():
+                        niche.GenerateSpamTasksMultiple()
+        except Exception as error:
+            EventLog('error', 'Error in "OnUpdate"', self, error)
+    def GetDateLastPingAgo(self):
+        '''Время последнего пинга в стиле "... ago"'''
+        return PrettyDate(self.dateLastPing)
+    GetDateLastPingAgo.short_description = 'Last Ping'
+    GetDateLastPingAgo.allow_tags = True
     def GetTasksState(self):
         '''Состояние очередей агента'''
         countNew = 0
@@ -1026,6 +1038,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             countError += queue.objects.filter(stateManaged='error').count()
         return '%d - %d - %d' % (countNew, countDone, countError)
     GetTasksState.short_description = 'Tasks'
+    GetTasksState.allow_tags = True
 
 class Event(models.Model):
     '''События'''
@@ -1050,7 +1063,10 @@ class CustomQuery(models.Model):
     class Meta:
         verbose_name = 'Custom Query'
         verbose_name_plural = 'IV.3 Custom Queries'
+    def __unicode__(self):
+        return self.description
     def GetResult(self):
+        '''Результат запроса'''
         try:
             db = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
             try:

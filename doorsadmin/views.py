@@ -73,12 +73,17 @@ def update(request, agentId):
         agent.currentTask = 'idle'
         agent.save()
         ObjectLog(agent, agent.currentTask)
+        '''Дергаем событие'''
+        try:
+            agent.OnUpdate()
+        except Exception as error:
+            EventLog('error', 'Error in "OnUpdate" event', agent, error)
         transaction.commit()
         '''Формируем ответ'''
         result = 'ok'
     except Exception as error:
         transaction.rollback()
-        EventLog('error', 'Cannot handle "update" request', None, error)
+        EventLog('error', 'Cannot handle "update" request', agent, error)
     return HttpResponse(result)
 
 @transaction.commit_manually
