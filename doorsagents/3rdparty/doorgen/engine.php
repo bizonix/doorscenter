@@ -286,10 +286,10 @@
 	$log_bbcode_file_name_spam = $job_name."_bbcode_log_spam.txt"; //лог с BB кодами дл€ хрумера с указанным соотношением
 	echo "Ћоги дл€ спама: <b><a target=\"_blank\" href=\"".$out_dir."/".$log_bbcode_file_name_spam."\">".$log_bbcode_file_name_spam."</a></b> (".($num_perc_spam*100)."% BB код) и <a target=\"_blank\" href=\"".$out_dir."/".$log_ancor_file_name."\">".$log_ancor_file_name."</a> и <a target=\"_blank\" href=\"".$out_dir."/".$log_bbcode_file_name."\">".$log_bbcode_file_name."</a><br>";
 
-	file_put_contents($out_dir."/".$log_all_ancor, $all_logs_ancor, FILE_APPEND); //сохран€ем all_ancor_log.txt
-	file_put_contents($out_dir."/".$log_ancor_file_name, $logs_ancor, FILE_APPEND); //сохран€ем *_ancor_log.txt
-	file_put_contents($out_dir."/".$log_bbcode_file_name, $logs_bbcode, FILE_APPEND); //сохран€ем *_bbcode_log.txt
-	file_put_contents($out_dir."/".$log_bbcode_file_name_spam, $logs_bbcode_spam, FILE_APPEND); //сохран€ем *_bbcode_log_spam.txt
+	// file_put_contents($out_dir."/".$log_all_ancor, $all_logs_ancor, FILE_APPEND); //сохран€ем all_ancor_log.txt
+	// file_put_contents($out_dir."/".$log_ancor_file_name, $logs_ancor, FILE_APPEND); //сохран€ем *_ancor_log.txt
+	// file_put_contents($out_dir."/".$log_bbcode_file_name, $logs_bbcode, FILE_APPEND); //сохран€ем *_bbcode_log.txt
+	// file_put_contents($out_dir."/".$log_bbcode_file_name_spam, $logs_bbcode_spam, FILE_APPEND); //сохран€ем *_bbcode_log_spam.txt
 	system('chmod -R 777 '.$out_dir);
 
 	echo "—етка доров готова. «ан€ло ".(time()-$time_start)." секунд. ѕапка: <b><a href=\"".$out_dir."/\" target=\"_blank\">".$out_dir."</a></b><br>";
