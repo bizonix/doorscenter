@@ -154,7 +154,7 @@ class XrumerAgent(agent.BaseAgent):
     <JobParameter>%s</JobParameter>
   </Schedule6>
 </body>
-''' % ((datetime.datetime.now() + datetime.timedelta(0, 120)).strftime('%d.%m.%y %H:%M:00'), 
+''' % ((datetime.datetime.now() + datetime.timedelta(0, 30)).strftime('%d.%m.%y %H:%M:%S'),  # 30 секунд на авторизацию 
        escape(self.projectName), '%d', self.currentTask['baseNumber'], escape(self.doneScript))
         self.appScheduleFileContentsMode1 = self.appScheduleFileContents % 0
         self.appScheduleFileContentsMode2 = self.appScheduleFileContents % 3
@@ -187,8 +187,8 @@ class XrumerAgent(agent.BaseAgent):
             if os.path.isfile(self.baseR1File):  # удаляем существующую базу R
                 try:
                     os.remove(self.baseR1File)
-                except Exception:
-                    pass
+                except Exception as error:
+                    print('Cannot remove old base R: %s' % error)
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode2)
@@ -201,43 +201,49 @@ class XrumerAgent(agent.BaseAgent):
 
     def _ActionOff(self):
         self._Settings()
+        '''Значения по умолчанию'''
+        self.currentTask['successCount'] = 0
+        self.currentTask['halfSuccessCount'] = 0 
+        self.currentTask['failsCount'] = 0 
+        self.currentTask['profilesCount'] = 0
+        self.currentTask['rBaseLinksCount'] = 0
         '''Закрытие приложения'''
         self._CloseApp(self.appCaption)
         '''Копирование базы R'''
         if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
             try:
                 shutil.copyfile(self.baseR1File, self.baseR2File)
-            except Exception:
-                print('Cannot copy the new base R')
+            except Exception as error:
+                print('Cannot copy the new base R: %s' % error)
         '''Фильтрация базы R по успешным и полууспешным'''
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             try:
                 if kwk8.Kwk8Links(self.logFails, False).Count() > 700:
                     self._FilterBaseR()
-            except Exception:
-                print('Cannot filter base R')
+            except Exception as error:
+                print('Cannot filter new base R: %s' % error)
         '''Выходные параметры'''
         self.currentTask['spamLinksList'] = []
         try:
             self.currentTask['successCount'] = kwk8.Kwk8Links(self.logSuccess, False).Count()
-        except Exception:
-            self.currentTask['successCount'] = 0
+        except Exception as error:
+            print('Cannot count success links: %s' % error)
         try:
             self.currentTask['halfSuccessCount'] = kwk8.Kwk8Links(self.logHalfSuccess, False).Count()
-        except Exception:
-            self.currentTask['halfSuccessCount'] = 0 
+        except Exception as error:
+            print('Cannot count halfsuccess links: %s' % error)
         try:
             self.currentTask['failsCount'] = kwk8.Kwk8Links(self.logFails, False).Count()
-        except Exception:
-            self.currentTask['failsCount'] = 0 
+        except Exception as error:
+            print('Cannot count fails links: %s' % error)
         try:
             self.currentTask['profilesCount'] = kwk8.Kwk8Links(self.logProfiles, False).Count()
-        except Exception:
-            self.currentTask['profilesCount'] = 0
+        except Exception as error:
+            print('Cannot count profiles links: %s' % error)
         try:
             self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
-        except Exception:
-            self.currentTask['rBaseLinksCount'] = 0
+        except Exception as error:
+            print('Cannot count base R links: %s' % error)
         return True
 
 if __name__ == '__main__':

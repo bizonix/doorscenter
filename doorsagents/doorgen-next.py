@@ -108,10 +108,12 @@ class DoorgenAgent(agent.BaseAgent):
         return True
     
     def _ActionOff(self):
-        '''Выходные параметры'''
+        #self._Settings()  # в текущей версии доргена это не нужно
+        '''Значения по умолчанию'''
         self.currentTask['keywordsList'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
+        '''Выходные параметры'''
         for line in open(self.appSpamLinksFile, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
         '''Загружаем на FTP'''

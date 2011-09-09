@@ -29,9 +29,12 @@ class SnippetsAgent(agent.BaseAgent):
     
     def _ActionOff(self):
         self._Settings()
-        kwk8.ProcessSnippets(self.appTextFile, self.localFile, self.stopwordsFile)
+        '''Значения по умолчанию'''
         self.currentTask['keywordsList'] = []
         self.currentTask['stopwordsList'] = []
+        self.currentTask['phrasesCount'] = 0
+        '''Обработка'''
+        kwk8.ProcessSnippets(self.appTextFile, self.localFile, self.stopwordsFile)
         phrasesCount = 0
         for _ in open(self.localFile, 'r'):
             phrasesCount += 1
