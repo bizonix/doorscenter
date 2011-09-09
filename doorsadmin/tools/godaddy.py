@@ -15,6 +15,12 @@ class GoDaddyAPIBase(object):
     
     def _GetProductId(self, action, tld, period):
         '''Product IDs'''
+        if (action == 'buy') and (tld == 'com') and (period == 1):
+            return 350001
+        if (action == 'buy') and (tld == 'net') and (period == 1):
+            return 350030
+        if (action == 'buy') and (tld == 'info') and (period == 1):
+            return 350051
         if (action == 'buy') and (tld == 'biz') and (period == 2):
             return 350077
         if (action == 'buy') and (tld == 'us') and (period == 2):
@@ -291,17 +297,29 @@ class GoDaddyAPIReal(GoDaddyAPIBase):
 
     def OrderDomains(self, domains, nameServers, period):
         '''The OrderDomains method'''
-        #shopper = self.client.factory.create('Shopper')
-        #registrant = self.client.factory.create('ContactInfo')
-        #return super(GoDaddyAPITest, self).OrderDomains(shopper, registrant, None, domains, nameServers, period)
+        shopper = self.client.factory.create('Shopper')
+        shopper.user = '46331609'
+        registrant = self.client.factory.create('ContactInfo')
+        registrant.fname = 'Aleksandr'
+        registrant.lname = 'Borisov'
+        registrant.email = 'zenstation@list.ru'
+        registrant.sa1 = 'Liteiniy, 8 - 24'
+        registrant.city = 'Saint Petersburg'
+        registrant.sp = 'Saint Petersburg'
+        registrant.pc = '191000'
+        registrant.cc = 'Russian Federation'
+        registrant.phone = '+7.9119456673'
+        return super(GoDaddyAPIReal, self).OrderDomains(shopper, registrant, None, domains, nameServers, period)
 
 def main():
     '''Test'''    
-    #apiTest = GoDaddyAPITest()
+    #apiTest = GoDaddyAPITest(True)
     #apiTest.Certification()
     '''Real'''
-    apiReal = GoDaddyAPIReal()
-    print(apiReal.CheckAvailability(['google.com', 'google.net', 'lasjdgaee.com']))
+    apiReal = GoDaddyAPIReal(True)
+    #print(apiReal.CheckAvailability(['google.com', 'google.net', 'lasjdgaee.com']))
+    apiReal.OrderDomains(['ssecure2.info'], ['ns1.ralenc.net', 'ns2.ralenc.net'], 1)
+    apiReal.Poll()
 
 if __name__ == "__main__":
     main()
