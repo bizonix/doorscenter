@@ -406,7 +406,7 @@ class Net(BaseNet):
                                            domainFolder='')
                 p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
                 p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
-                p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
+                # p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
                 p.spamLinksCount = min(p.spamLinksCount, p.pagesCount)  # максимум число страниц дора.
                 p.save()
                 limit -= 1
@@ -504,7 +504,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         verbose_name_plural = 'I.4 Keywords Sets - [act]'
     def GetLocalFolder(self):
         s = self.localFolder
-        s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/keywords/', '.../')
+        s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/doorsadmin/keywords/', '/')
         return s
     GetLocalFolder.short_description = 'Local Folder'
     GetLocalFolder.allow_tags = True
@@ -711,7 +711,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             EventLog('error', 'Cannot add domain to control panel', self, error)
         '''Групповое добавление доменов с теми же параметрами'''
         if (self.name == '#') and (self.bulkAddDomains != ''):
-            for domainName in self.bulkAddDomains.splitlines():
+            for domainName in self.bulkAddDomains.lower().splitlines():
                 if domainName != '':
                     try:
                         domain = Domain.objects.create(name=domainName, 
