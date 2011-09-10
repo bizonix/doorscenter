@@ -156,7 +156,7 @@ class Site(BaseSapeObject):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     articles = models.ManyToManyField('Article', verbose_name='Articles', symmetrical=False, null=True, blank=True)
     pagesCount = models.IntegerField('Pages', default=random.randint(200,300), blank=True)
-    url = models.URLField('URL', unique=True)
+    url = models.CharField('URL', max_length=50, unique=True)
     ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
     hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Acc.', null=True, blank=True)
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
