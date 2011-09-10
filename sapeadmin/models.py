@@ -1,4 +1,5 @@
 # coding=utf8
+from django.db.models import Count, Sum
 from django.db import models
 import random
 
@@ -25,6 +26,13 @@ def GetCounter(objects, filterCondition, warningCondition = None):
         return '<font color="red">%s/%s</font>' % (s1, s2)
     else:
         return '%s/%s' % (s1, s2)
+
+def ReplaceZero(s):
+    '''Заменяем None на тире'''
+    if s == None or s == 0 or s == 'None' or s == '0':
+        return '-'
+    else:
+        return s
 
 '''Abstract models'''
 
@@ -53,7 +61,7 @@ class Niche(BaseSapeObject):
     GetDonorsCount.short_description = 'Donors'
     GetDonorsCount.allow_tags = True
     def GetArticlesCount(self):
-        return GetCounter(self.article_set, {'active': True})
+        return ReplaceZero(self.donor_set.annotate(x=Count('article')).aggregate(xx=Sum('x'))['xx'])
     GetArticlesCount.short_description = 'Articles'
     GetArticlesCount.allow_tags = True
     def GetSitesCount(self):
