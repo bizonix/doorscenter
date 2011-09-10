@@ -136,7 +136,7 @@ class HostingAccount(BaseSapeObject):
     '''Аккаунт на хостинге'''
     hosting = models.ForeignKey('Hosting', verbose_name='Hosting', null=True)
     login = models.CharField('Login', max_length=50, default='')
-    password = models.CharField('Login', max_length=50, default='')
+    password = models.CharField('Password', max_length=50, default='')
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
     costPerMonth = models.FloatField('Cost/month, rub.', null=True, blank=True)
@@ -175,7 +175,7 @@ class Site(BaseSapeObject):
     def __unicode__(self):
         return self.url
     def GetUrl(self):
-        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
+        return '<a href="http://%s" target="_blank">%s</a>' % (self.url, self.url)
     GetUrl.short_description = 'Url'
     GetUrl.allow_tags = True
     def GetSpamDate(self):
@@ -200,10 +200,6 @@ class Site(BaseSapeObject):
             for url in self.bulkAddSites.lower().splitlines():
                 if url != '':
                     try:
-                        if not url.startswith('http://'):
-                            url = 'http://' + url
-                        if not url.endswith('/'):
-                            url = url + '/'
                         site = Site.objects.create(url=url,
                                                    niche=self.niche, 
                                                    pagesCount=random.randint(200,300),

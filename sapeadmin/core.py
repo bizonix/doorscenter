@@ -2,7 +2,7 @@
 from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
 from django.core.mail import send_mail
-import urllib, re, datetime, MySQLdb, hashlib, os, sys
+import urllib, re, datetime, MySQLdb, hashlib, os, sys, codecs, io, tarfile, ftplib
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
@@ -11,6 +11,7 @@ def CronDaily():
 def CronHourly():
     '''Функция вызывается по расписанию'''
     PrepareSites()
+    GenerateSites()
     CheckBotVisits()
 
 def Helper():
@@ -89,6 +90,63 @@ def PrepareSites():
             site.articles.add(article)
         site.state = 'prepared'
         site.save()
+
+def GenerateSites():
+    '''Пути к генератору сайтов'''
+    vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
+    vpbblUrl = 'http://test.home/vpbbl'
+    if not os.path.exists(vpbblLocal):
+        vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
+        vpbblUrl = 'http://searchpro.name/vpbbl'
+    '''Генерируем сайты'''
+    for site in Site.objects.filter(state='prepared').all():
+        print(site.url)
+        '''Выгружаем статьи'''
+        with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
+            for article in site.articles.all():
+                with open(article.fileName, 'r') as fd2:
+                    fd1.write(fd2.read().decode('utf8'))
+                fd1.write('\r\n<razdelitel>\r\n')
+        '''Генерируем сайт'''
+        try:
+            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&tpl=moda-1&pre=&onftp=&mymenu=')
+            fd.read()
+            fd.close()
+        except Exception as error:
+            print('%s' % error)
+        '''Создаем архив в памяти'''
+        archiveFile = 'bean.tgz'
+        commandFile = 'cmd.php'
+        fileObj = io.BytesIO()
+        tar = tarfile.open('', 'w:gz', fileobj=fileObj)
+        for filelocal in os.listdir(vpbblLocal + 'out'):
+            filelocal = os.path.join(vpbblLocal + 'out', filelocal)
+            tar.add(filelocal, arcname=filelocal.replace(vpbblLocal + 'out', ''))
+        tar.close()
+        fileObj.seek(0)
+        '''Загружаем на FTP'''
+        remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
+        ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
+        try:
+            ftp.storbinary('STOR ' + remoteFolder + '/' + archiveFile, fileObj)
+        except Exception as error:
+            print(error)
+        try:
+            with open(os.path.join(self.doorwayFolder, commandFile), 'r') as fd:
+                ftp.storbinary('STOR ' + remoteFolder + '/' + commandFile, fd)
+        except Exception as error:
+            print(error)
+        ftp.quit()
+        '''Дергаем командный урл'''
+        try:
+            urllib.urlopen(self.doorwayUrl + '/' + commandFile)
+        except Exception as error:
+            print(error)
+        '''Устанавливаем права'''
+        try:
+            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder)
+        except Exception as error:
+            print(error)
 
 def CheckBotVisits():
     '''Проверка захода ботов'''
