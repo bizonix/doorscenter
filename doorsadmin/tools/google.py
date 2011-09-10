@@ -1,6 +1,5 @@
 # coding=utf8
 __version__ = "$Id: google.py 759 2010-07-16 15:27:53Z qvasimodo $"
-__all__ = ['search']
 
 import cookielib
 import os
@@ -36,15 +35,15 @@ def GetPage(url):
 
 def GetIndex(siteName, tld='com', lang='en'):
     query = urllib.quote_plus('site:' + siteName)
-    GetPage(url_home % vars())
-    html = GetPage(url_search % vars())
     try:
+        GetPage(url_home % vars())
+        html = GetPage(url_search % vars())
         n = re.findall(r"About ([0-9,]*) results", html)[0]
         n = int(n.replace(',', ''))
     except Exception:
         n = 0
     return n
 
-# When run as a script, take all arguments as a search query and run it
-print(GetIndex('mail.ru'))
-print(GetIndex('ssecure.info'))
+if __name__ == "__main__":
+    print(GetIndex('mail.ru'))
+    print(GetIndex('ssecure.info'))

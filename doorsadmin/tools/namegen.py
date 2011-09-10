@@ -1,7 +1,8 @@
 # coding=utf8
-import random, godaddy
+import random, glob, godaddy
 
 def GenPattern(minChars, maxChars):
+    '''Генерируем паттерн - порядок гласных и согласных'''
     pattern = ''
     length = random.randint(minChars, maxChars)
     while len(pattern) < length:
@@ -14,6 +15,7 @@ def GenPattern(minChars, maxChars):
     return pattern
 
 def GenName(pattern):
+    '''Генерируем имя по паттерну'''
     charSetG = 'aeiou'  # 'y'
     charSetS = 'bcdfghklmnprstv'  # 'jqwxz'
     
@@ -31,7 +33,8 @@ def GenName(pattern):
         charPast = charNew
     return name
 
-def GenDomainNames(zone, count):
+def GenDomainNamesGD(zone, count):
+    '''Генерируем заданное число доменов в заданной зоне с проверкой занятости на GD'''
     namesGenerated = []
     for _ in range(count):
         namesGenerated.append(GenName(GenPattern(6, 10)) + zone)
@@ -40,6 +43,16 @@ def GenDomainNames(zone, count):
     namesAvailableList = [name for name in namesAvailableDict if namesAvailableDict[name]]
     return namesAvailableList
 
-names = GenDomainNames('.info', 10)
+def GenDomainNamesSape(zone, count):
+    '''Генерируем имена из списка tryname для sape'''
+    lines = []
+    for fileName in glob.glob('/home/sasch/temp/names/*.txt'):
+        for line in open(fileName, 'r'):
+            lines.append(line.strip())
+    random.shuffle(lines)
+    domainNames = ['%s%d%s' % (line, random.randint(10, 99), zone) for line in lines[:count]]
+    return domainNames
+
+names = GenDomainNamesSape('.ru', 20)
 print('%d names:' % len(names))
 print('\n'.join(names))
