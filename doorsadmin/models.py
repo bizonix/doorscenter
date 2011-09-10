@@ -654,7 +654,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
-    maxDoorsCount = models.IntegerField('Max Doors', default=10, blank=True)
+    maxDoorsCount = models.IntegerField('Max Doors', default=1, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     class Meta:
@@ -737,9 +737,10 @@ def DomainOnDelete(sender, **kwargs):
     '''Событие на удаление домена'''
     domain = kwargs['instance']
     try:
-        error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
-        if error != '':
-            EventLog('error', 'Cannot delete domain from control panel', domain, error)
+        if domain.name != '#':
+            error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
+            if error != '':
+                EventLog('error', 'Cannot delete domain from control panel', domain, error)
     except Exception as error:
         EventLog('error', 'Cannot delete domain from control panel', domain, error)
 pre_delete.connect(DomainOnDelete, sender=Domain, weak=False)

@@ -1,5 +1,5 @@
 # coding=utf8
-#from django.db.models import Q
+from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
 from django.core.mail import send_mail
 import urllib, re, datetime, MySQLdb, hashlib, os, sys
@@ -10,6 +10,7 @@ def CronDaily():
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
+    PrepareSites()
     CheckBotVisits()
 
 def Helper():
@@ -78,6 +79,16 @@ def ImportArticles(host, user, password, database, localFolder):
         db.close()
     except Exception as error:
         print('Error in ImportArticles: %s' %  error)
+
+def PrepareSites():
+    '''Подбираем статьи для сайтов'''
+    for site in Site.objects.filter(state='new').all():
+        print(site.url)
+        site.articles.clear()
+        for article in Article.objects.filter(Q(active=True), Q(donor__niche=site.niche)).order_by('?').all()[:site.pagesCount]:
+            site.articles.add(article)
+        site.state = 'prepared'
+        site.save()
 
 def CheckBotVisits():
     '''Проверка захода ботов'''

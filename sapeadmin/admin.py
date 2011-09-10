@@ -79,6 +79,7 @@ class SiteAdmin(BaseAdmin):
     search_fields = ['url']
     fieldsets = [
         (None, {'fields': [('niche', 'state'), ('url', 'pagesCount'), ('hostingAccount', 'spamTask', 'sapeAccount'), ('linksIndexCount', 'linksIndexDate'), ('botsVisitsCount', 'botsVisitsDate'), ('siteIndexCount', 'siteIndexDate')]}),
+        ('Bulk add sites', {'fields': [('bulkAddSites')], 'classes': ['expanded']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 

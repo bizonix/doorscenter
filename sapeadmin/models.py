@@ -1,14 +1,16 @@
 # coding=utf8
-from django.db.models import Count, Sum
+from django.db.models import Count, Sum, Q
 from django.db import models
 import random
 
-siteStates = (('new', 'new'), ('registered', 'registered'), ('prepared', 'prepared'), ('built', 'built'), ('uploaded', 'uploaded'), 
+siteStates = (('new', 'new'), ('prepared', 'prepared'), ('generated', 'generated'), ('uploaded', 'uploaded'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
               ('site-indexed', 'site-indexed'), ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
               ('sape-price1', 'sape-price1'), ('sape-price2', 'sape-price2'), ('sape-price3', 'sape-price3'), 
               ('sape-banned', 'sape-banned'))
 spamStates = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
+
+'''Functions'''
 
 def GetCounter(objects, filterCondition, warningCondition = None):
     '''Возвращает общее число объектов и число, удовлетворяющее заданному условию'''
@@ -90,7 +92,7 @@ class Donor(BaseSapeObject):
 class Article(BaseSapeObject):
     '''Статья'''
     donor = models.ForeignKey('Donor', verbose_name='Donor', null=True)
-    url = models.URLField('Url', default='')
+    url = models.URLField('Url', default='', unique=True)
     title = models.CharField('Title', max_length=500, default='')
     fileName = models.CharField('File Name', max_length=500, default='')
     fileDigest = models.CharField('File Digest', max_length=50, default='', unique=True)
@@ -154,7 +156,7 @@ class Site(BaseSapeObject):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     articles = models.ManyToManyField('Article', verbose_name='Articles', symmetrical=False, null=True, blank=True)
     pagesCount = models.IntegerField('Pages', default=random.randint(200,300), blank=True)
-    url = models.URLField('URL')
+    url = models.URLField('URL', unique=True)
     ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
     hostingAccount = models.ForeignKey('HostingAccount', verbose_name='Hosting Acc.', null=True, blank=True)
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True)
@@ -165,7 +167,8 @@ class Site(BaseSapeObject):
     botsVisitsDate = models.DateField('B.v. date', null=True, blank=True)  # Bots Visits Date
     siteIndexCount = models.IntegerField('S.i.', null=True, default=0, blank=True)  # Site Index 
     siteIndexDate = models.DateField('S.i. date', null=True, blank=True)  # Site Index Date
-    state = models.CharField('State', max_length=50, choices=siteStates)
+    state = models.CharField('State', max_length=50, choices=siteStates, default='new', blank=True)
+    bulkAddSites = models.TextField('More Sites', default='', blank=True)
     class Meta:
         verbose_name = 'Site'
         verbose_name_plural = 'III.1 # Sites - [large]'
@@ -191,6 +194,27 @@ class Site(BaseSapeObject):
         return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.siteIndexCount)
     GetSiteIndexCount.short_description = 'S.i.'
     GetSiteIndexCount.allow_tags = True
+    def save(self, *args, **kwargs):
+        '''Групповое добавление сайтов с теми же параметрами'''
+        if self.bulkAddSites != '':
+            for url in self.bulkAddSites.lower().splitlines():
+                if url != '':
+                    try:
+                        if not url.startswith('http://'):
+                            url = 'http://' + url
+                        if not url.endswith('/'):
+                            url = url + '/'
+                        site = Site.objects.create(url=url,
+                                                   niche=self.niche, 
+                                                   pagesCount=random.randint(200,300),
+                                                   ipAddress=self.ipAddress,
+                                                   hostingAccount=self.hostingAccount)
+                        site.save()
+                    except Exception:
+                        pass
+        '''Всегда очищаем поле группового добавления сайтов'''
+        self.bulkAddSites = ''
+        super(Site, self).save(*args, **kwargs)
 
 class SpamTask(BaseSapeObject):
     '''Задание на спам'''
@@ -209,7 +233,7 @@ class SpamTask(BaseSapeObject):
 
 class SapeAccount(BaseSapeObject):
     '''Аккаунт в Sape'''
-    login = models.CharField('Login', max_length=50, default='')
+    login = models.CharField('Login', unique=True, max_length=50, default='')
     password = models.CharField('Password', max_length=50, default='')
     email = models.CharField('Email', max_length=50, default='', blank=True)
     hash = models.CharField('Hash code', max_length=50, default='', blank=True)
