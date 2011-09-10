@@ -3,7 +3,7 @@ from django.db.models import Count, Sum, Q
 from django.db import models
 import random
 
-siteStates = (('new', 'new'), ('prepared', 'prepared'), ('generated', 'generated'), ('uploaded', 'uploaded'), 
+siteStates = (('new', 'new'), ('generated', 'generated'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
               ('site-indexed', 'site-indexed'), ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
               ('sape-price1', 'sape-price1'), ('sape-price2', 'sape-price2'), ('sape-price3', 'sape-price3'), 
@@ -118,6 +118,7 @@ class Hosting(BaseSapeObject):
     billingUrl = models.URLField('Billing Url', default='', blank=True)
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
+    rootDocumentTemplate = models.CharField('Document Path', max_length=200, default='')
     class Meta:
         verbose_name = 'Hosting'
         verbose_name_plural = 'II.1 # Hostings'
