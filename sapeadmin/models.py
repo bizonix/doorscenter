@@ -1,7 +1,7 @@
 # coding=utf8
 from django.db.models import Count, Sum, Q
 from django.db import models
-import random
+import random, codecs, ftplib, glob, os, urllib, re, datetime
 
 siteStates = (('new', 'new'), ('generated', 'generated'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
@@ -212,6 +212,100 @@ class Site(BaseSapeObject):
         '''Всегда очищаем поле группового добавления сайтов'''
         self.bulkAddSites = ''
         super(Site, self).save(*args, **kwargs)
+    def Generate(self):
+        '''Пути к генератору сайтов'''
+        vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
+        vpbblUrl = 'http://test.home/vpbbl'
+        if not os.path.exists(vpbblLocal):
+            vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
+            vpbblUrl = 'http://searchpro.name/vpbbl'
+        '''Генерируем сайты только в статусах "new" и "generated"'''
+        if not (self.state in ['new', 'generated']):
+            return
+        print(self.url)
+        '''Подбираем и выгружаем статьи'''
+        print('- selecting articles ...')
+        self.articles.clear()
+        with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
+            isFirst = True
+            for article in Article.objects.filter(Q(active=True), Q(donor__niche=self.niche)).order_by('?').all()[:self.pagesCount]:
+                '''Читаем статью'''
+                with open(article.fileName, 'r') as fd2:
+                    content = fd2.read().decode('utf8').replace('\n', '').replace('\r', '')
+                '''Разбиваем на заголовок и абзацы'''
+                sentences = content.split('. ')
+                content = sentences[0].strip() + '\r\n'
+                sentences = sentences[1:]
+                while len(sentences) > 0:
+                    n = random.randint(3, 7)
+                    content += '<p>' + '. '.join(sentences[:n]) + '.</p>'
+                    sentences = sentences[n:]
+                '''Добавляем статью в сайт'''
+                self.articles.add(article)
+                '''Пишем статью в файл'''
+                if not isFirst:
+                    fd1.write('\r\n<razdelitel>\r\n')
+                isFirst = False
+                with open(article.fileName, 'r') as fd2:
+                    fd1.write(content)
+        self.save()
+        '''Выбираем случайный шаблон'''
+        print('- selecting a template ...')
+        templates = [item.replace(vpbblLocal + '/done/', '') for item in glob.glob(vpbblLocal + '/done/*')]
+        template = templates[random.randint(0, len(templates)-1)]
+        '''Генерируем сайт'''
+        print('- generating the site ...')
+        try:
+            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + template)
+            fd.read()
+            fd.close()
+        except Exception as error:
+            print('%s' % error)
+        '''Загружаем на FTP'''
+        print('- uploading ...')
+        localFolder = vpbblLocal + '/out'
+        remoteFolder = self.hostingAccount.hosting.rootDocumentTemplate % self.url
+        ftp = ftplib.FTP(self.url, self.hostingAccount.login, self.hostingAccount.password)
+        try:
+            for root, _, files in os.walk(localFolder):
+                remoteFolderAdd = ''
+                if root != localFolder:
+                    remoteFolderAdd = root.replace(localFolder, '')
+                    try:
+                        ftp.mkd(remoteFolder + remoteFolderAdd)
+                    except Exception as error:
+                        print(error)
+                for fname in files:
+                    ftp.storbinary('STOR ' + remoteFolder + remoteFolderAdd + '/' + fname, open(os.path.join(root, fname), 'rb'))
+        except Exception as error:
+            print(error)
+        '''Устанавливаем права'''
+        print('- setting up permissions ...')
+        try:
+            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
+            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
+        except Exception as error:
+            print(error)
+        ftp.quit()
+        '''Меняем статус сайта'''
+        print('- changing site status ...')
+        self.state = 'generated'
+        self.save()
+    def CheckBotVisits(self):
+        '''Проверка захода ботов'''
+        fd = urllib.urlopen('%sbotsxxx.php' % self.url)
+        visitsCount = 0
+        try:
+            visitsCount = int(re.search(r'<b>(\d*)</b>', fd.read(), re.MULTILINE).group(1))
+        except Exception:
+            pass
+        fd.close()
+        self.botsVisitsCount = visitsCount
+        if (self.botsVisitsDate == None) and (float(visitsCount) / self.pagesCount >= 0.85):
+            self.botsVisitsDate = datetime.datetime.now()
+        if visitsCount >= self.pagesCount:
+            self.state = 'bot-visited'
+        self.save()
 
 class SpamTask(BaseSapeObject):
     '''Задание на спам'''

@@ -1,8 +1,7 @@
 # coding=utf8
-from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
 from django.core.mail import send_mail
-import urllib, re, datetime, MySQLdb, hashlib, os, sys, codecs, ftplib
+import urllib, re, datetime, MySQLdb, hashlib, os, sys
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
@@ -81,83 +80,14 @@ def ImportArticles(host, user, password, database, localFolder):
         print('Error in ImportArticles: %s' %  error)
 
 def GenerateSites():
-    '''Пути к генератору сайтов'''
-    vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
-    vpbblUrl = 'http://test.home/vpbbl'
-    if not os.path.exists(vpbblLocal):
-        vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
-        vpbblUrl = 'http://searchpro.name/vpbbl'
     '''Генерируем сайты в статусе "new"'''
     for site in Site.objects.filter(state='new').all():
-        print(site.url)
-        '''Подбираем и выгружаем статьи'''
-        print('- selecting articles ...')
-        site.articles.clear()
-        with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
-            for article in Article.objects.filter(Q(active=True), Q(donor__niche=site.niche)).order_by('?').all()[:site.pagesCount]:
-                site.articles.add(article)
-                with open(article.fileName, 'r') as fd2:
-                    fd1.write(fd2.read().decode('utf8'))
-                fd1.write('\r\n<razdelitel>\r\n')
-        site.save()
-        '''Выбираем случайный шаблон'''
-        print('- selecting a template ...')
-        pass
-        '''Генерируем сайт'''
-        print('- generating the site ...')
-        try:
-            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&tpl=moda-1&pre=&onftp=&mymenu=')
-            fd.read()
-            fd.close()
-        except Exception as error:
-            print('%s' % error)
-        '''Загружаем на FTP'''
-        print('- uploading ...')
-        localFolder = vpbblLocal + '/out'
-        remoteFolder = site.hostingAccount.hosting.rootDocumentTemplate % site.url
-        ftp = ftplib.FTP(site.url, site.hostingAccount.login, site.hostingAccount.password)
-        try:
-            for root, _, files in os.walk(localFolder):
-                remoteFolderAdd = ''
-                if root != localFolder:
-                    remoteFolderAdd = root.replace(localFolder, '')
-                    try:
-                        ftp.mkd(remoteFolder + remoteFolderAdd)
-                    except Exception as error:
-                        print(error)
-                for fname in files:
-                    ftp.storbinary('STOR ' + remoteFolder + remoteFolderAdd + '/' + fname, open(os.path.join(root, fname), 'rb'))
-        except Exception as error:
-            print(error)
-        '''Устанавливаем права'''
-        print('- setting up permissions ...')
-        try:
-            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
-            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
-        except Exception as error:
-            print(error)
-        ftp.quit()
-        '''Меняем статус сайта'''
-        print('- changing site status ...')
-        site.state = 'generated'
-        site.save()
+        site.Generate()
 
 def CheckBotVisits():
     '''Проверка захода ботов'''
     for site in Site.objects.filter(state='spam-indexed').order_by('pk').all():
-        fd = urllib.urlopen('%sbots.php' % site.url)
-        visitsCount = 0
-        try:
-            visitsCount = int(re.search(r'<b>(\d*)</b>', fd.read(), re.MULTILINE).group(1))
-        except Exception:
-            pass
-        fd.close()
-        site.botsVisitsCount = visitsCount
-        if (site.botsVisitsDate == None) and (float(visitsCount) / site.pagesCount >= 0.85):
-            site.botsVisitsDate = datetime.datetime.now()
-        if visitsCount >= site.pagesCount:
-            site.state = 'bot-visited'
-        site.save()
+        site.CheckBotVisits()
 
 def CheckYandexUpdates():
     '''Парсинг апдейтов яндекса'''
