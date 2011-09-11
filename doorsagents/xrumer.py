@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, datetime, codecs, kwk8, agent, common, win32gui
+import os, shutil, datetime, time, codecs, kwk8, agent, common, win32gui
 from xml.sax.saxutils import escape
 
 class XrumerAgent(agent.BaseAgent):
@@ -162,7 +162,7 @@ class XrumerAgent(agent.BaseAgent):
         self.appScheduleFileContentsMode2 = self.appScheduleFileContents % 3
         
         '''Файл настроек control.exe'''
-        self.AppSettingsControl = '''[Settings]
+        self.appSettingsControl = '''[Settings]
 ApplicationName=%s
 Mode=1
 TimeRange=120
@@ -208,6 +208,7 @@ TimeRange=120
             fd.write(self.appSettingsControl)
         '''Запуск приложений'''
         self._RunApp(os.path.join(self.appFolder, 'xpymep.exe'))
+        time.sleep(3)
         self._RunApp(os.path.join(self.appFolder, 'control.exe'))
         return True
 
@@ -221,6 +222,7 @@ TimeRange=120
         self.currentTask['rBaseLinksCount'] = 0
         '''Закрытие приложения'''
         self._CloseApp(self.appCaptionControl)
+        time.sleep(3)
         self._CloseApp(self.appCaption)
         '''Копирование базы R'''
         if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
