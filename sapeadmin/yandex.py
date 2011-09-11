@@ -13,7 +13,7 @@ def GetPagesCount(html):
 
 import os, cookielib, urllib, urllib2
 
-cookie_jar = cookielib.LWPCookieJar(os.path.join(os.getenv('HOME'), cookie_name))
+cookie_jar = cookielib.LWPCookieJar(os.path.join('/home/sasch', cookie_name))
 try:
     cookie_jar.load()
 except Exception:
