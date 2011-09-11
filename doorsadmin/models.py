@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
-import datetime, random, re, MySQLdb, google
+import datetime, random, re, MySQLdb, google, os
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -705,6 +705,16 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         self.indexCount = google.GetIndex(self.name)
         self.indexCountDate = datetime.datetime.now()
         self.save()
+    def CheckOwnership(self):
+        '''Проверка на то, что домен не отобрали'''
+        dnsRecord = os.popen('dig %s +short' % self.name).read().replace('\n', ' ').strip()
+        if self.ipAddress.address == dnsRecord:
+            return True
+        self.active = False
+        self.stateSimple = 'error'
+        self.lastError = 'DNS record is %s' % dnsRecord
+        self.save()
+        return False
     def save(self, *args, **kwargs):
         '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
         try:

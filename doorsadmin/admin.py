@@ -194,7 +194,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    actions = ['UpdateIndexCount']
+    actions = ['UpdateIndexCount', 'CheckOwnership']
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -204,6 +204,16 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
     UpdateIndexCount.short_description = "a. Check Google index"
+    def CheckOwnership(self, request, queryset):
+        '''Проверка на то, что домен не отобрали'''
+        processed = 0
+        failed = 0
+        for domain in queryset:
+            if not domain.CheckOwnership():
+                failed += 1
+            processed += 1
+        self.message_user(request, "%s checked, %d failed." % (GetMessageBit(processed), failed))
+    CheckOwnership.short_description = "b. Check domain ownership"
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'GetNet', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
