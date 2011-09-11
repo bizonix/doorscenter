@@ -14,8 +14,10 @@ class XrumerAgent(agent.BaseAgent):
         '''Настройки'''
         self.appFolder = 'c:\\work\\xrumer707'  # папка с приложением
         self.appCaption = 'XRumer 7.07 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
+        self.appCaptionControl = 'Control of permanent running'
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
+        self.appSettingsControlFile = os.path.join(self.appFolder, 'control.ini')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         self.snippetsFolder = 'C:\\Work\\snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
@@ -159,6 +161,13 @@ class XrumerAgent(agent.BaseAgent):
         self.appScheduleFileContentsMode1 = self.appScheduleFileContents % 0
         self.appScheduleFileContentsMode2 = self.appScheduleFileContents % 3
         
+        '''Файл настроек control.exe'''
+        self.AppSettingsControl = '''[Settings]
+ApplicationName=%s
+Mode=1
+TimeRange=120
+''' % os.path.join(self.appFolder, 'xpymep.exe')
+        
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
         p = win32gui.FindWindow(None, appCaption)
@@ -195,8 +204,11 @@ class XrumerAgent(agent.BaseAgent):
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
-        '''Запуск приложения'''
+        with open(self.appSettingsControlFile, 'w') as fd:
+            fd.write(self.appSettingsControl)
+        '''Запуск приложений'''
         self._RunApp(os.path.join(self.appFolder, 'xpymep.exe'))
+        self._RunApp(os.path.join(self.appFolder, 'control.exe'))
         return True
 
     def _ActionOff(self):
@@ -208,6 +220,7 @@ class XrumerAgent(agent.BaseAgent):
         self.currentTask['profilesCount'] = 0
         self.currentTask['rBaseLinksCount'] = 0
         '''Закрытие приложения'''
+        self._CloseApp(self.appCaptionControl)
         self._CloseApp(self.appCaption)
         '''Копирование базы R'''
         if self.currentTask['type'] == 'XrumerBaseR':  # mode 1

@@ -287,7 +287,7 @@
 	echo "Логи для спама: <b><a target=\"_blank\" href=\"".$out_dir."/".$log_bbcode_file_name_spam."\">".$log_bbcode_file_name_spam."</a></b> (".($num_perc_spam*100)."% BB код) и <a target=\"_blank\" href=\"".$out_dir."/".$log_ancor_file_name."\">".$log_ancor_file_name."</a> и <a target=\"_blank\" href=\"".$out_dir."/".$log_bbcode_file_name."\">".$log_bbcode_file_name."</a><br>";
 
 	// file_put_contents($out_dir."/".$log_all_ancor, $all_logs_ancor, FILE_APPEND); //сохраняем all_ancor_log.txt
-	// file_put_contents($out_dir."/".$log_ancor_file_name, $logs_ancor, FILE_APPEND); //сохраняем *_ancor_log.txt
+	file_put_contents($out_dir."/".$log_ancor_file_name, $logs_ancor, FILE_APPEND); //сохраняем *_ancor_log.txt
 	// file_put_contents($out_dir."/".$log_bbcode_file_name, $logs_bbcode, FILE_APPEND); //сохраняем *_bbcode_log.txt
 	// file_put_contents($out_dir."/".$log_bbcode_file_name_spam, $logs_bbcode_spam, FILE_APPEND); //сохраняем *_bbcode_log_spam.txt
 	system('chmod -R 777 '.$out_dir);
