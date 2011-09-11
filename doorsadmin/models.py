@@ -357,7 +357,7 @@ class Net(BaseNet):
             for obj in self.domain_set.filter(active=True).order_by('pk').all():
                 if obj.IsRootFree():
                     return obj
-            return Domain.objects.filter(Q(active=True), (Q(net=self) | Q(net=None))).order_by('?')[:1].get()
+            return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
     def BuildNet(self, count = None, limit = 9999):
@@ -378,6 +378,7 @@ class Net(BaseNet):
                 for n in netChain[netDomains.count()].split('-')[1:]:
                     domain.linkedDomains.add(netDomains[int(n) - 1])
                 domain.net = self
+                domain.niche = self.niche
                 domain.save()
                 count -= 1
                 limit -= 1
