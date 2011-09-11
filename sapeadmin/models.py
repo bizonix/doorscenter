@@ -1,9 +1,9 @@
 # coding=utf8
 from django.db.models import Count, Sum, Q
 from django.db import models
-import random
+import random, codecs, ftplib, glob, os, urllib, re, datetime, yandex
 
-siteStates = (('new', 'new'), ('prepared', 'prepared'), ('generated', 'generated'), ('uploaded', 'uploaded'), 
+siteStates = (('new', 'new'), ('generated', 'generated'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
               ('site-indexed', 'site-indexed'), ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
               ('sape-price1', 'sape-price1'), ('sape-price2', 'sape-price2'), ('sape-price3', 'sape-price3'), 
@@ -118,6 +118,7 @@ class Hosting(BaseSapeObject):
     billingUrl = models.URLField('Billing Url', default='', blank=True)
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
+    rootDocumentTemplate = models.CharField('Document Path', max_length=200, default='')
     class Meta:
         verbose_name = 'Hosting'
         verbose_name_plural = 'II.1 # Hostings'
@@ -136,7 +137,7 @@ class HostingAccount(BaseSapeObject):
     '''Аккаунт на хостинге'''
     hosting = models.ForeignKey('Hosting', verbose_name='Hosting', null=True)
     login = models.CharField('Login', max_length=50, default='')
-    password = models.CharField('Login', max_length=50, default='')
+    password = models.CharField('Password', max_length=50, default='')
     ns1 = models.CharField('NS1', max_length=50, default='', blank=True)
     ns2 = models.CharField('NS2', max_length=50, default='', blank=True)
     costPerMonth = models.FloatField('Cost/month, rub.', null=True, blank=True)
@@ -175,7 +176,7 @@ class Site(BaseSapeObject):
     def __unicode__(self):
         return self.url
     def GetUrl(self):
-        return '<a href="%s" target="_blank">%s</a>' % (self.url, self.url)
+        return '<a href="http://%s" target="_blank">%s</a>' % (self.url, self.url)
     GetUrl.short_description = 'Url'
     GetUrl.allow_tags = True
     def GetSpamDate(self):
@@ -187,11 +188,11 @@ class Site(BaseSapeObject):
     GetLinksIndexCount.short_description = 'L.i.'
     GetLinksIndexCount.allow_tags = True
     def GetBotsVisitsCount(self):
-        return '<a href="%sbots.php" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.botsVisitsCount, float(self.botsVisitsCount) / self.pagesCount * 100)
+        return '<a href="http://%s/bots.php" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.botsVisitsCount, float(self.botsVisitsCount) / self.pagesCount * 100)
     GetBotsVisitsCount.short_description = 'B.v.'
     GetBotsVisitsCount.allow_tags = True
     def GetSiteIndexCount(self):
-        return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.siteIndexCount)
+        return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.siteIndexCount, float(self.siteIndexCount) / self.pagesCount * 100)
     GetSiteIndexCount.short_description = 'S.i.'
     GetSiteIndexCount.allow_tags = True
     def save(self, *args, **kwargs):
@@ -200,10 +201,6 @@ class Site(BaseSapeObject):
             for url in self.bulkAddSites.lower().splitlines():
                 if url != '':
                     try:
-                        if not url.startswith('http://'):
-                            url = 'http://' + url
-                        if not url.endswith('/'):
-                            url = url + '/'
                         site = Site.objects.create(url=url,
                                                    niche=self.niche, 
                                                    pagesCount=random.randint(200,300),
@@ -215,6 +212,102 @@ class Site(BaseSapeObject):
         '''Всегда очищаем поле группового добавления сайтов'''
         self.bulkAddSites = ''
         super(Site, self).save(*args, **kwargs)
+    def Generate(self):
+        '''Генерация сайта с заливкой на хостинг'''
+        vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
+        vpbblUrl = 'http://test.home/vpbbl'
+        if not os.path.exists(vpbblLocal):
+            vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
+            vpbblUrl = 'http://searchpro.name/vpbbl'
+        '''Генерируем сайты только в статусах "new" и "generated"'''
+        if not (self.state in ['new', 'generated']):
+            return
+        print(self.url)
+        '''Подбираем и выгружаем статьи'''
+        print('- selecting articles ...')
+        self.articles.clear()
+        with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
+            isFirst = True
+            for article in Article.objects.filter(Q(active=True), Q(donor__niche=self.niche)).order_by('?').all()[:self.pagesCount]:
+                '''Читаем статью'''
+                with open(article.fileName, 'r') as fd2:
+                    content = fd2.read().decode('utf8').replace('\n', '').replace('\r', '')
+                '''Разбиваем на заголовок и абзацы'''
+                sentences = content.split('. ')
+                content = sentences[0].strip() + '\r\n'
+                sentences = sentences[1:]
+                while len(sentences) > 0:
+                    n = random.randint(3, 7)
+                    content += '<p>' + '. '.join(sentences[:n]) + '.</p>'
+                    sentences = sentences[n:]
+                '''Добавляем статью в сайт'''
+                self.articles.add(article)
+                '''Пишем статью в файл'''
+                if not isFirst:
+                    fd1.write('\r\n<razdelitel>\r\n')
+                isFirst = False
+                with open(article.fileName, 'r') as fd2:
+                    fd1.write(content)
+        self.save()
+        '''Генерируем сайт'''
+        print('- generating the site ...')
+        try:
+            templates = [item.replace(vpbblLocal + '/done/', '') for item in glob.glob(vpbblLocal + '/done/*')]
+            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + random.choice(templates))
+            fd.read()
+            fd.close()
+        except Exception as error:
+            print('%s' % error)
+        '''Загружаем на FTP'''
+        print('- uploading ...')
+        localFolder = vpbblLocal + '/out'
+        remoteFolder = self.hostingAccount.hosting.rootDocumentTemplate % self.url
+        ftp = ftplib.FTP(self.url, self.hostingAccount.login, self.hostingAccount.password)
+        try:
+            for root, _, files in os.walk(localFolder):
+                remoteFolderAdd = ''
+                if root != localFolder:
+                    remoteFolderAdd = root.replace(localFolder, '')
+                    try:
+                        ftp.mkd(remoteFolder + remoteFolderAdd)
+                    except Exception as error:
+                        print(error)
+                for fname in files:
+                    ftp.storbinary('STOR ' + remoteFolder + remoteFolderAdd + '/' + fname, open(os.path.join(root, fname), 'rb'))
+        except Exception as error:
+            print(error)
+        '''Устанавливаем права'''
+        print('- setting up permissions ...')
+        try:
+            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
+            ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
+        except Exception as error:
+            print(error)
+        ftp.quit()
+        '''Меняем статус сайта'''
+        print('- changing site status ...')
+        self.state = 'generated'
+        self.save()
+    def CheckBotVisits(self):
+        '''Проверка захода ботов'''
+        fd = urllib.urlopen('http://%s/bots.php' % self.url)
+        visitsCount = 0
+        try:
+            visitsCount = int(re.search(r'<b>(\d*)</b>', fd.read(), re.MULTILINE).group(1))
+        except Exception:
+            pass
+        fd.close()
+        self.botsVisitsCount = visitsCount
+        if (self.botsVisitsDate == None) and (float(visitsCount) / self.pagesCount >= 0.85):
+            self.botsVisitsDate = datetime.datetime.now()
+        if visitsCount >= self.pagesCount:
+            self.state = 'bot-visited'
+        self.save()
+    def UpdateIndexCount(self):
+        '''Проверяем индекс в яндексе'''
+        self.siteIndexCount = yandex.GetIndex(self.url)
+        self.siteIndexDate = datetime.datetime.now()
+        self.save()
 
 class SpamTask(BaseSapeObject):
     '''Задание на спам'''

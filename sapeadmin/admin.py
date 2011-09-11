@@ -2,6 +2,7 @@
 from django.contrib import admin
 from sapeadmin.models import *
 from django.contrib.admin.actions import delete_selected
+import yandex
 delete_selected.short_description = '9. Delete selected items'
 
 def GetMessageBit(rows_updated):
@@ -60,7 +61,7 @@ class HostingAdmin(BaseAdmin):
     list_display = ('pk', 'name', 'active', 'GetAccountsCount', 'GetSitesCount', 'dateAdded')
     ordering = ['name']
     fieldsets = [
-        (None, {'fields': ['name', 'mainUrl', ('controlUrl', 'billingUrl'), ('ns1', 'ns2')]}),
+        (None, {'fields': ['name', 'mainUrl', ('controlUrl', 'billingUrl'), ('ns1', 'ns2'), ('rootDocumentTemplate')]}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
     
@@ -82,6 +83,32 @@ class SiteAdmin(BaseAdmin):
         ('Bulk add sites', {'fields': [('bulkAddSites')], 'classes': ['expanded']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
+    actions = ['Generate', 'CheckBotVisits', 'UpdateIndexCount']
+    def Generate(self, request, queryset):
+        '''Генерируем сайты'''
+        processed = 0
+        for site in queryset:
+            site.Generate()
+            processed += 1
+        self.message_user(request, "%s generated." % GetMessageBit(processed))
+    Generate.short_description = "a. Generate site"
+    def CheckBotVisits(self, request, queryset):
+        '''Проверяем посещение сайтов ботами'''
+        processed = 0
+        for site in queryset:
+            site.CheckBotVisits()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    CheckBotVisits.short_description = "b. Check bots visits"
+    def UpdateIndexCount(self, request, queryset):
+        '''Проверяем индекс в яндексе'''
+        processed = 0
+        yandex.Initialize()
+        for site in queryset:
+            site.UpdateIndexCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateIndexCount.short_description = "c. Check Yandex index"
 
 class SpamTaskAdmin(BaseAdmin):
     list_display = ('pk', 'spamDate', 'GetSitesCount', 'state', 'active', 'dateAdded')

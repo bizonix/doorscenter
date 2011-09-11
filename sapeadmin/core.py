@@ -1,5 +1,4 @@
 # coding=utf8
-from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
 from django.core.mail import send_mail
 import urllib, re, datetime, MySQLdb, hashlib, os, sys
@@ -10,7 +9,7 @@ def CronDaily():
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
-    PrepareSites()
+    GenerateSites()
     CheckBotVisits()
 
 def Helper():
@@ -80,32 +79,15 @@ def ImportArticles(host, user, password, database, localFolder):
     except Exception as error:
         print('Error in ImportArticles: %s' %  error)
 
-def PrepareSites():
-    '''Подбираем статьи для сайтов'''
+def GenerateSites():
+    '''Генерируем сайты в статусе "new"'''
     for site in Site.objects.filter(state='new').all():
-        print(site.url)
-        site.articles.clear()
-        for article in Article.objects.filter(Q(active=True), Q(donor__niche=site.niche)).order_by('?').all()[:site.pagesCount]:
-            site.articles.add(article)
-        site.state = 'prepared'
-        site.save()
+        site.Generate()
 
 def CheckBotVisits():
     '''Проверка захода ботов'''
     for site in Site.objects.filter(state='spam-indexed').order_by('pk').all():
-        fd = urllib.urlopen('%sbots.php' % site.url)
-        visitsCount = 0
-        try:
-            visitsCount = int(re.search(r'<b>(\d*)</b>', fd.read(), re.MULTILINE).group(1))
-        except Exception:
-            pass
-        fd.close()
-        site.botsVisitsCount = visitsCount
-        if (site.botsVisitsDate == None) and (float(visitsCount) / site.pagesCount >= 0.85):
-            site.botsVisitsDate = datetime.datetime.now()
-        if visitsCount >= site.pagesCount:
-            site.state = 'bot-visited'
-        site.save()
+        site.CheckBotVisits()
 
 def CheckYandexUpdates():
     '''Парсинг апдейтов яндекса'''

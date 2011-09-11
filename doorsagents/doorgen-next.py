@@ -121,8 +121,6 @@ class DoorgenAgent(agent.BaseAgent):
             self._Upload()
         except Exception as error:
             print('Error: %s' % error)
-        '''Проверяем код статуса'''
-        self._CheckStatusCode()
         '''Удаляем локальную папку'''
         try:
             shutil.rmtree(self.doorwayFolder)
@@ -133,6 +131,8 @@ class DoorgenAgent(agent.BaseAgent):
             os.unlink(self.appSpamLinksFile)
         except Exception as error:
             print('Error: %s' % error)
+        '''Проверяем код статуса (исключние не перехватывается)'''
+        self._CheckStatusCode()
         return True
 
 if __name__ == '__main__':
