@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
-import datetime, random, re, MySQLdb
+import datetime, random, re, MySQLdb, google
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -657,6 +657,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     maxDoorsCount = models.IntegerField('Max Doors', default=1, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
+    indexCount = models.IntegerField('Index', null=True, blank=True)
+    indexCountDate = models.DateField('Index Date', null=True, blank=True)
     class Meta:
         verbose_name = 'Domain'
         verbose_name_plural = 'II.1 # Domains - [act, large]'
@@ -697,6 +699,11 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
+    def UpdateIndexCount(self):
+        '''Проверяем индекс в гугле'''
+        self.indexCount = google.GetIndex(self.name)
+        self.indexCountDate = datetime.datetime.now()
+        self.save()
     def save(self, *args, **kwargs):
         '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
         try:

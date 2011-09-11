@@ -2,6 +2,7 @@
 from django.contrib import admin
 from doorsadmin.models import *
 from django.contrib.admin.actions import delete_selected
+import google
 delete_selected.short_description = '9. Delete selected items'
 
 def GetMessageBit(rows_updated):
@@ -87,7 +88,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
-    actions = ['BuildNet', 'GenerateDoorways', 'GenerateSpamTasks']
+    actions = ['BuildNet', 'GenerateDoorways']
     def BuildNet(self, request, queryset):
         '''Добавляем в сеть один домен'''
         processed = 0
@@ -104,13 +105,6 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s generated." % GetMessageBit(processed))
     GenerateDoorways.short_description = "b. Generate a doorway"
-    def GenerateSpamTasks(self, request, queryset):
-        '''Генерируем задания для спама по нише ПЕРВОЙ ВЫДЕЛЕННОЙ сети'''
-        for net in queryset:
-            net.niche.GenerateSpamTasksMultiple()
-            break
-        self.message_user(request, "%s generated." % GetMessageBit(1))
-    GenerateSpamTasks.short_description = "c. Generate spam tasks"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
@@ -189,7 +183,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'dateRegistered', 'GetDoorsMaxCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'GetDoorsMaxCount', 'GetPagesCount', 'indexCount', 'indexCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
@@ -200,6 +194,16 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    actions = ['UpdateIndexCount']
+    def UpdateIndexCount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        google.Initialize()
+        for domain in queryset:
+            domain.UpdateIndexCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateIndexCount.short_description = "a. Check Google index"
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'GetNet', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateAdded')

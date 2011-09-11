@@ -1,7 +1,7 @@
 # coding=utf8
 from django.db.models import Count, Sum, Q
 from django.db import models
-import random, codecs, ftplib, glob, os, urllib, re, datetime
+import random, codecs, ftplib, glob, os, urllib, re, datetime, yandex
 
 siteStates = (('new', 'new'), ('generated', 'generated'), 
               ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
@@ -188,11 +188,11 @@ class Site(BaseSapeObject):
     GetLinksIndexCount.short_description = 'L.i.'
     GetLinksIndexCount.allow_tags = True
     def GetBotsVisitsCount(self):
-        return '<a href="%sbots.php" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.botsVisitsCount, float(self.botsVisitsCount) / self.pagesCount * 100)
+        return '<a href="http://%s/bots.php" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.botsVisitsCount, float(self.botsVisitsCount) / self.pagesCount * 100)
     GetBotsVisitsCount.short_description = 'B.v.'
     GetBotsVisitsCount.allow_tags = True
     def GetSiteIndexCount(self):
-        return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>' % (self.url.replace('http://', 'http%3A%2F%2F'), self.siteIndexCount)
+        return '<a href="http://yandex.ru/yandsearch?text=site%%3A%s&lr=2" target="_blank">%d</a>&nbsp;<span style="font-size: 10px;">(%.0f%%)</span>' % (self.url, self.siteIndexCount, float(self.siteIndexCount) / self.pagesCount * 100)
     GetSiteIndexCount.short_description = 'S.i.'
     GetSiteIndexCount.allow_tags = True
     def save(self, *args, **kwargs):
@@ -213,7 +213,7 @@ class Site(BaseSapeObject):
         self.bulkAddSites = ''
         super(Site, self).save(*args, **kwargs)
     def Generate(self):
-        '''Пути к генератору сайтов'''
+        '''Генерация сайта с заливкой на хостинг'''
         vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
         vpbblUrl = 'http://test.home/vpbbl'
         if not os.path.exists(vpbblLocal):
@@ -249,14 +249,11 @@ class Site(BaseSapeObject):
                 with open(article.fileName, 'r') as fd2:
                     fd1.write(content)
         self.save()
-        '''Выбираем случайный шаблон'''
-        print('- selecting a template ...')
-        templates = [item.replace(vpbblLocal + '/done/', '') for item in glob.glob(vpbblLocal + '/done/*')]
-        template = templates[random.randint(0, len(templates)-1)]
         '''Генерируем сайт'''
         print('- generating the site ...')
         try:
-            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + template)
+            templates = [item.replace(vpbblLocal + '/done/', '') for item in glob.glob(vpbblLocal + '/done/*')]
+            fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + random.choice(templates))
             fd.read()
             fd.close()
         except Exception as error:
@@ -293,7 +290,7 @@ class Site(BaseSapeObject):
         self.save()
     def CheckBotVisits(self):
         '''Проверка захода ботов'''
-        fd = urllib.urlopen('%sbotsxxx.php' % self.url)
+        fd = urllib.urlopen('http://%s/bots.php' % self.url)
         visitsCount = 0
         try:
             visitsCount = int(re.search(r'<b>(\d*)</b>', fd.read(), re.MULTILINE).group(1))
@@ -305,6 +302,11 @@ class Site(BaseSapeObject):
             self.botsVisitsDate = datetime.datetime.now()
         if visitsCount >= self.pagesCount:
             self.state = 'bot-visited'
+        self.save()
+    def UpdateIndexCount(self):
+        '''Проверяем индекс в яндексе'''
+        self.siteIndexCount = yandex.GetIndex(self.url)
+        self.siteIndexDate = datetime.datetime.now()
         self.save()
 
 class SpamTask(BaseSapeObject):
