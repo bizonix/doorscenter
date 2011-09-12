@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Net, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
+from doorsadmin.models import Net, Domain, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -18,7 +18,7 @@ def CronDaily():
 
 def Helper():
     '''Запуск из командной строки'''
-    pass
+    CheckOwnershipTk()
     
 def GenerateNets():
     '''Плетем сети'''
@@ -56,6 +56,17 @@ def CheckAgentsActivity():
             EventLog('error', 'Agent long inactivity', agent)
             agent.stateSimple = 'error'
             agent.save()
+
+def CheckOwnershipTk():
+    '''Проверяем .tk на отбор'''
+    processed = 0
+    failed = 0
+    for domain in Domain.objects.filter(Q(stateSimple='ok'), Q(name__contains='.tk')):
+        if not domain.CheckOwnership():
+            failed += 1
+            print(domain)
+        processed += 1
+    print("%d checked, %d failed." % (processed, failed))
 
 def ClearEventLog():
     '''Удаляем старые записи из лога событий'''
