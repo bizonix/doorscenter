@@ -99,9 +99,9 @@ class BaseDoorObjectActivatable(models.Model):
 
 class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
-    analyticsId = models.CharField('Analytics Id', max_length=50, default='', blank=True)
+    trackers = models.ForeignKey('Trackers', verbose_name='Trackers', null=True, blank=True, on_delete=models.SET_NULL)
+    tdsId = models.IntegerField('Tds', null=True, blank=True)
     piwikId = models.IntegerField('Pwk', null=True, blank=True)
-    cyclikId = models.IntegerField('Cyclik Id', null=True, blank=True)
     class Meta:
         abstract = True
 
@@ -831,9 +831,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
                 'netLinksList': EncodeListForAgent(self.netLinksList),
-                'analyticsId': self.analyticsId,
+                'tdsUrl': self.trackers.tdsUrl,
+                'tdsId': self.tdsId,
+                'piwikUrl': self.trackers.piwikUrl,
                 'piwikId': self.piwikId,
-                'cyclikId': self.cyclikId,
                 'documentRoot': self.domain.GetDocumentRoot(), 
                 'ftpHost': self.domain.ipAddress.address, 
                 'ftpLogin': self.domain.host.ftpLogin, 
@@ -875,21 +876,15 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.netLinksList = self.domain.GetNetLinksList()
         '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
         try:
-            if self.analyticsId == '':
-                self.analyticsId = self.domain.net.analyticsId
+            self.trackers = GetFirstObject([self.trackers, self.domain.net.trackers, self.niche.trackers])
         except Exception:
             pass
         try:
-            if self.analyticsId == '':
-                self.analyticsId = self.niche.analyticsId
+            self.tdsId = GetFirstObject([self.tdsId, self.domain.net.tdsId, self.niche.tdsId])
         except Exception:
             pass
         try:
             self.piwikId = GetFirstObject([self.piwikId, self.domain.net.piwikId, self.niche.piwikId])
-        except Exception:
-            pass
-        try:
-            self.cyclikId = GetFirstObject([self.cyclikId, self.domain.net.cyclikId, self.niche.cyclikId])
         except Exception:
             pass
         '''Если не указана папка домена, то пытаемся занять корень. Если не получается,
@@ -1035,6 +1030,16 @@ class XrumerBaseRaw(BaseXrumerBase):
     GetXrumerBasesRCount.short_description = 'Bases R'
     GetXrumerBasesRCount.allow_tags = True
 
+class Trackers(BaseDoorObject):
+    '''Связка TDS+Piwik'''
+    tdsUrl = models.CharField('TDS URL', max_length=50, default='')
+    piwikUrl = models.CharField('Piwik URL', max_length=50, default='')
+    class Meta:
+        verbose_name = 'Trackers'
+        verbose_name_plural = 'III.4 Trackers'
+    def __unicode__(self):
+        return '%s - %s' % (self.tdsUrl, self.piwikUrl)
+    
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)

@@ -4,7 +4,8 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, templateFolder, domain, domainFolder, 
-    netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
+    netLinksList, tdsUrl tdsId, piwikUrl, piwikId, documentRoot, 
+    ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
@@ -89,11 +90,9 @@ class DoorgenAgent(agent.BaseAgent):
         '''Задание'''
         with open(self.appJobFile, 'w') as fd:
             fd.write('1, keywords.txt, %d, 0, %s, %s, door%d' % (len(self.currentTask['keywordsList']), self.currentTask['templateFolder'], self.doorwayUrl, self._GetCurrentTaskId()))
-        '''Запись analyticsId и piwikId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
+        '''Запись piwikId - ПОЗИЦИОННЫЙ ПАРАМЕТР '''
         with open(self.appMacrosFile, 'r') as fd:
             lines = fd.readlines()
-        if self.currentTask['analyticsId']:
-            lines[1] = '\t\'{ANALYTICSID}\' => \'%s\',\n' % self.currentTask['analyticsId']
         if self.currentTask['piwikId']:
             lines[3] = '\t\'{PIWIKID}\' => \'%d\',\n' % self.currentTask['piwikId']
         with open(self.appMacrosFile, 'w') as fd:
