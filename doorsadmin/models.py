@@ -423,12 +423,6 @@ class Net(BaseNet):
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return linksLimit
-    def Reset(self):
-        '''Сбрасываем параметры домена'''
-        self.niche = None
-        self.net = None
-        self.active = True
-        self.save()
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
@@ -730,6 +724,12 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         self.lastError = 'DNS record is %s' % dnsRecord
         self.save()
         return False
+    def Reset(self):
+        '''Сбрасываем параметры домена'''
+        self.niche = None
+        self.net = None
+        self.active = True
+        self.save()
     def save(self, *args, **kwargs):
         '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
         try:
