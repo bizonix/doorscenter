@@ -320,8 +320,8 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
-    domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # Domains per day
-    doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # Doors per day
+    domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # сколько доменов добавлять в день. при добавлении домена на нем сразу генерится дор
+    doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # сколько дополнительных доров в папках на существующих доменах делать в день
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
     class Meta:
@@ -334,7 +334,7 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
 class Net(BaseNet):
     '''Сетка доров'''
     addDomainsNow = models.IntegerField('Add domains now', default=0, blank=True)
-    generateDoorsNow = models.IntegerField('Generate Now', default=0, blank=True)
+    generateDoorsNow = models.IntegerField('Generate doors Now', default=0, blank=True)
     netPlan = models.ForeignKey('NetPlan', verbose_name='Net Plan', null=True, blank=True, on_delete=models.SET_NULL)
     class Meta:
         verbose_name = 'Net'
@@ -360,17 +360,19 @@ class Net(BaseNet):
             return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def BuildNet(self, count = None, limit = 9999):
-        '''Построение сетки. Аргументы: count - сколько доменов присоединять, limit - максимальное количество. Возвращает обновленный лимит.'''
+    def AddDomains(self, count = None, linksLimit = 9999):
+        '''Добавление доменов в сетку. Аргументы: count - сколько доменов присоединять, 
+        linksLimit - максимальное количество ссылок для спама на сгенеренных дорах. 
+        Возвращает обновленный лимит.'''
         if self.settings == '':
-            return limit
+            return linksLimit
         if count == None:
             count = self.domainsPerDay
         netChain = self.settings.split(';')
         netDomains = self.domain_set.order_by('pk')
         '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша и группа пустые или совпадают с параметрами сетки'''
         for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), (Q(group=self.domainGroup) | Q(group='')), Q(active=True)).order_by('-group', 'pk').all():  # сначала берем домены из группы, затем без группы
-            if (count <= 0) or (limit <= 0) or (netDomains.count() >= len(netChain)):
+            if (count <= 0) or (linksLimit <= 0) or (netDomains.count() >= len(netChain)):
                 break
             try:
                 domain.linkedDomains.clear()
@@ -381,39 +383,46 @@ class Net(BaseNet):
                 domain.niche = self.niche
                 domain.save()
                 count -= 1
-                limit -= 1
+                '''Генерируем дорвей'''
+                linksLimit = self.GenerateDoorways(1, domain, linksLimit)
                 '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
                 netDomains = self.domain_set.order_by('pk')
             except Exception as error:
-                EventLog('error', 'Error in BuildNet', self, error)
+                EventLog('error', 'Error in AddDomains', self, error)
         '''Если сеть полностью построена'''
         if netDomains.count() >= len(netChain):
             self.domainsPerDay = 0
             self.save()
-        return limit
-    def GenerateDoorways(self, count = None, limit = 9999):
-        '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, limit - максимальное количество. Возвращает обновленный лимит.'''
+        return linksLimit
+    def GenerateDoorways(self, count = None, domain = None, linksLimit = 9999):
+        '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, 
+        domain - на каком домене генерировать, linksLimit - максимальное количество 
+        ссылок для спама на сгенеренных дорах. Возвращает обновленный лимит.'''
         if count == None:
             count = self.doorsPerDay
+        if domain == None:
+            domain = self.GetNextDomain()
+            if domain == None:
+                return linksLimit
         for _ in range(0, count):
-            if (limit <= 0):
+            if (linksLimit <= 0):
                 break
             try:
                 p = Doorway.objects.create(niche=self.niche, 
                                            template=self.template, 
                                            keywordsSet=self.keywordsSet, 
-                                           domain=self.GetNextDomain(), 
-                                           pagesCount=random.randint(self.minPagesCount, self.maxPagesCount), 
+                                           domain=domain, 
                                            domainFolder='')
+                p.pagesCount = random.randint(self.minPagesCount, self.maxPagesCount)
                 p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
                 p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
-                # p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
+                p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
                 p.spamLinksCount = min(p.spamLinksCount, p.pagesCount)  # максимум число страниц дора.
                 p.save()
-                limit -= 1
+                linksLimit -= (p.spamLinksCount + 1)  # + карта сайта
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
-        return limit
+        return linksLimit
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
@@ -431,7 +440,7 @@ class Net(BaseNet):
         if self.addDomainsNow > 0:
             n = self.addDomainsNow
             self.addDomainsNow = 0
-            self.BuildNet(n)
+            self.AddDomains(n)
         '''Немедленная генерация доров в сетке'''
         if self.generateDoorsNow > 0:
             n = self.generateDoorsNow

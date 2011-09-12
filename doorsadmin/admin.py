@@ -76,7 +76,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'GetDoorsCount', 'doorsPerDay', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -88,15 +88,15 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
-    actions = ['BuildNet', 'GenerateDoorways']
-    def BuildNet(self, request, queryset):
+    actions = ['AddDomains', 'GenerateDoorways']
+    def AddDomains(self, request, queryset):
         '''Добавляем в сеть один домен'''
         processed = 0
         for net in queryset:
-            net.BuildNet(1)
+            net.AddDomains(1)
             processed += 1
         self.message_user(request, "%s added." % GetMessageBit(processed))
-    BuildNet.short_description = "a. Add a domain"
+    AddDomains.short_description = "a. Add a domain"
     def GenerateDoorways(self, request, queryset):
         '''Генерируем в сети один дорвей'''
         processed = 0
@@ -117,7 +117,7 @@ class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -216,7 +216,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     CheckOwnership.short_description = "b. Check domain ownership"
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'GetNet', 'keywordsSet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['niche', 'domain__net', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [

@@ -5,22 +5,35 @@ import datetime
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
-    GenerateSnippets()
+    RenewSnippets()
     RenewBasesR()
     CheckAgentsActivity()
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
     GenerateNets()
-    GenerateDoorways()
+    #GenerateDoorways()  # дорвеи генерируются при добавлении домена в сеть
     #GenerateSpamTasks()  # вызывается по событию апдейта агента доргена
     ClearEventLog()
 
 def Helper():
     '''Запуск из командной строки'''
-    GenerateNets()
+    pass
     
-def GenerateSnippets():
+def GenerateNets():
+    '''Плетем сети'''
+    spamTasksLimit = 5  # настройка
+    linksLimitBase = spamTasksLimit * 12
+    linksLimitActual = linksLimitBase
+    dd = datetime.date.today()
+    for net in Net.objects.filter(active=True).order_by('pk').all():
+        if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
+            linksLimitActual = net.AddDomains(None, linksLimitActual)
+        if linksLimitActual <= 0:
+            break
+    EventLog('info', 'Links limit: %d/%d' % (linksLimitBase - linksLimitActual, linksLimitBase))
+
+def RenewSnippets():
     '''Перегенерируем сниппеты'''
     dt = datetime.datetime.now()
     for snippetsSet in SnippetsSet.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
@@ -28,32 +41,8 @@ def GenerateSnippets():
             snippetsSet.stateManaged = 'new'
             snippetsSet.save()
 
-def GenerateNets():
-    '''Плетем сети'''
-    limitBase = 20
-    limitActual = limitBase
-    dd = datetime.date.today()
-    for net in Net.objects.filter(active=True).order_by('pk').all():
-        if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            limitActual = net.BuildNet(None, limitActual)
-        if limitActual <= 0:
-            break
-    EventLog('info', 'Nets limit: %d/%d' % (limitBase - limitActual, limitBase))
-
-def GenerateDoorways():
-    '''Генерируем дорвеи'''
-    limitBase = 20
-    limitActual = limitBase
-    dd = datetime.date.today()
-    for net in Net.objects.filter(active=True).order_by('pk').all():
-        if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            limitActual = net.GenerateDoorways(None, limitActual)
-        if limitActual <= 0:
-            break
-    EventLog('info', 'Doors limit: %d/%d' % (limitBase - limitActual, limitBase))
-
 def RenewBasesR():
-    '''Регенерируем изношенные базы'''
+    '''Перегенерируем изношенные базы'''
     for xrumerBaseR in XrumerBaseR.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
         if xrumerBaseR.linksCount < 2:  # в тысячах
             xrumerBaseR.stateManaged = 'new'
