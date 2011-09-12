@@ -411,9 +411,9 @@ class Net(BaseNet):
                 p = Doorway.objects.create(niche=self.niche, 
                                            template=self.template, 
                                            keywordsSet=self.keywordsSet, 
+                                           pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
                                            domainFolder='')
-                p.pagesCount = random.randint(self.minPagesCount, self.maxPagesCount)
                 p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
                 p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
                 p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
