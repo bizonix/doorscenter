@@ -55,7 +55,7 @@ class XrumerAgent(agent.BaseAgent):
             'FromRegistered': '1', 
             'AggressiveMode': '0', 
             'CheckForActiveLink': '0', 
-            'EditProfileAfterLogin': '1', 
+            'EditProfileAfterLogin': '0', 
             'UploadAvatars': '0', 
             'EnableRefspam': '0', 
             'BBtoHTML': '1', 
