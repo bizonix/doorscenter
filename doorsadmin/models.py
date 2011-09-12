@@ -423,6 +423,12 @@ class Net(BaseNet):
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return linksLimit
+    def Reset(self):
+        '''Сбрасываем параметры домена'''
+        self.niche = None
+        self.net = None
+        self.active = True
+        self.save()
     def save(self, *args, **kwargs):
         '''Создаем сайт на Piwik'''
         try:
