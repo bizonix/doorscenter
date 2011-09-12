@@ -22,7 +22,7 @@ def Helper():
     
 def GenerateNets():
     '''Плетем сети'''
-    spamTasksLimit = 5  # настройка
+    spamTasksLimit = 100  # настройка
     linksLimitBase = spamTasksLimit * 12
     linksLimitActual = linksLimitBase
     dd = datetime.date.today()
