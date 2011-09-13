@@ -1,6 +1,6 @@
 <?php
 $config['server']="localhost";      //localhost
 $config['user']="root";
-$config['pass']="";
-$config['bdname']="vipbablo";
+$config['pass']="111111";
+$config['bdname']="vpbbl";
 ?>

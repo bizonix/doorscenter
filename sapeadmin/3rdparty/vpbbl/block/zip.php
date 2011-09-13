@@ -7,7 +7,7 @@
                 <p align="left"><font size="2" face="Verdana">Введите ключевую фразу:</font></p>
            </td>
            <td width="231" height="30">
-                <p align="left"><input type="text" name="q" size="29" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="Сладкая выпечка" maxlength="60"></p>
+                <p align="left"><input type="text" name="q" size="29" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="text/gen.txt" maxlength="60"></p>
            </td>
          </tr>
          <tr>
@@ -15,7 +15,7 @@
                 <p align="left"><font size="2" face="Verdana">Введите ключ для&nbsp;картинок:</font></p>
             </td>
             <td width="231" height="30">
-                <p align="left"><input type="text" name="nn" size="29" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="выпечка" maxlength="60"></p>
+                <p align="left"><input type="text" name="nn" size="29" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="" maxlength="60"></p>
             </td>
           </tr>
           <tr>
@@ -23,7 +23,7 @@
                  <p align="left"><font size="2" face="Verdana">Введите количество страниц:</font></p>
              </td>
              <td width="231" height="30">
-                 <p align="left"><input type="text" name="count" size="3" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="20" maxlength="3"></p>
+                 <p align="left"><input type="text" name="count" size="3" style="padding-left:3pt; border-width:1pt; border-color:rgb(185,203,220); border-style:solid;" value="" maxlength="3"></p>
              </td>
            </tr>
            <tr>
@@ -52,11 +52,11 @@
 		                   <option value="po12">по 1-2 (случайно) на каждую</option>
 		                   <option value="po02">по 0-2 (случайно) на каждую</option>
 		                   <option value="po03">po 0-3 (случайно) на каждую</option>
-		                   <option selected value="all">-На каждую-</option>
+		                   <option value="all">-На каждую-</option>
 		                   <option value="on2">на каждую 2-ю страницу</option>
 		                   <option value="on3">на каждую 3-ю страницу</option>
 		                   <option value="po2">по 2 на каждую</option>
-		                   <option value="no">-без картинок-</option>
+		                   <option selected value="no">-без картинок-</option>
 						</select>
 				   </p>
                 </td>
@@ -68,10 +68,10 @@
                  <td width="231" height="30">
                         <p align="left">
                               <select name="names" size="1">
-                                 <option selected value="own">одно слово в транслите</option>
+                                 <option value="own">одно слово в транслите</option>
                                  <option value="title">заголовок в транслите</option>
                                  <option value="num">порядковый номер</option>
-                                 <option value="rand">случайная цифра (0-9999999)</option>
+                                 <option selected value="rand">случайная цифра (0-9999999)</option>
                                  <option value="randrazdel">случайный раздел + цифра (0-99)</option>
 							  </select>
 						</p>
@@ -335,6 +335,8 @@
   handmenus();
   sapemenus();
   ftpmenus();
-  	</script>
+
+
+  	</script>
    </div>
 </form>

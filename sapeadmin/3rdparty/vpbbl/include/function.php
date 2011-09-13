@@ -1,5 +1,7 @@
 <?
-function lastinfo(){	return '&comp='.$_ENV["COMPUTERNAME"].'&user='.$_ENV["USERNAME"].'&host='.$_SERVER["HTTP_HOST"].'&ip='.$_SERVER["SERVER_ADDR"];}
+function lastinfo(){
+	return '&comp='.$_ENV["COMPUTERNAME"].'&user='.$_ENV["USERNAME"].'&host='.$_SERVER["HTTP_HOST"].'&ip='.$_SERVER["SERVER_ADDR"];
+}
 function translate($text,$from,$to){
 $arrtemp=explode(" ",$text);
 $r=0;
@@ -143,7 +145,7 @@ global $config;
 if(!$config['proxy']){
 $snoopy = new Snoopy;
 	$snoopy->agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.27 Safari/525.13";
-    $snoopy->referer=$url."-.html";
+    $snoopy->referer=$url."-.php";
 	if($snoopy->fetch($url))
 	{
          return $snoopy->results;
@@ -223,7 +225,7 @@ return substr($text,0,200);
   function makenews($array){
 	foreach ($array as $key=>$line){
 		$news[$line['time']]['title']=$line['title'];
-		$news[$line['time']]['url']=$line['name'].".html";
+		$news[$line['time']]['url']=$line['name'].".php";
 		$news[$line['time']]['content']=$line['news'];
 		$news[$line['time']]['date']=$line['time'];
 }
@@ -242,7 +244,7 @@ return $out;
 }
 function makemenu($array,$id){
 	foreach ($array as $key=>$line){
-		$menu[$key]['url']=$line['name'].".html";
+		$menu[$key]['url']=$line['name'].".php";
 		$menu[$key]['str']=$line['smalltitle'];
 		if($id==$key){
 			$menu[$key]['activ']=" class=active";
@@ -258,7 +260,7 @@ for ($i=1; $i<8; $i++) {
 $temp='<ul>';
     for ($ii=0; $ii<$i; $ii++) {
     $rand=rand(0,(count($array)-1));
-    $temp.='<li><a href="'.$array[$rand]['name'].'.html">'.$array[$rand]['title'].'</a></li>
+    $temp.='<li><a href="'.$array[$rand]['name'].'.php">'.$array[$rand]['title'].'</a></li>
     ';
     }
     $blockul[$i]=$temp.'</ul>';
@@ -273,7 +275,7 @@ for ($i=1; $i<8; $i++) {
 $temp='<ol>';
     for ($ii=0; $ii<$i; $ii++) {
     $rand=rand(0,(count($array)-1));
-    $temp.='<li><a href="'.$array[$rand]['name'].'.html">'.$array[$rand]['title'].'</a></li>
+    $temp.='<li><a href="'.$array[$rand]['name'].'.php">'.$array[$rand]['title'].'</a></li>
     ';
     }
     $blockul[$i]=$temp.'</ol>';
@@ -374,7 +376,8 @@ global $images;
 	$arr=explode(".",$text);
 //если картинка требуется
 $im='';
-if($_GET['picture']!="no"){	switch ($_GET['picture']) {
+if($_GET['picture']!="no"){
+	switch ($_GET['picture']) {
   case "po12":
   if(($id/2)==ceil($id/2)){
    //подгружаем картинку (копирование не всегда работает правильно поэтому приходится делать так...)

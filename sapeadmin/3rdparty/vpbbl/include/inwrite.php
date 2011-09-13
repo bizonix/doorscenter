@@ -49,6 +49,13 @@ foreach ($array as $key=>$line){
 	$smarty->assign("type","php");
 	}
 	$content= $smarty->fetch('../done/'.$templname.'/index.html');
+	
+	// xxx
+	if ($array[$key]['name'] == 'index')
+    $content = str_replace("<? include('cod.php'); ?>", "<? include('cod.php'); ?> <? include('map.php'); ?>", $content);
+  $content = str_replace("<? include('cod.php'); ?>", "<? include('codxxx.php'); ?>", $content);
+	// ~xxx
+	
 	if($_GET['type']=='html'){
 	$fp = fopen ("../out/".$array[$key]['name'].".php", "w+");
 	}else{
@@ -63,9 +70,10 @@ foreach ($array as $key=>$line){
 		flush();
 
 }
-	$fp = fopen ("../out/map.php", "w+");
-	fwrite ($fp, $map.'');
-	fclose ($fp);
+  $fp = fopen ("../out/map.php", "w+");
+  fwrite ($fp, $map.'');
+  fclose ($fp);
+  	
 	if($_GET['type']=="php"){
 if($_GET['sape']==true){
 $news='\'\'';      //стоит после блока новостей
