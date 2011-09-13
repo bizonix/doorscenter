@@ -10,7 +10,6 @@ def CronDaily():
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
-    GenerateSites()
     CheckBotVisits()
 
 def Helper():

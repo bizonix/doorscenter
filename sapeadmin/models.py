@@ -226,9 +226,7 @@ class Site(BaseSapeObject):
         Генерируем сайты только в статусах "new" и "generated"'''
         if not (self.state in ['new', 'generated']):
             return
-        #print(self.url)
         '''Подбираем и выгружаем статьи'''
-        #print('- selecting articles ...')
         self.articles.clear()
         with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
             isFirst = True
@@ -254,7 +252,6 @@ class Site(BaseSapeObject):
                     fd1.write(content)
         self.save()
         '''Генерируем сайт'''
-        #print('- generating the site ...')
         localFolder1 = vpbblLocal + '/out'
         localFolder2 = vpbblLocal + '/out%d' % self.pk
         if not os.path.exists(localFolder1):
@@ -292,7 +289,6 @@ class Site(BaseSapeObject):
         return True
     def Upload(self):
         '''Загружаем на FTP'''
-        #print('- uploading ...')
         localFolder = vpbblLocal + '/out%d' % self.pk
         remoteFolder = self.hostingAccount.hosting.rootDocumentTemplate % self.url
         ftp = ftplib.FTP(self.url, self.hostingAccount.login, self.hostingAccount.password)
@@ -310,7 +306,6 @@ class Site(BaseSapeObject):
         except Exception:
             pass
         '''Устанавливаем права'''
-        #print('- setting up permissions ...')
         try:
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
