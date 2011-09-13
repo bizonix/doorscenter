@@ -226,9 +226,9 @@ class Site(BaseSapeObject):
         Генерируем сайты только в статусах "new" и "generated"'''
         if not (self.state in ['new', 'generated']):
             return
-        print(self.url)
+        #print(self.url)
         '''Подбираем и выгружаем статьи'''
-        print('- selecting articles ...')
+        #print('- selecting articles ...')
         self.articles.clear()
         with codecs.open(vpbblLocal + '/text/gen.txt', 'w', 'cp1251') as fd1:
             isFirst = True
@@ -254,7 +254,7 @@ class Site(BaseSapeObject):
                     fd1.write(content)
         self.save()
         '''Генерируем сайт'''
-        print('- generating the site ...')
+        #print('- generating the site ...')
         localFolder1 = vpbblLocal + '/out'
         localFolder2 = vpbblLocal + '/out%d' % self.pk
         if not os.path.exists(localFolder1):
@@ -266,7 +266,7 @@ class Site(BaseSapeObject):
             fd.read()
             fd.close()
         except Exception as error:
-            print('%s' % error)
+            #print('%s' % error)
         '''Перемещаем в другую папку'''
         if os.path.exists(localFolder2):
             if os.path.isdir(localFolder2):
@@ -292,7 +292,7 @@ class Site(BaseSapeObject):
         return True
     def Upload(self):
         '''Загружаем на FTP'''
-        print('- uploading ...')
+        #print('- uploading ...')
         localFolder = vpbblLocal + '/out%d' % self.pk
         remoteFolder = self.hostingAccount.hosting.rootDocumentTemplate % self.url
         ftp = ftplib.FTP(self.url, self.hostingAccount.login, self.hostingAccount.password)
@@ -304,18 +304,18 @@ class Site(BaseSapeObject):
                     try:
                         ftp.mkd(remoteFolder + remoteFolderAdd)
                     except Exception as error:
-                        print(error)
+                        #print(error)
                 for fname in files:
                     ftp.storbinary('STOR ' + remoteFolder + remoteFolderAdd + '/' + fname, open(os.path.join(root, fname), 'rb'))
         except Exception as error:
-            print(error)
+            #print(error)
         '''Устанавливаем права'''
-        print('- setting up permissions ...')
+        #print('- setting up permissions ...')
         try:
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
         except Exception as error:
-            print(error)
+            #print(error)
         ftp.quit()
         '''Удаляем локальную папку'''
         shutil.rmtree(localFolder)
