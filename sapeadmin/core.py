@@ -1,4 +1,5 @@
 # coding=utf8
+from django.db.models import Q
 from sapeadmin.models import Site, YandexUpdate, Donor, Article
 from django.core.mail import send_mail
 import urllib, re, datetime, MySQLdb, hashlib, os, sys
@@ -14,7 +15,9 @@ def CronHourly():
 
 def Helper():
     '''Запуск из командной строки'''
-    ImportArticles('alexborisov.net', 'alexbori_altston', 'M7u3VUX)}TDZ', 'alexbori_vpwebgrabber', '/home/sasch/temp/articles')
+    #ImportArticles('alexborisov.net', 'alexbori_altston', 'M7u3VUX)}TDZ', 'alexbori_vpwebgrabber', '/home/sasch/temp/articles')
+    site = Site.objects.get(pk=30)
+    site.ChangeIndexPage()
 
 def ImportArticles(host, user, password, database, localFolder):
     '''Импорт статей из граббера'''
@@ -86,7 +89,7 @@ def GenerateSites():
 
 def CheckBotVisits():
     '''Проверка захода ботов'''
-    for site in Site.objects.filter(state='spam-indexed').order_by('pk').all():
+    for site in Site.objects.filter(Q(state='spammed') | Q(state='spam-indexed')).order_by('pk').all():
         site.CheckBotVisits()
 
 def CheckYandexUpdates():

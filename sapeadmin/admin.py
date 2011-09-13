@@ -7,29 +7,33 @@ delete_selected.short_description = '9. Delete selected items'
 
 def GetMessageBit(rows_updated):
     '''Текст для сообщений'''
-    if rows_updated == 1:
-        return "1 item was"
+    if rows_updated == 0:
+        return "No items were"
+    elif rows_updated == 1:
+        return "1 item was successfully"
     else:
-        return "%s items were" % rows_updated
+        return "%s items were successfully" % rows_updated
 
 '''Базовые классы'''
 
 class BaseAdmin(admin.ModelAdmin):
     list_per_page = 20
     readonly_fields = ['dateAdded', 'dateChanged']
+
+class BaseAdminActivatable(BaseAdmin):
     actions = ['MakeActive', 'MakeInactive']
     def MakeActive(self, request, queryset):
         rows_updated = queryset.update(active=True)
-        self.message_user(request, "%s successfully enabled." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s enabled." % GetMessageBit(rows_updated))
     MakeActive.short_description = "1. Enable selected items"
     def MakeInactive(self, request, queryset):
         rows_updated = queryset.update(active=False)
-        self.message_user(request, "%s successfully disabled." % GetMessageBit(rows_updated))
+        self.message_user(request, "%s disabled." % GetMessageBit(rows_updated))
     MakeInactive.short_description = "2. Disable selected items"
-
+    
 '''Реальные классы'''
 
-class NicheAdmin(BaseAdmin):
+class NicheAdmin(BaseAdminActivatable):
     list_display = ('pk', 'priority', 'name', 'GetDonorsCount', 'GetArticlesCount', 'GetSitesCount', 'active', 'dateAdded')
     ordering = ['priority']
     fieldsets = [
@@ -37,7 +41,7 @@ class NicheAdmin(BaseAdmin):
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
-class DonorAdmin(BaseAdmin):
+class DonorAdmin(BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetUrl', 'GetArticlesCount', 'active', 'dateAdded')
     list_filter = ['niche']
     ordering = ['niche', 'url']
@@ -47,7 +51,7 @@ class DonorAdmin(BaseAdmin):
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
-class ArticleAdmin(BaseAdmin):
+class ArticleAdmin(BaseAdminActivatable):
     list_display = ('pk', 'GetNiche', 'donor', 'title', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['donor__niche', 'donor']
     ordering = ['donor__niche', 'donor', 'title']
@@ -57,7 +61,7 @@ class ArticleAdmin(BaseAdmin):
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
-class HostingAdmin(BaseAdmin):
+class HostingAdmin(BaseAdminActivatable):
     list_display = ('pk', 'name', 'active', 'GetAccountsCount', 'GetSitesCount', 'dateAdded')
     ordering = ['name']
     fieldsets = [
@@ -65,7 +69,7 @@ class HostingAdmin(BaseAdmin):
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
     
-class HostingAccountAdmin(BaseAdmin):
+class HostingAccountAdmin(BaseAdminActivatable):
     list_display = ('pk', 'hosting', 'login', 'costPerMonth', 'paidTill', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['hosting']
     ordering = ['hosting', 'login']
@@ -76,14 +80,44 @@ class HostingAccountAdmin(BaseAdmin):
 
 class SiteAdmin(BaseAdmin):
     list_display = ('pk', 'niche', 'GetUrl', 'pagesCount', 'GetSpamDate', 'GetLinksIndexCount', 'linksIndexDate', 'GetBotsVisitsCount', 'botsVisitsDate', 'GetSiteIndexCount', 'siteIndexDate', 'sapeAccount', 'state', 'active', 'dateAdded')
-    list_filter = ['niche', 'hostingAccount', 'sapeAccount', 'state']
+    list_filter = ['state', 'niche', 'hostingAccount', 'sapeAccount']
     search_fields = ['url']
     fieldsets = [
         (None, {'fields': [('niche', 'state'), ('url', 'pagesCount'), ('hostingAccount', 'spamTask', 'sapeAccount'), ('linksIndexCount', 'linksIndexDate'), ('botsVisitsCount', 'botsVisitsDate'), ('siteIndexCount', 'siteIndexDate')]}),
         ('Bulk add sites', {'fields': [('bulkAddSites')], 'classes': ['expanded']}),
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
-    actions = ['Generate', 'CheckBotVisits', 'UpdateIndexCount']
+    actions = ['MakeStateNew', 'MakeStateSapeAdded', 'MakeStateSapeApproved', 
+               'MakeStateSapePrice1', 'MakeStateSapePrice2', 'MakeStateSapePrice3', 'MakeStateSapeBanned',
+               'Generate', 'ChangeIndexPage', 'Upload', 'CheckBotVisits', 'UpdateIndexCount']
+    def MakeStateNew(self, request, queryset):
+        rows_updated = queryset.update(state='new')
+        self.message_user(request, "%s marked as new." % GetMessageBit(rows_updated))
+    MakeStateNew.short_description = "1. Mark selected items as new"
+    def MakeStateSapeAdded(self, request, queryset):
+        rows_updated = queryset.update(state='sape-added')
+        self.message_user(request, "%s marked as sape-added." % GetMessageBit(rows_updated))
+    MakeStateSapeAdded.short_description = "2. Mark selected items as sape-added"
+    def MakeStateSapeApproved(self, request, queryset):
+        rows_updated = queryset.update(state='sape-approved')
+        self.message_user(request, "%s marked as sape-approved." % GetMessageBit(rows_updated))
+    MakeStateSapeApproved.short_description = "3. Mark selected items as sape-approved"
+    def MakeStateSapePrice1(self, request, queryset):
+        rows_updated = queryset.update(state='sape-price1')
+        self.message_user(request, "%s marked as sape-price1." % GetMessageBit(rows_updated))
+    MakeStateSapePrice1.short_description = "4. Mark selected items as sape-price1"
+    def MakeStateSapePrice2(self, request, queryset):
+        rows_updated = queryset.update(state='sape-price2')
+        self.message_user(request, "%s marked as sape-price2." % GetMessageBit(rows_updated))
+    MakeStateSapePrice2.short_description = "5. Mark selected items as sape-price2"
+    def MakeStateSapePrice3(self, request, queryset):
+        rows_updated = queryset.update(state='sape-price3')
+        self.message_user(request, "%s marked as sape-price3." % GetMessageBit(rows_updated))
+    MakeStateSapePrice3.short_description = "6. Mark selected items as sape-price3"
+    def MakeStateSapeBanned(self, request, queryset):
+        rows_updated = queryset.update(state='sape-banned')
+        self.message_user(request, "%s marked as sape-banned." % GetMessageBit(rows_updated))
+    MakeStateSapeBanned.short_description = "7. Mark selected items as sape-banned"
     def Generate(self, request, queryset):
         '''Генерируем сайты'''
         processed = 0
@@ -92,6 +126,22 @@ class SiteAdmin(BaseAdmin):
             processed += 1
         self.message_user(request, "%s generated." % GetMessageBit(processed))
     Generate.short_description = "a. Generate site"
+    def ChangeIndexPage(self, request, queryset):
+        '''Меняем главную страницу'''
+        processed = 0
+        for site in queryset:
+            site.ChangeIndexPage()
+            processed += 1
+        self.message_user(request, "%s changed." % GetMessageBit(processed))
+    ChangeIndexPage.short_description = "b. Change index page"
+    def Upload(self, request, queryset):
+        '''Загружаем на FTP'''
+        processed = 0
+        for site in queryset:
+            site.Upload()
+            processed += 1
+        self.message_user(request, "%s uploaded." % GetMessageBit(processed))
+    Upload.short_description = "c. Upload site to FTP"
     def CheckBotVisits(self, request, queryset):
         '''Проверяем посещение сайтов ботами'''
         processed = 0
@@ -99,7 +149,7 @@ class SiteAdmin(BaseAdmin):
             site.CheckBotVisits()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    CheckBotVisits.short_description = "b. Check bots visits"
+    CheckBotVisits.short_description = "d. Check bots visits"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в яндексе'''
         processed = 0
@@ -108,7 +158,7 @@ class SiteAdmin(BaseAdmin):
             site.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "c. Check Yandex index"
+    UpdateIndexCount.short_description = "e. Check Yandex index"
 
 class SpamTaskAdmin(BaseAdmin):
     list_display = ('pk', 'spamDate', 'GetSitesCount', 'state', 'active', 'dateAdded')
@@ -118,7 +168,7 @@ class SpamTaskAdmin(BaseAdmin):
         ('Information', {'fields': ['remarks', ('dateAdded', 'dateChanged', 'active')], 'classes': ['collapse']}),
     ]
 
-class SapeAccountAdmin(BaseAdmin):
+class SapeAccountAdmin(BaseAdminActivatable):
     list_display = ('pk', 'login', 'maxSitesCount', 'WMR', 'GetSitesCount', 'active', 'dateAdded')
     list_filter = ['WMR']
     fieldsets = [

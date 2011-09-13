@@ -1,14 +1,20 @@
 # coding=utf8
 from django.db.models import Count, Sum, Q
 from django.db import models
-import random, codecs, ftplib, glob, os, urllib, re, datetime, yandex
+import random, codecs, ftplib, glob, os, shutil, urllib, re, datetime, yandex
 
-siteStates = (('new', 'new'), ('generated', 'generated'), 
-              ('spammed', 'spammed'), ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), 
-              ('site-indexed', 'site-indexed'), ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
+siteStates = (('new', 'new'), ('generated', 'generated'), ('uploaded', 'uploaded'), ('spammed', 'spammed'), 
+              ('spam-indexed', 'spam-indexed'), ('bot-visited', 'bot-visited'), ('site-indexed', 'site-indexed'), 
+              ('sape-added', 'sape-added'), ('sape-approved', 'sape-approved'), 
               ('sape-price1', 'sape-price1'), ('sape-price2', 'sape-price2'), ('sape-price3', 'sape-price3'), 
               ('sape-banned', 'sape-banned'))
 spamStates = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
+
+vpbblUrl = 'http://test.home/vpbbl'
+vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
+if not os.path.exists(vpbblLocal):
+    vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
+    vpbblUrl = 'http://searchpro.name/vpbbl'
 
 '''Functions'''
 
@@ -176,7 +182,10 @@ class Site(BaseSapeObject):
     def __unicode__(self):
         return self.url
     def GetUrl(self):
-        return '<a href="http://%s" target="_blank">%s</a>' % (self.url, self.url)
+        if self.state == 'generated':
+            return '<a href="%s/out%d" target="_blank">%s</a>' % (vpbblUrl, self.pk, self.url)
+        else:
+            return '<a href="http://%s" target="_blank">%s</a>' % (self.url, self.url)
     GetUrl.short_description = 'Url'
     GetUrl.allow_tags = True
     def GetSpamDate(self):
@@ -213,13 +222,8 @@ class Site(BaseSapeObject):
         self.bulkAddSites = ''
         super(Site, self).save(*args, **kwargs)
     def Generate(self):
-        '''Генерация сайта с заливкой на хостинг'''
-        vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
-        vpbblUrl = 'http://test.home/vpbbl'
-        if not os.path.exists(vpbblLocal):
-            vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
-            vpbblUrl = 'http://searchpro.name/vpbbl'
-        '''Генерируем сайты только в статусах "new" и "generated"'''
+        '''Генерация сайта с заливкой на хостинг.
+        Генерируем сайты только в статусах "new" и "generated"'''
         if not (self.state in ['new', 'generated']):
             return
         print(self.url)
@@ -251,6 +255,11 @@ class Site(BaseSapeObject):
         self.save()
         '''Генерируем сайт'''
         print('- generating the site ...')
+        localFolder1 = vpbblLocal + '/out'
+        localFolder2 = vpbblLocal + '/out%d' % self.pk
+        if not os.path.exists(localFolder1):
+            os.mkdir(localFolder1)
+            os.system('chmod 777 %s' % localFolder1)
         try:
             templates = [item.replace(vpbblLocal + '/done/', '') for item in glob.glob(vpbblLocal + '/done/*')]
             fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + random.choice(templates))
@@ -258,9 +267,33 @@ class Site(BaseSapeObject):
             fd.close()
         except Exception as error:
             print('%s' % error)
+        '''Перемещаем в другую папку'''
+        if os.path.exists(localFolder2):
+            if os.path.isdir(localFolder2):
+                shutil.rmtree(localFolder2)
+            else:
+                os.remove(localFolder2)
+        os.rename(localFolder1, localFolder2)
+        '''Меняем статус сайта'''
+        self.state = 'generated'
+        self.save()
+    def ChangeIndexPage(self):
+        '''Меняем главную страницу'''
+        localFolder = vpbblLocal + '/out%d' % self.pk
+        if not os.path.exists(localFolder):
+            return False
+        fileNames = [item for item in os.listdir(localFolder) if item.endswith('.php') and item not in ['index.php', 'map.php', 'codxxx.php', 'botsxxx.php']]
+        fileName1 = os.path.join(localFolder, 'index.php')
+        fileName2 = os.path.join(localFolder, random.choice(fileNames))
+        contents1 = open(fileName1, 'r').read()
+        contents2 = open(fileName2, 'r').read()
+        open(fileName1, 'w').write(contents2.replace("<? include('codxxx.php'); ?>", "<? include('codxxx.php'); ?> <? include('map.php'); ?>"))
+        open(fileName2, 'w').write(contents1.replace("<? include('codxxx.php'); ?> <? include('map.php'); ?>", "<? include('codxxx.php'); ?>"))
+        return True
+    def Upload(self):
         '''Загружаем на FTP'''
         print('- uploading ...')
-        localFolder = vpbblLocal + '/out'
+        localFolder = vpbblLocal + '/out%d' % self.pk
         remoteFolder = self.hostingAccount.hosting.rootDocumentTemplate % self.url
         ftp = ftplib.FTP(self.url, self.hostingAccount.login, self.hostingAccount.password)
         try:
@@ -284,9 +317,10 @@ class Site(BaseSapeObject):
         except Exception as error:
             print(error)
         ftp.quit()
+        '''Удаляем локальную папку'''
+        shutil.rmtree(localFolder)
         '''Меняем статус сайта'''
-        print('- changing site status ...')
-        self.state = 'generated'
+        self.state = 'uploaded'
         self.save()
     def CheckBotVisits(self):
         '''Проверка захода ботов'''
