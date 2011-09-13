@@ -265,8 +265,8 @@ class Site(BaseSapeObject):
             fd = urllib.urlopen(vpbblUrl + '/include/parse.php?view=zip&q=text%2Fgen.txt&nn=&count=&sin=no&trans=no&picture=no&names=rand&type=html&pre=&onftp=&mymenu=&tpl=' + random.choice(templates))
             fd.read()
             fd.close()
-        except Exception as error:
-            #print('%s' % error)
+        except Exception:
+            pass
         '''Перемещаем в другую папку'''
         if os.path.exists(localFolder2):
             if os.path.isdir(localFolder2):
@@ -303,19 +303,19 @@ class Site(BaseSapeObject):
                     remoteFolderAdd = root.replace(localFolder, '')
                     try:
                         ftp.mkd(remoteFolder + remoteFolderAdd)
-                    except Exception as error:
-                        #print(error)
+                    except Exception:
+                        pass
                 for fname in files:
                     ftp.storbinary('STOR ' + remoteFolder + remoteFolderAdd + '/' + fname, open(os.path.join(root, fname), 'rb'))
-        except Exception as error:
-            #print(error)
+        except Exception:
+            pass
         '''Устанавливаем права'''
         #print('- setting up permissions ...')
         try:
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/xxx')
             ftp.sendcmd('SITE CHMOD 0777 ' + remoteFolder + '/botsxxx.dat')
-        except Exception as error:
-            #print(error)
+        except Exception:
+            pass
         ftp.quit()
         '''Удаляем локальную папку'''
         shutil.rmtree(localFolder)
