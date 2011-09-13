@@ -13,7 +13,7 @@ spamStates = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 
 vpbblUrl = 'http://test.home/vpbbl'
 vpbblLocal = '/home/sasch/public_html/test.home/vpbbl'
 if not os.path.exists(vpbblLocal):
-    vpbblLocal = '/home/admin/public_html/searchpro.name/vpbbl'
+    vpbblLocal = '/home/admin/searchpro.name/vpbbl'
     vpbblUrl = 'http://searchpro.name/vpbbl'
 
 '''Functions'''

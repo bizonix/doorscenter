@@ -17,7 +17,8 @@ def Helper():
     '''Запуск из командной строки'''
     #ImportArticles('alexborisov.net', 'alexbori_altston', 'M7u3VUX)}TDZ', 'alexbori_vpwebgrabber', '/home/sasch/temp/articles')
     site = Site.objects.get(pk=30)
-    site.ChangeIndexPage()
+    site.Generate()
+    #site.ChangeIndexPage()
 
 def ImportArticles(host, user, password, database, localFolder):
     '''Импорт статей из граббера'''
