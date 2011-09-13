@@ -1,0 +1,101 @@
+{include file="header.html"}
+<body>
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" valign="top" background="images/hd_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/logo.gif" alt="Logo" width="87" height="102"></td>
+<td width="1" valign="top" background="images/companyname_bg.jpg" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1" height="1"><img src="images/spacer.gif" width="285" height="44"></td>
+</tr>
+<tr>
+<td><div id="logo"><h2 style="margin-bottom:0px;">{$name}</h2></div></td>
+</tr>
+</table></td>
+<td><img src="images/hd_pic.jpg" alt="Picture" width="371" height="102"></td>
+<td>&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" valign="top" background="images/menu_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/spacer.gif" width="43" height="36"></td>
+<td width="1"><img src="images/menu_l.jpg" width="24" height="37"></td>
+<td width="20" align="center" background="images/menu_btn.gif" class="menu"><a href="{$m.0.url}" class="menu_lnk">{$m.0.str}</a></td>
+<td width="1" align="center"><img src="images/menu_sep.jpg" width="27" height="37"></td>
+<td width="55" align="center" background="images/menu_btn.gif" class="menu"><a href="{$m.1.url}" class="menu_lnk">{$m.1.str}</a></td>
+<td width="1" align="center"><img src="images/menu_sep.jpg" width="27" height="37"></td>
+<td width="80" align="center" background="images/menu_btn.gif" class="menu"><a href="{$m.2.url}" class="menu_lnk">{$m.2.str}</a></td>
+<td width="1" align="center"><img src="images/menu_sep.jpg" width="27" height="37"></td>
+<td width="115" align="center" background="images/menu_btn.gif" class="menu"><a href="{$m.3.url}" class="menu_lnk">{$m.3.str}</a></td>
+<td width="1" align="center"><img src="images/menu_sep.jpg" width="27" height="37"></td>
+<td width="70" align="center" background="images/menu_btn.gif" class="menu"><a href="{$m.4.url}" class="menu_lnk">{$m.4.str}</a></td>
+<td width="1"><img src="images/menu_r.jpg" width="25" height="37"></td>
+<td>&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="200" valign="top" bgcolor="#000000">
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td background="images/servicebg.jpg" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="1"></td>
+<td height="1"><img src="images/spacer.gif" width="223" height="1"></td>
+</tr>
+<tr>
+<td><img src="images/spacer.gif" width="1" height="40"></td>
+<td align="right" class="services"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td background="images/subbotbg.jpg" class="base_txt">{include file="block.html"}</td>
+</tr>
+<tr>
+<td height="100%"></td>
+</tr>
+</table></td>
+<td valign="top" bgcolor="#000000"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="19" background="images/subrangl.gif"><img src="images/subrangl.gif" width="1" height="53"></td>
+<td valign="top" background="images/welcome_bg.jpg" class="WELCOME"><h1 style="font-size:16px;">{$title}</h1>
+
+</td>
+</tr>
+<tr>
+<td height="100%">&nbsp;</td>
+<td height="100%" valign="top" class="base_txt">
+<p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+<br>
+<br></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="5" valign="bottom" background="images/bot_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="1"></td>
+<td height="1"><img src="images/spacer.gif" width="203" height="1"></td>
+<td height="1"></td>
+</tr>
+<tr>
+<td width="1"><img src="images/spacer.gif" width="19" height="59"></td>
+<td width="200" class="bottom_menu">{include file="footer.html"}</td>
+<td class="bottom_menu">&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

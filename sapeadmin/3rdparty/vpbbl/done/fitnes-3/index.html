@@ -1,0 +1,115 @@
+{include file="header.html"} 
+<body>
+
+<table width="750" height="100%" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td height="210"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>
+				<div style="position:absolute; top:0px; width:5px; margin-left:-5px;">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><img src="images/t-shad.gif" width="5" height="193"></td>
+  </tr>
+</table>
+		</div>
+		<div style="position:absolute; top:55px; width:188px; margin-left:10px;">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td align="center"><img src="images/logo.gif" alt="logo" width="78" height="49"></td>
+  </tr>
+  <tr>
+    <td class="c_name">{$name}</td>
+  </tr>
+</table>
+		</div>
+		<img src="images/logo-bg.jpg" width="209" height="210"></td>
+        <td width="541">
+		<div style="position:absolute; top:181px; width:540px;">
+		<table border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td width="1"><img src="images/m-l.gif" width="14" height="29"></td>
+    <td class="menu"><a href="{$m.0.url}">{$m.0.str}</a> </td>
+    <td width="1"><img src="images/m-sep.gif" width="25" height="29"></td>
+    <td class="menu"><a href="{$m.1.url}">{$m.1.str}</a> </td>
+    <td width="1"><img src="images/m-sep.gif" width="25" height="29"></td>
+    <td class="menu"><a href="{$m.2.url}">{$m.2.str}</a> </td>
+    <td width="1"><img src="images/m-sep.gif" width="25" height="29"></td>
+    <td class="menu"><a href="{$m.3.url}">{$m.3.str}</a>  </td>
+    <td width="1"><img src="images/m-sep.gif" width="25" height="29"></td>
+    <td class="menu"><a href="{$m.4.url}">{$m.4.str}</a> </td>
+    <td width="1"><img src="images/m-r.gif" width="13" height="29"></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+
+		</div>
+		<img src="images/p1.jpg" width="541" height="210"></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td height="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+      <tr>
+        <td valign="top" bgcolor="#FFFFFF" class="centr-left-bg"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td><img src="images/l0.gif" width="209" height="5"></td>
+          </tr>
+          <tr>
+            <td background="images/l1-bg.gif" class="l-head">Новые статьи</td>
+          </tr>
+          <tr>
+            <td background="images/l2-bg.gif" class="l-text">{$blockul.5}</td>
+          </tr>
+          <tr>
+            <td background="images/l3-bg.gif" class="l-head2">Популярные статьи</td>
+          </tr>
+          <tr>
+            <td background="images/l4-bg.gif" class="l-text">{$blockul.5}</td>
+          </tr>
+          <tr>
+            <td><img src="images/l-bot.gif" width="209" height="7"></td>
+          </tr>
+          <tr>
+            <td>&nbsp;</td>
+          </tr>
+        </table></td>
+        <td width="1" valign="top" bgcolor="#FFFFFF" class="centr-bg"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+          <tr>
+            <td height="1" background="images/c-bg.gif" class="norepeat"><h1>{$title}</h1></td>
+          </tr>
+          <tr>
+            <td><img src="images/cont-sep.gif" width="541" height="1"></td>
+          </tr>
+          <tr>
+            <td class="body_txt">
+			
+
+              <p><br>
+                {$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+             
+              <p>&nbsp;</p></td>
+          </tr>
+        </table></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td height="1" bgcolor="#e35c26"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="bottom-menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> </td>
+      </tr>
+      <tr>
+        <td bgcolor="#e66b3a" class="bottom_addr">{include file="footer.html"}</td>
+      </tr>
+      <tr>
+        <td><img src="images/spacer.gif" width="1" height="10"></td>
+      </tr>
+    </table></td>
+  </tr>
+</table>
+</div><br>
+</body>
+</html>

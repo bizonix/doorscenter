@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="header">
+  <div id="header_inner">
+    <h1>{$name} </h1>
+    <div id="slogan"> </div>
+  </div>
+</div>
+<div id="main">
+  <div id="lcol">
+    <div id="menu">
+      <ul>
+        <li><a href="{$m.0.url}">{$m.0.str}</a> <span></span></li>
+        <li><a href="{$m.1.url}">{$m.1.str}</a> <span></span></li>
+        <li><a href="{$m.2.url}">{$m.2.str}</a> <span></span></li>
+        <li><a href="{$m.3.url}">{$m.3.str}</a> <span></span></li>
+        <li><a href="{$m.4.url}">{$m.4.str}</a> <span></span></li>
+      </ul>
+    </div>
+    <div id="menu_end"></div>
+    <div id="lcontent">
+      <h3 class="first">Похожие записи</h3>
+      {$blockul.5} 
+      <h3>Новое на сайте</h3>
+     {$blockul.5}    </div>
+  </div>
+  <div id="rcol">
+    <div id="rcontent">
+      <h1>{$title} </h1><p>{$content} <? include('cod.php'); ?>   </p>
+      <div class="box">
+        <div class="box_inner">
+          
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+        </div>
+      </div>
+      <h3>&nbsp;</h3>
+    </div>
+  </div>
+</div>
+{include file="footer.html"}
+</div><br>
+</body>
+</html>

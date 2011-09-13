@@ -1,0 +1,90 @@
+{include file="header.html"} 
+<body>
+
+<table width="750" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td><table border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="company_name">{$name}</td>
+        <td><img src="images/ts.gif" alt="" width="3" height="45"></td>
+        <td class="slogan1"> </td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td background="images/mbg.gif" bgcolor="#2b82ca"><table border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="menu"><a href="/">Главная</a></td>
+        <td><img src="images/ms.gif" alt="" width="11" height="31"></td>
+        <td class="menu"><a href="{$m.0.url}">{$m.0.str}</a> </td>
+        <td><img src="images/ms.gif" alt="" width="11" height="31"></td>
+        <td class="menu"><a href="{$m.1.url}">{$m.1.str}</a> </td>
+        <td><img src="images/ms.gif" alt="" width="11" height="31"></td>
+        <td class="menu"><a href="{$m.2.url}">{$m.2.str}</a> </td>
+        <td><img src="images/ms.gif" alt="" width="11" height="31"></td>
+        <td class="menu"><a href="{$m.3.url}">{$m.3.str}</a> </td>
+        <td><img src="images/ms.gif" alt="" width="11" height="31"></td>
+        <td class="menu"><a href="{$m.4.url}">{$m.4.str}</a> </td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td><div style="position:absolute; margin-left:740px; margin-top:107px; z-index:2">
+    <img src="images/p2small-bg.gif" alt="">
+    </div><div class="smenu">
+    <div><img src="images/ms-top.gif" alt="" width="203" height="14"></div>
+       
+    <div><img src="images/ms-bottom.gif" alt=""></div>
+    <div><table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><img src="images/spacer.gif" alt="" width="1" height="4"></td>
+  </tr>
+  <tr>
+    <td><img src="images/rtoppan.gif" alt="" width="203" height="3"></td>
+  </tr>
+  <tr>
+    <td class="r-title">Последние записи </td>
+  </tr>
+  <tr>
+    <td class="r-panel-cont"><p>{$blockul.5} </p>
+      </td>
+  </tr>
+  <tr>
+    <td><img src="images/r-botpanel.gif" alt="" width="203" height="5"></td>
+  </tr>
+  <tr>
+    <td><img src="images/spacer.gif" alt="" width="1" height="1"></td>
+  </tr>
+</table>
+</div>
+    </div><div class="slogan"> <br> 
+      <img src="images/spacer.gif" alt="" width="76" height="1"></div><div class="slogan_shadow"> <br> 
+      <img src="images/spacer.gif" alt="" width="76" height="1"></div>
+    <img src="images/p1.jpg" alt="" width="750" height="184"></td>
+  </tr>
+  <tr>
+    <td bgcolor="#FFFFFF">
+        
+      <div class="body_txt">      <h1>{$title}</h1>
+      
+
+      <p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+   
+      <p>&nbsp;</p>
+      </div></td>
+  </tr>
+  <tr>
+    <td bgcolor="#94cbf7"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td class="bottom_menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> </td>
+      </tr>
+      <tr>
+        <td class="bottom_addr">{include file="footer.html"}</td>
+      </tr>
+    </table></td>
+  </tr>
+</table>
+</div><br>
+</body>
+</html>

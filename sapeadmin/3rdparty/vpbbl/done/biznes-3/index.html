@@ -1,0 +1,86 @@
+{include file="header.html"} 
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="4" colspan="2" background="images/bg_1.jpg"><img src="images/spacer.gif" width="1" height="4"></td>
+</tr>
+<tr>
+<td width="194" height="100" background="images/bg_2.jpg"><img src="images/men_1.jpg" width="194" height="100"></td>
+<td background="images/bg_2.jpg"><table width="100%" height="100"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="66"><table width="100%" height="66"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="40"><img src="images/spacer.gif" width="40" height="1"></td>
+<td width="34"><img src="images/logo.jpg" width="34" height="66"></td>
+<td class="logo">{$name}<br> </td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="34"><table width="100%"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="38" height="33"><img src="images/el_2.jpg" width="38" height="33"></td>
+<td width="10" background="images/bg_3.jpg"><img src="images/spacer.gif" width="10" height="1"></td>
+<td width="68" align="center" background="images/bg_3.jpg"><a href="{$m.0.url}" style="font-size:12px; font-weight:bold;">{$m.0.str}</a> </td>
+<td width="32" background="images/bg_3.jpg"><img src="images/spacer.gif" width="32" height="1"></td>
+<td width="68" align="center" background="images/bg_3.jpg"><a href="{$m.1.url}" style="font-size:12px; font-weight:bold;">{$m.1.str}</a> </td>
+<td width="32" background="images/bg_3.jpg"><img src="images/spacer.gif" width="32" height="1"></td>
+<td width="68" align="center" background="images/bg_3.jpg"><a href="{$m.2.url}" style="font-size:12px; font-weight:bold;">{$m.2.str}</a> </td>
+<td width="32" background="images/bg_3.jpg"><img src="images/spacer.gif" width="32" height="1"></td>
+<td width="68" align="center" background="images/bg_3.jpg"><a href="{$m.3.url}" style="font-size:12px; font-weight:bold;">{$m.3.str}</a> </td>
+<td align="right" background="images/bg_3.jpg"><img src="images/el_3.jpg" width="13" height="33"></td>
+</tr>
+<tr>
+<td height="1" colspan="10"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td width="194" valign="top"><img src="images/men_2.jpg" width="194" height="79"><img src="images/spacer.gif" width="1" height="1"><img src="images/el_1.jpg" width="194" height="64"></td>
+<td valign="top"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="38" height="47" background="images/bg_4.jpg">&nbsp;</td>
+<td width="30" background="images/bg_4.jpg"><img src="images/spacer.gif" width="30" height="1"></td>
+<td background="images/bg_4.jpg"><h1>{$title}</h1></td>
+</tr>
+<tr>
+<td height="1"><img src="images/spacer.gif" width="1" height="1"></td>
+<td height="1" colspan="2" background="images/bg_6.jpg"><img src="images/spacer.gif" width="1" height="1"></td>
+</tr>
+<tr>
+<td colspan="3">&nbsp;</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td><table width="480"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td>
+<p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div> </p>
+</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td colspan="3">&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" colspan="2" valign="top"><table width="100%"  border="0" cellpadding="0" cellspacing="0" bgcolor="#386092">
+<tr>
+<td height="64" align="center" valign="middle" class="menu2"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> <br>
+{include file="footer.html"}</td>
+</tr>
+<tr>
+<td align="center"><img src="images/el_4.jpg" width="540" height="18"></td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

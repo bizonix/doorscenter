@@ -1,0 +1,38 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="wrapper">
+  <div id="header">
+    <div id="nav"><a href="{$m.0.url}">{$m.0.str}</a>  &nbsp;|&nbsp; <a href="{$m.1.url}">{$m.1.str}</a>  &nbsp;|&nbsp; <a href="{$m.2.url}">{$m.2.str}</a>  &nbsp;|&nbsp; <a href="{$m.3.url}">{$m.3.str}</a>  &nbsp;|&nbsp; <a href="{$m.4.url}">{$m.4.str}</a>  &nbsp;|&nbsp; <a href="{$m.5.url}">{$m.5.str}</a> </div>
+    <div id="bg"></div>
+  </div>
+  <div id="main-content">
+    <div id="left-column">
+      <div id="logo"><img src="images/big-paw.gif" alt="" width="42" height="45" align="left" /><span class="logotxt1">{$name} </span> <span class="logotxt2"></span><br />
+        <span style="margin-left:15px;"> </span></div>
+      <div class="box">
+        <h1>{$title} </h1>
+		<p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+        <p>&nbsp;</p>
+      </div>
+     
+    </div>
+    <div id="right-column">
+      <div id="main-image"><img src="images/lady.jpg" alt="" width="153" height="222" /></div>
+      <div class="sidebar">
+        <h3>Популярные записи</h3>
+       {$blockul.5} 
+        <h3>Новое на сайте</h3>
+        <div class="box">
+          {$blockul.5} 
+        </div>
+      </div>
+    </div>
+  </div>
+ {include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

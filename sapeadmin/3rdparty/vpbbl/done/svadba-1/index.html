@@ -1,0 +1,75 @@
+{include file="header.html"} 
+<body>
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="100%" valign="top" background="images/bg_03.jpg" class="bgnr">
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="210" height="106" align="right" valign="top"><table height="27" border="0" cellpadding="0" cellspacing="0" class="menu">
+<tr>
+<td width="14" background="images/bg_07.gif" class="bgnr"><img src="images/spacer.gif" alt="" width="14" height="1" class="spacer"></td>
+<td background="images/bg_05.gif" class="bgx"><strong><a href="/">Главная</a></strong></td>
+</tr>
+</table></td>
+<td height="106" colspan="2" background="images/bg_05.gif" class="bgx"><table width="100%" height="106" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="27" colspan="2"><table height="27" border="0" cellpadding="0" cellspacing="0" class="menu">
+<tr>
+<td><strong><a href="{$m.0.url}">{$m.0.str}</a> </strong></td>
+<td><strong><a href="{$m.1.url}">{$m.1.str}</a></strong></td>
+<td><strong><a href="{$m.2.url}">{$m.2.str}</a></strong></td>
+<td><strong><a href="{$m.3.url}">{$m.3.str}</a></strong></td>
+<td><strong><a href="{$m.4.url}">{$m.4.str}</a></strong></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td background="images/el_01.jpg" class="bgnr"><h1 class="head1">{$name}</h1></td>
+<td align="right" valign="bottom"><table width="168" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="33" background="images/mtitle.gif" class="mtitle bgnr"><strong>Новинки</strong></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td width="210" background="images/bg_04.jpg" class="bgnr">&nbsp;</td>
+<td height="100%" class="bgx" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="31" background="images/bg_06.gif" class="bgx title"><h1>{$title} </h1></td>
+</tr>
+<tr>
+<td valign="top" class="content">
+<p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div> </p>
+</td>
+</tr>
+<tr>
+<td height="30" align="center"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> </td>
+</tr>
+</table></td>
+<td width="168" valign="top"><table width="100%" border="0" cellpadding="0" cellspacing="0" background="images/bg_08.gif" bgcolor="#72A2D3" class="bgx">
+<tr>
+<td valign="top" class="news"><p>{$blockul.7} </p>
+</td>
+</tr>
+<tr>
+<td height="6"><img src="images/el_02.gif" alt="" width="6" height="6"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="57" background="images/bg_02.gif"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td class="bgx footer">{include file="footer.html"}</td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

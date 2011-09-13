@@ -1,0 +1,128 @@
+{include file="header.html"} 
+
+<body>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td class="lbg">&nbsp;</td>
+    <td width="750"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td>
+        <div id="companyname">
+        {$name}</div>
+        <div style="position:absolute; top:65px; margin-left:115px;">
+        <img src="images/logo.gif">
+        </div>
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td><img src="images/p1.jpg" width="308" height="194"></td>
+            <td><img src="images/p2.jpg" width="184" height="194"></td>
+            <td><img src="images/p3.jpg" width="258" height="194"></td>
+          </tr>
+        </table></td>
+      </tr>
+      <tr>
+        <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="1"><img src="images/m-l.jpg" width="20" height="43"></td>
+            <td class="mbg"><table border="0" align="center" cellpadding="0" cellspacing="0">
+              <tr>
+                <td class="menu"><a href="{$m.0.url}" class="menu_lnk">{$m.0.str}</a></td>
+                <td><img src="images/m-sep.jpg" alt="" width="20" height="43"></td>
+                <td class="menu"><a href="{$m.1.url}" class="menu_lnk">{$m.1.str}</a></td>
+                <td><img src="images/m-sep.jpg" alt="" width="20" height="43"></td>
+                <td class="menu"><a href="{$m.2.url}" class="menu_lnk">{$m.2.str}</a></td>
+                <td><img src="images/m-sep.jpg" alt="" width="20" height="43"></td>
+                <td class="menu"><a href="{$m.3.url}" class="menu_lnk">{$m.3.str}</a></td>
+                <td><img src="images/m-sep.jpg" alt="" width="20" height="43"></td>
+                <td class="menu"><a href="{$m.4.url}" class="menu_lnk">{$m.4.str}</a></td>
+                <td><img src="images/m-sep.jpg" alt="" width="20" height="43"></td>
+                <td class="menu"><a href="{$m.5.url}" class="menu_lnk">{$m.5.str}</a></td>
+              </tr>
+            </table></td>
+            <td width="1"><img src="images/m-r.jpg" width="18" height="43"></td>
+          </tr>
+        </table></td>
+      </tr>
+      <tr>
+        <td class="cbg"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td><img src="images/c-line.gif" width="750" height="6"></td>
+          </tr>
+          <tr>
+            <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+              <tr>
+                <td valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td><h1><span class="welcome">{$title}</span></h1></td>
+                  </tr>
+                  <tr>
+                    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td width="270" class="body_txt">
+
+
+                        <p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p></td>
+                        </tr>
+                    </table></td>
+                  </tr>
+                </table></td>
+                <td width="206" valign="top">
+                <div id="right_panels">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  				<tr>
+				    <td width="1" valign="top">&nbsp;</td>
+  				    <td valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td><p class="r-text1"></p>
+                          </td>
+                      </tr>
+                      <tr>
+                        <td class="r-text2">&nbsp;</td>
+                      </tr>
+                    </table></td>
+ 				</tr>
+				</table>
+                </div>
+                <div id="right_panels">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  				<tr>
+				    <td width="1" valign="top">&nbsp;</td>
+  				    <td valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+                      <tr>
+                        <td></td>
+                      </tr>
+                      <tr>
+                        <td class="r-text2">{$blockul.5}{$blockul.5}</td>
+                      </tr>
+                    </table></td>
+ 				</tr>
+				</table>
+                </div>                                
+                </td>
+                </tr>
+            </table></td>
+          </tr>
+        </table></td>
+      </tr>
+      <tr>
+        <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+          <tr>
+            <td><img src="images/b-line.gif" width="750" height="1"></td>
+          </tr>
+          <tr>
+            <td class="bottom_menu"><a href="{$m.0.url}"  style="color:#FFFFFF;">{$m.0.str}</a> | <a href="{$m.1.url}" style="color:#FFFFFF;">{$m.1.str}</a> | <a href="{$m.2.url}" style="color:#FFFFFF;">{$m.2.str}</a> | <a href="{$m.3.url}" style="color:#FFFFFF;">{$m.3.str}</a>  | <a href="{$m.4.url}" style="color:#FFFFFF;">{$m.4.str}</a></td>
+          </tr>
+          <tr>
+            <td class="bottom_addr">{include file="footer.html"}</td>
+          </tr>
+        </table></td>
+      </tr>
+    </table></td>
+    <td class="rbg">&nbsp;</td>
+  </tr>
+</table>
+</div><br>
+</body>
+</html>

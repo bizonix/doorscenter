@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div class="content">
+  <div id="top">
+    <div class="rightlinks"></div>
+  </div>
+  <div id="header">
+    <div class="info">
+      <h1>{$name} </h1>
+      <h2> </h2>
+    </div>
+  </div>
+  <div id="subheader">
+    <div id="menu">
+      <ul>
+        <li><a href="{$m.0.url}">{$m.0.str}</a> </li>
+        <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+        <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+        <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+        <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+        <li><a href="{$m.5.url}">{$m.5.str}</a> </li>
+      </ul>
+    </div>
+  </div>
+  <div id="main">
+    <div class="right_side">
+      <div class="nav">
+        <h2>Новое на сайте</h2>
+        <div class="padding">{$blockul.5} </div>
+        <h2>Похожие записи</h2>
+       {$blockul.5} 
+        <br />
+        <h2>Популярные записи</h2>
+       {$blockul.5} 
+      </div>
+    </div>
+    <div class="left_side">
+      <h2>{$title} </h2>
+     
+    <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+      <br />
+    </div>
+  </div>
+  <div id="footer">
+    <div class="info"> {include file="footer.html"}</div>
+  </div>
+</div>
+</div><br>
+</body>
+</html>

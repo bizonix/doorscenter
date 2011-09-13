@@ -1,0 +1,33 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="header">
+  <div class="logo">
+    <h1 style="font-size:18px;">{$name} </h1></div>
+  <div class="menu"><a href="{$m.0.url}">{$m.0.str}</a>  | <a href="{$m.1.url}">{$m.1.str}</a>  |  <a href="{$m.2.url}">{$m.2.str}</a>  | <a href="{$m.3.url}">{$m.3.str}</a> </div>
+</div>
+<div id="main">
+  <div id="content">
+    <h1>{$title} </h1>
+   <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+      
+  </div>
+  <div id="nav">
+    <div class="navhead">Популярные записи</div>
+    <div class="navitem">
+      {$blockul.5} 
+    </div>
+    <p></p>
+    <div class="navhead">Похожие записи</div>
+    <div class="navitem">
+    {$blockul.5} 
+    </div>
+  </div>
+  <div class="footer"></div>
+</div>
+{include file="footer.html"}
+</div><br>
+</body>
+</html>

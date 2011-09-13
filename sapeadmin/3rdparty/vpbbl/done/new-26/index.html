@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="maincontainer">
+  <div id="topsection"> <span class="title1">&nbsp;</span><span class="title2">{$name} </span><span class="subtitle"> </span> </div>
+  <div id="contentwrapper">
+    <div id="contentcolumn">
+      <div class="text">
+        <h1>{$title} </h1>
+        <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+        <h3>&nbsp;</h3>
+        <div id="top"> <img src="images/top.gif" width="11" height="9" alt="" /> </div>
+        <div id="copyright"> {include file="footer.html"}</div>
+      </div>
+    </div>
+  </div>
+  <div id="leftcolumn">
+    <div class="text">
+      <ul id="navlist">
+        <li><a href="{$m.0.url}">{$m.0.str}</a> </li>
+        <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+        <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+        <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+        <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+      </ul>
+      <div class="boxleft">
+        <div class="boxlefttext"> </div>
+      </div>
+      <div class="boxleft">
+        <div class="boxlefttext"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div><br>
+</body>
+</html>

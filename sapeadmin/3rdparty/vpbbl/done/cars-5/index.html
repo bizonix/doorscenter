@@ -1,0 +1,138 @@
+{include file="header.html"}
+<body>
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td> </td>
+<td width="750" valign="top"><table width="750" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top" background="images/p1-bg.jpg" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="images/spacer.gif" alt="" width="1" height="46"></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td width="1"><img src="images/spacer.gif" width="17" height="1"></td>
+<td width="1"><img src="images/logo.jpg" alt="" width="50" height="51"></td>
+<td class="c_name">{$name}</td>
+</tr>
+</table></td>
+<td width="1"><img src="images/p2.jpg" alt="" width="331" height="255"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="1" valign="top"><img src="images/spacer.gif" alt="" width="9" height="1"></td>
+<td height="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td background="images/menu-1-bg.gif" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="/">Главная страница</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td background="images/menu-2-bg.gif" bgcolor="#3F3F3F" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="{$m.0.url}">{$m.0.str}</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="{$m.1.url}">{$m.1.str}</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="{$m.2.url}">{$m.2.str}</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="{$m.3.url}">{$m.3.str}</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td bgcolor="#3F3F3F"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/menu-bullet.gif" alt="" width="36" height="30"></td>
+<td class="menu"><a href="{$m.4.url}">{$m.4.str}</a></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td><img src="images/menu-sep.gif" alt="" width="181" height="1"></td>
+</tr>
+<tr>
+<td height="100%" bgcolor="#3f3f3f" style="color:#CCCCCC" valign="top"><br><br>{include file="block.html"}</td>
+</tr>
+<tr>
+<td background="images/menu-bot-bg.gif" class="bgx"><img src="images/menu-bot-bg.gif" width="1" height="97"></td>
+</tr>
+</table></td>
+<td width="1" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td><img src="images/c-top.jpg" alt="" width="560" height="17"></td>
+</tr>
+<tr>
+<td><h1>{$title}</h1></td>
+</tr>
+<tr>
+<td height="100%" class="body_txt">
+<p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+</td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" background="images/bottom-bg.jpg" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td class="bottom-menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a> | <a href="{$m.4.url}">{$m.4.str}</a></td>
+</tr>
+<tr>
+<td class="bottom_addr">{include file="footer.html"}</td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+<td>&nbsp;</td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="container">
+  <div id="header">
+    <div>
+      <h1>{$name} </h1>
+      <ul id="nav">
+        <li class="on"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+        <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+        <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+        <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+      </ul>
+    </div>
+  </div>
+  <div id="strike">
+    <div class="home">
+      <p> </p>
+    </div>
+  </div>
+  <div id="body">
+    <div id="l">
+      <h2>{$title} </h2>
+      <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+    </div>
+    <div id="r">
+      <h2>Похожие записи</h2>
+      {$blockul.5} 
+      <hr />
+      <p>
+      
+      {$blockul.5} </p>
+      <hr />
+      <div class="block">Google ad here </div>
+    </div>
+  </div>
+  <br clear="all"/>
+</div>
+<div id="footer">
+  <div>
+    <div> {include file="footer.html"}
+    </div>
+  </div>
+</div>
+</div><br>
+</body>
+</html>

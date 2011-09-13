@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="main">
+  <div id="left">
+    <div id="top">
+      {$blockul.2} 
+      {$blockul.2} 
+      <div id="topbottom"> </div>
+    </div>
+    <div id="content">
+      <div id="headline">
+        <h1>{$name}  &rsaquo;  </h1>
+      </div>
+      <h2>{$title} </h2>
+      <p>{$content} <? include('cod.php'); ?>  </p>
+	  <div><br />
+	  <strong>Похожие записи:</strong><br /><br />
+	  {$blockul.7} 
+	  </div>
+    </div>
+  </div>
+  <div id="right">
+    <div style="background: url(images/topright.gif) no-repeat top right; height: 10px;">&nbsp;</div>
+    <div id="inner"><br />
+   
+      <h5>Последнии записи</h5>
+      {$blockul.5} 
+      <h5>Популярные записи</h5>
+      {$blockul.5} 
+     
+    </div>
+  </div>
+  <br style="clear: both;" />
+</div>
+<div id="footer">{include file="footer.html"}</div>
+</div><br>
+</body>
+</html>

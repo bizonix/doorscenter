@@ -1,0 +1,50 @@
+{include file="header.html"}
+<body>
+
+<!-- start header -->
+<div id="header">
+		{include file="logo.html"}
+	{include file="menu.html"}
+</div>
+<!-- end header -->
+<!-- start page -->
+<div id="page">
+<!-- start content -->
+<div id="content">
+	<!-- start latest-post -->
+	<div id="latest-post" class="post">
+		<h1 class="title">{$title}</h1>
+		<div class="entry">
+			<p>{$content} <? include('cod.php'); ?>  </p>
+			<p class="meta"><span class="posted"></span></p>
+		</div>
+	</div>
+	<!-- end-post -->
+	<!-- start recent-posts -->
+	<div id="sidebar1">
+		<ul>
+			<li>
+				<h2>Интересно:</h2>
+				<ul>
+					<li>{$description}</li>
+				</ul>
+			</li>
+            {include file="block.html"}
+		</ul>
+	</div>
+	<!-- end sidebar -->
+	<!-- start sidebar -->
+	<div style="clear: both;">&nbsp;</div>
+	<div class="hr1">&nbsp;</div>
+	<div id="sidebar">
+
+		<div style="clear: both;">&nbsp;</div>
+	</div>
+	<!-- end sidebar1 -->
+</div>
+</div>
+{include file="footer.html"}
+<!-- end page -->
+</div><br>
+</body>
+</html>

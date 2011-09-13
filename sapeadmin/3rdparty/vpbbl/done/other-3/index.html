@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="header">
+  <div class="subContainer">
+    <div id="logo">
+      <p>{$name}  </p>
+    </div>
+    <!-- /logo -->
+  </div>
+  <!-- /subContainer -->
+</div>
+<!-- header -->
+<div id="navigation">
+  <ul>
+    <li id="active"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+    <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+    <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+    <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+    <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+  </ul>
+</div>
+<!-- /navigation -->
+<div id="container">
+  <div id="primaryContent">
+    <h2>{$title} </h2>
+
+    <p>{$content} <? include('cod.php'); ?>  </p>
+	  <div><br />
+	  <strong>Похожие записи:</strong><br /><br />
+	  {$blockul.7} 
+	  </div>
+    
+    <p>&nbsp;</p>
+    <!-- /comments -->
+  </div>
+  <!-- /primaryContent -->
+  <div id="secondaryContent">
+    <h2>{$description} </h2>
+    <h3>Последнии записи</h3>
+    {$blockul.5} {$blockul.5} 
+ 
+   
+  </div>
+  <!-- /secondaryContent -->
+  <br class="clear" />
+</div>
+<!-- container -->
+<div id="footer">
+{include file="footer.html"}
+</div>
+<!-- /footer -->
+</div><br>
+</body>
+</html>

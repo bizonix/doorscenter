@@ -1,0 +1,93 @@
+{include file="header.html"} 
+<body>
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" valign="top" background="images/h1_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="images/spacer.gif" width="1" height="58"></td>
+<td width="1"><img src="images/spacer.gif" width="106" height="1"></td>
+<td width="1"><img src="images/spacer.gif" width="243" height="1"></td>
+</tr>
+<tr>
+<td width="1" background="images/cn_bg.gif"><img src="images/spacer.gif" width="1" height="62"></td>
+<td align="center" valign="middle" background="images/cn_bg.gif"><img src="images/logo.jpg" width="65" height="35" class="logo"></td>
+<td background="images/cn_bg.gif" class="cn">{$name}</td>
+</tr>
+</table></td>
+<td width="1" valign="top"><img src="images/hp1.jpg" width="174" height="147"></td>
+<td width="1"><img src="images/hp2.jpg" width="180" height="147">
+</td>
+<td width="100%" valign="top"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" valign="top" background="images/menu_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="50%">&nbsp;</td>
+<td width="1"><img src="images/menu_marker.gif" width="10" height="40"></td>
+<td class="menu"><a href="{$m.0.url}"  style="color:#FFFFFF;">{$m.0.str}</a> </td>
+<td width="1"><img src="images/menu_marker.gif" width="10" height="40"></td>
+<td class="menu"><a href="{$m.1.url}"  style="color:#FFFFFF;">{$m.1.str}</a> </td>
+<td width="1"><img src="images/menu_marker.gif" width="10" height="40"></td>
+<td class="menu"><a href="{$m.2.url}"  style="color:#FFFFFF;">{$m.2.str}</a> </td>
+<td width="1"><img src="images/menu_marker.gif" width="10" height="40"></td>
+<td class="menu"><a href="{$m.3.url}"  style="color:#FFFFFF;">{$m.3.str}</a> </td>
+<td width="1"><img src="images/menu_marker.gif" width="10" height="40"></td>
+<td class="menu"><a href="{$m.4.url}" style="color:#FFFFFF;">{$m.4.str}</a> </td>
+<td width="50%">&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="1" valign="top" background="images/r&l_bg.gif" class="bgy"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="images/lsubtop.gif" width="146" height="9"></td>
+</tr>
+<tr>
+<td></td>
+</tr>
+</table></td>
+<td width="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td background="../../029/HTML/images/c_tbg.gif" class="welcome">{$title}</td>
+</tr>
+<tr>
+<td height="100%" class="base_txt"><p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+<br /></td>
+</tr>
+</table></td>
+<td valign="top" class="bgy"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" valign="top"  class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td>&nbsp;</td>
+</tr>
+<tr>
+<td class="autoriz"><strong>Похожие статьи</strong> {$blockul.5}</td>
+</tr>
+<tr>
+<td><img src="images/spacer.gif" width="1" height="17"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="100%" background="images/r&l_bg.gif" class="bgy"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" valign="top" bgcolor="#bfd0e6" class="bottom_menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> <br> {include file="footer.html"}</td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

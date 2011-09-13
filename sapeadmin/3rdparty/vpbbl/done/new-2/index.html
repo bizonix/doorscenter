@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="content">
+  <div id="header">
+    <div class="headermenu">
+      <ul>
+        <li><a href="{$m.0.url}">01. {$m.0.str}</a> </li>
+        <li><a href="{$m.1.url}">02. {$m.1.str}</a> </li>
+        <li><a href="{$m.2.url}">03. {$m.2.str}</a> </li>
+        <li><a href="{$m.3.url}">04. {$m.3.str}</a> </li>
+        <li><a href="{$m.4.url}">05. {$m.4.str}</a> </li>
+      </ul>
+    </div>
+    <h1>{$name} </h1>
+  </div>
+  <div id="pic"></div>
+  <ul id="menu">
+    <li><a href="/">Гдавная страница</a></li>
+    <li><a href="{$m.0.url}">{$m.0.str}</a> </li>
+    <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+    <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+  </ul>
+
+  <div id="leftside">
+    <div class="leftdata">
+      <h2>{$title} </h2>
+     <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+    </div>
+  </div>
+  <div id="rightside">
+    <div class="rightdata">
+      <p><b>Популярные записи</b><br />
+      {$blockul.5} </p>
+    </div>
+    <div class="rightdata">
+      <p><b>Похожие записи </b><br />
+      {$blockul.5} </p>
+    </div>
+    <div class="rightdata">
+     
+    </div>
+  </div>
+  <div id="footer">
+   {include file="footer.html"}
+    <p> <a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> <br />
+    </p>
+  </div>
+</div>
+</div><br>
+</body>
+</html>

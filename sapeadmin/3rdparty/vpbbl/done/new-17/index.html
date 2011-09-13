@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="wrapper">
+  <div id="header">
+    <h1 style="color:#FFFFFF;">{$name} </h1>
+    <h2> </h2>
+  </div>
+  <div id="menu">
+    <ul>
+      <li><a href="{$m.0.url}">{$m.0.str}</a> </li>
+      <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+      <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+      <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+      <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+    </ul>
+  </div>
+  <div id="content">
+    <div id="sidebar">
+      <ul>
+        <li id="archives">
+          <h2>Новое на сайте</h2>
+          {$blockul.5}        </li>
+        <!-- end #archives -->
+        <li id="categories">
+          <h2>Похожие записи</h2>
+          {$blockul.5}        </li>
+        <!-- end #categories -->
+        <li id="blogroll"></li>
+        <li id="meta"></li>
+        <!-- end #meta -->
+      </ul>
+    </div>
+    <!-- end #sidebar -->
+    <div id="blog">
+      <div id="post-1" class="post">
+        <h2 class="title"> {$title}</h2>
+    
+       <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+      </div>
+    
+    </div>
+    <!-- end #blog -->
+    <div style="clear: both; height: 1px;"></div>
+  </div>
+  <!-- end #content -->
+  <!-- Please do not remove the "Design by" information. -->
+  <div id="footer">
+    {include file="footer.html"}
+  </div>
+  <!-- end footer -->
+</div>
+<!-- end #wrapper -->
+</div><br>
+</body>
+</html>

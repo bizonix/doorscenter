@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="left_container"> <img id="logo" alt="" src="img/leaves_brown.jpg" />
+  <div id="left_quote">{$name}.  </div>
+  <div id="left_text">
+    <h3>Популярные записи</h3>
+    {$blockul.5} 
+  </div>
+</div>
+<div id="right_container_outer">
+  <div class="navbar" id="nav">
+    <ul>
+      <li id="current"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+      <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+      <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+      <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+      <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+     
+    </ul>
+  </div>
+  <div id="navbar_fade"></div>
+  <div id="right_container_inner" class="clearfix">
+    <div id="rci_right_column">
+      <h3>Последнии записи</h3>
+      {$blockul.5} 
+      {$blockul.5} 
+    </div>
+    <div id="rci_left_column">
+      <h2>{$title} </h2>
+     <p>{$content} <? include('cod.php'); ?>  </p>
+	  <div><br />
+	  <strong>Похожие записи:</strong><br /><br />
+	  {$blockul.7} 
+	  </div>
+    </div>
+  </div>
+  <div id="footer">{include file="footer.html"}</div>
+</div>
+</div><br>
+</body>
+</html>

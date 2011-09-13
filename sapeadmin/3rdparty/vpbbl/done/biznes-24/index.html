@@ -1,0 +1,107 @@
+{include file="header.html"} 
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" height="100%"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" background="images/bg_head.gif"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="179"><img src="images/el_1.jpg" width="179" height="117"></td>
+<td><table width="100%" height="117"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="388" valign="top" background="images/el_2.jpg"><table width="100%" height="91"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="20" colspan="3"><img src="images/spacer.gif" width="1" height="20"></td>
+</tr>
+<tr>
+<td width="18"><img src="images/spacer.gif" width="18" height="1"></td>
+<td width="27" height="32"><img src="images/logo.gif" width="27" height="32"></td>
+<td class="logo">{$name}</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td valign="top" class="slogan">  </td>
+</tr>
+</table></td>
+<td><img src="images/el_3.jpg" width="178" height="91"></td>
+</tr>
+<tr>
+<td height="25" colspan="2" background="images/bg_menu.gif"><table height="25"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="76"><img src="images/el_1.gif" width="76" height="25"></td>
+<td align="center"><a href="{$m.0.url}" style="color:#FFFFFF;"><strong>{$m.0.str}</strong></a> </td>
+<td width="36" align="center" class="menu"><strong>|</strong></td>
+<td align="center"><a href="{$m.1.url}" style="color:#FFFFFF;"><strong>{$m.1.str}</strong></a>  </td>
+<td width="36" align="center" class="menu"><strong>|</strong></td>
+<td align="center"><a href="{$m.2.url}" style="color:#FFFFFF;"><strong>{$m.2.str}</strong></a> </td>
+<td width="36" align="center" class="menu"><strong>|</strong></td>
+<td align="center"><a href="{$m.3.url}" style="color:#FFFFFF;"><strong>{$m.3.str}</strong></a> </td>
+<td width="36" align="center" class="menu"><strong>|</strong></td>
+<td align="center"><a href="{$m.4.url}" style="color:#FFFFFF;"><strong>{$m.4.str}</strong></a> </td>
+</tr>
+</table></td>
+</tr>
+<tr bgcolor="#FFFFFF">
+<td height="1" colspan="2"><img src="images/el_2.gif" width="12" height="1"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="100%" valign="top" background="images/bg.gif" bgcolor="#F8FBFD" class="bgrx">
+<table width="100%" height="100%"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="179" valign="top" background="images/bg_left.gif"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="52"><img src="images/el_4.jpg" width="179" height="52"></td>
+</tr>
+<tr>
+<td height="18"><img src="images/el_5.jpg" width="179" height="18"></td>
+</tr>
+<tr>
+<td height="15"><img src="images/spacer.gif" width="1" height="15"></td>
+</tr>
+<tr>
+<td height="24" valign="top">
+<div style="width:140; padding:10px;">
+{include file="block.html"} 
+</div>
+</td>
+</tr>
+</table></td>
+<td height="100%" valign="top" class="clock"><table width="100%" height="100%"  border="0" cellpadding="0" cellspacing="0">
+<tr valign="top">
+<td height="52" colspan="3" background="images/el_3.gif" class="bgnr"><h1>{$title}</h1></td>
+</tr>
+<tr>
+<td width="18"><img src="images/spacer.gif" width="18" height="1"></td>
+<td width="100%" height="100%" valign="top"><p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+<br /></td>
+<td width="29"><img src="images/spacer.gif" width="29" height="1"></td>
+</tr>
+<tr>
+<td height="10" colspan="3"><img src="images/spacer.gif" width="1" height="10"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" align="right" background="images/bg_bottom.gif" bgcolor="#88CCE6" class="bgrx"><table border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="8" colspan="2"><img src="images/spacer.gif" width="1" height="8"></td>
+</tr>
+<tr>
+<td class="cpr">{include file="footer.html"}</td>
+<td width="21"><img src="images/spacer.gif" width="21" height="1"></td>
+</tr>
+<tr>
+<td height="7" colspan="2"><img src="images/spacer.gif" width="1" height="7"></td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

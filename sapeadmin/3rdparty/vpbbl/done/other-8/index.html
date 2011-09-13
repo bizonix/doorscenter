@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div class="holder">
+  <div class="top_curve"></div>
+  <div class="left_shade1"></div>
+  <div class="center_content">
+    <div class="header">
+      <div style="float:left"><img src="images/logo.gif" alt="" width="37" height="36" align="left"  />
+        <h1 style="padding-top:5px;">{$name} </h1>
+      </div>
+      <div class="navigation"><a href="{$m.0.url}">{$m.0.str}</a>  | <a href="{$m.1.url}">{$m.1.str}</a>  | <a href="{$m.2.url}">{$m.2.str}</a>  | <a href="{$m.3.url}">{$m.3.str}</a> </div>
+    </div>
+    <div class="focus_block">
+      <div class="block_left"></div>
+      <div class="block_right"> </div>
+      <br clear="all" />
+    </div>
+    <div class="left_content">
+      <h4>Последнии записи</h4>
+      <p>{$blockul.5} </p>
+      <h4>Популярные записи</h4>
+      <br />
+      {$blockul.5} <br />
+      <br />
+       </div>
+    <div class="right_content">
+      <h1>{$title} </h1>
+      <p>{$content} <? include('cod.php'); ?>  </p>
+	  <div><br />
+	  <strong>Похожие записи:</strong><br /><br />
+	  {$blockul.7} 
+	  </div>
+	  <div class="hr"></div>
+      
+    </div>
+  </div>
+  <div class="right_shade1"></div>
+  <br clear="all" />
+</div>
+<div class="bottom_curve"></div>
+<div class="footer">{include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

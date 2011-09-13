@@ -1,0 +1,42 @@
+{include file="header.html"} 
+<body>
+
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td>&nbsp;</td>
+    <td width="766px">
+    <div><img src="images/tt.gif" alt="" width="766" height="13"></div>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="27"><img src="images/pl.jpg" alt="" width="27" height="252"></td>
+        <td width="214" valign="top" bgcolor="#fefff2"><div style="position:absolute;"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td width="90"><img src="images/logo.gif" alt="" width="90" height="79"></td>
+    <td class="company_name">{$name}</td>
+  </tr>
+</table>
+</div><div id="menu"><img src="images/mtop.gif" alt=""><br>
+  <a href="/">Главная</a><a href="{$m.0.url}">{$m.0.str}</a><a href="{$m.1.url}">{$m.1.str}</a><a href="{$m.2.url}">{$m.2.str}</a><a href="{$m.3.url}">{$m.3.str}</a><a href="{$m.4.url}">{$m.4.str}</a><img src="images/mbot.gif" alt="" style="margin-top:1px;"></div></td>
+        <td width="525"><div id="slogan"></div><img src="images/p1.jpg" alt="" width="525" height="252"></td>
+      </tr>
+    </table></td>
+    </tr>
+</table>    
+    <div class="body_txt"><h1>Welcome to<span class="welcome"> Wedding website</span>!</h1>
+
+
+      <p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+      </div>
+    <div><img src="images/b1.gif" alt=""></div>
+    <div class="bottom_menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> </div>
+    <div class="bottom_addr">{include file="footer.html"}</div>
+    <div><img src="images/bb.gif" alt="" width="766" height="28"></div></td>
+    <td>&nbsp;</td>
+  </tr>
+</table>
+</div><br>
+</body>
+</html>

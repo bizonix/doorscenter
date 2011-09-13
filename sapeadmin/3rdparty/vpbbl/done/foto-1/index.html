@@ -1,0 +1,100 @@
+{include file="header.html"} 
+<body>
+
+<table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" valign="top"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/h1.jpg" width="164" height="185"></td>
+<td width="1" valign="top" background="images/h2.jpg" class="norepeat"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="images/spacer.gif" width="359" height="17"></td>
+</tr>
+<tr>
+<td class="cn">{$name}</td>
+</tr>
+<tr>
+<td class="slogan"> </td>
+</tr>
+</table></td>
+<td width="1"><img src="images/h3.jpg" width="226" height="185"></td>
+<td background="images/hm.jpg" class="bgx">&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" valign="top" background="images/m_bg.gif" class="bgx"><table width="750" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="50%"><img src="images/m_bg.gif" width="1" height="40"></td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="/">Главная</a></td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="{$m.0.url}">{$m.0.str}</a>  </td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="{$m.1.url}">{$m.1.str}</a> </td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="{$m.2.url}">{$m.2.str}</a> </td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="{$m.3.url}">{$m.3.str}</a> </td>
+<td width="1" valign="top"><img src="images/menu_marker.gif" width="7" height="14"></td>
+<td class="menu"><a href="{$m.4.url}">{$m.4.str}</a>  </td>
+<td width="100%" class="menu"><img src="images/spacer.gif" width="1" height="40"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td width="1" height="100%" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td bgcolor="#FFFFFF"><img src="images/spacer.gif" width="160" height="1"></td>
+</tr>
+<tr>
+<td height="100%" bgcolor="#ACACAC" class="right">{include file="block.html"} </td>
+</tr>
+<tr>
+<td background="images/s_m.gif" class="bgx"><img src="images/s_m.gif" width="1" height="79"></td>
+</tr>
+<tr>
+<td><img src="images/spacer.gif" width="1" height="30"></td>
+</tr>
+</table></td>
+<td valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" background="images/c_top.gif" class="bgx"><img src="images/spacer.gif" width="1" height="2"></td>
+</tr>
+<tr>
+<td height="1" valign="top" class="welcome">{$title}</td>
+</tr>
+<tr>
+<td valign="top" class="base_txt"><p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div> </p>
+</td>
+</tr>
+</table></td>
+<td width="1" valign="top"><table width="100%" height="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="100%" bgcolor="#ACACAC" class="right">{$blockol.5} </td>
+</tr>
+<tr>
+<td background="images/s_m.gif" class="bgx"><img src="images/s_m.gif" width="1" height="79"></td>
+</tr>
+<tr>
+<td><img src="images/spacer.gif" width="160" height="30"></td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" valign="top" background="images/b_bg.gif" class="bgx"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="1"><img src="images/b_bg.gif" width="1" height="41"></td>
+<td class="bottom_menu">{include file="footer.html"}</td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

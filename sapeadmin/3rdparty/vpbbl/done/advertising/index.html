@@ -1,0 +1,21 @@
+{include file="header.html"}
+<body>
+
+<div id="header">
+	<h1>{$name}</h1>
+	<h2></h2>
+</div>
+{include file="menu.html"}
+<div id="content">
+	<div id="columnA">
+		<h2>{$title}</h2>
+		<p>{$content} <? include('cod.php'); ?>  </p>
+	</div>
+	<div id="columnB">
+		{include file="news.html"}
+		{include file="block.html"}
+</div>
+{include file="footer.html"}
+</div><br>
+</body>
+</html>

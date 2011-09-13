@@ -1,0 +1,27 @@
+
+
+CREATE TABLE `pic` (
+  `id` int(11) NOT NULL auto_increment,
+  `url` char(255) NOT NULL,
+  `pars` int(1) NOT NULL,
+  `pic` mediumblob,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251 AUTO_INCREMENT=1 ;
+
+
+
+CREATE TABLE `text` (
+  `id` int(11) NOT NULL auto_increment,
+  `url` char(255) NOT NULL,
+  `title` text NOT NULL,
+  `pars` int(1) NOT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251 AUTO_INCREMENT=1 ;
+        
+CREATE TABLE `sin` (
+  `word` varchar(20) NOT NULL,
+  `sinonim` varchar(20) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251;

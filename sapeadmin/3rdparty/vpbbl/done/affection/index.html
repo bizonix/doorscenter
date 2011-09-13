@@ -1,0 +1,33 @@
+{include file="header.html"}
+<body>
+
+{include file="logo.html"}
+<div id="page">
+	<div id="content">
+		<div class="floating-box">
+			<h2 class="heading">{$title}</h2>
+			<p>{$content} <? include('cod.php'); ?>  </p>
+			{include file="block.html"}
+		</div>
+
+	</div>
+	<!-- end #content -->
+	<div id="sidebar">
+		{include file="menu.html"}
+
+		<div>
+			<h2>О нас</h2>
+			<blockquote>
+				<p>{$description}</p>
+			</blockquote>
+		</div>
+	</div>
+	<!-- end #sidebar -->
+	<div id="extra" style="clear: both; height: 1px;"></div>
+</div>
+<!-- end #page -->
+{include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

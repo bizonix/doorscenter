@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="container">
+  <div id="banner">
+    <ul id="menubar">
+      <li><a href="{$m.0.url}">{$m.0.str}</a> </li>
+      <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+      <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+      <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+      <li><a href="{$m.4.url}">{$m.4.str}</a> </li>
+    </ul>
+  </div>
+  <div id="sidebar">
+    <h3 class="ie6">Поиск</h3>
+    <form action="#" method="post">
+      <fieldset>
+      <input type="text" name="string" size="10" class="textfield" />
+      <br />
+      <!--[if lte IE 6]> <![endif]-->
+      <input type="submit" name="Submit" value="Найти"  class="submit"/>
+      <!--[if lte IE 6]><![endif]-->
+      </fieldset>
+    </form>
+    <h3>Популярные записи</h3>
+   {$blockul.5} 
+    <h3>Новое на сайте</h3>
+    {$blockul.5} 
+    <h3>Похожие записи</h3>
+    {$blockul.5} 
+    
+  </div>
+  <div id="content">
+    <h1>{$name} </h1>
+    <p> </p>
+    <div class="blogitem">
+      <h2>{$title} </h2>
+      <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+   
+    </div>
+    <div class="blogitem">
+      
+      
+    </div>
+  </div>
+  {include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

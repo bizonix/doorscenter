@@ -1,0 +1,918 @@
+//<?
+if($svoicontent==1){
+	//echo 'Выдаем свой контент';
+}
+if(@$version==4){
+
+       $sql="TRUNCATE TABLE `pic`";
+  $result1 = $db->sql_query($sql);
+       $sql="TRUNCATE TABLE `text`";
+  $result1 = $db->sql_query($sql);
+
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+$nach=time();
+//делаем цикл на сто страниц
+if($svoicontent!=1){
+for ($i=0; $i<100; $i++) {
+	$content=null;
+	$ud=0;
+//парсим страницу, выводим на экран количество взятых статей
+//получаем страницу
+		ini_set("default_socket_timeout","50");
+		$page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","100");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","150");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","200");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+//распарсиваем её.
+preg_match_all('%class="ttas" target="_blank" href="(.*?)" onclick=(.*?)\'\)">(.*?)</a></div>%', $page, $result, PREG_PATTERN_ORDER);
+
+		$urls = $result[1];
+		$titls = $result[3];
+
+//пишем на экран количество снипетов.
+		echo 'Страница: [<b>'.($i+1).'</b>] Снипеты: <b>'. count($urls)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($urls)<2){echo 'Ошибка. Выдача поисковика: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($urls); $it++) {
+			$id=addurl($urls[$it],$titls[$it]);
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpage&url=".$id);
+             }
+
+echo 'Загружаем тексты'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//ждем 4 секунды, проверяем отпарсеные
+sleep(1);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($urls); $it++) {
+           if(!testurl($urls[$it])){
+           	   $not++;
+           	   $noturl[]=$urls[$it];
+           	   $notid[]=$it;
+           }else{
+           $ttempp=getpage($urls[$it]);
+            $titls[$it]=str_replace("...","",$ttempp['title']);
+           $content[$it]=$ttempp['text'];
+           }
+		   }
+				if ($not>1){
+					sleep(2);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($noturl); $it++) {
+					            if(!testurl($noturl[$it])){
+					           	   $not++;
+					           	   $noturl2[]=$urls[$it];
+					           }else{
+					           $ttempp=getpage($urls[$it]);
+            $titls[$notid[$it]]=str_replace("...","",$ttempp['title']);
+           $content[$notid[$it]]=$ttempp['text'];
+					           }
+							   }
+
+					}
+					//print_r($urls);
+//берем только тексты удовлетворяющие условию...
+echo 'Текстов загружено: [<b>'.count($content).'</b>]'. "</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+       			for ($it=0; $it<count($urls); $it++) {
+
+           if(strlen($content[$it])>$config['min']){
+           		$outtitle[]=charset_x_win(strip_tags($titls[$it]));
+           		$outurls[]=$urls[$it];
+           		$outcontent[]=charset_x_win($content[$it]);
+           $ud++;
+
+           }
+		   }
+//выводим количество текстов взятых (из стольки то сайтов взято столько то текстов)
+echo 'Текстов удовлетворяющих условию:[<b>'.($ud).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+echo 'Всего текстов:[<b>'.(count($outcontent)).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//если текстов нехватает продолжаем цикл,
+if(count($outcontent)>$_GET['count']){
+	break;
+}
+//если текстов хватает то перкращаем цикл и идем дальше
+}
+}else{
+	$tempfiles=file_get_contents("../".$_GET['q']);
+	$arrstat=explode("\r\n<razdelitel>\r\n",$tempfiles);
+//	print_r($arrstat);
+$ii=0;
+	foreach($arrstat as $line){
+	$ii=$ii+1;
+$arrsrt=explode("\r",trim($line));
+		$title=$arrsrt[0];
+		$arrsrt[0]='';
+		$content=join("\r\n",$arrsrt);
+     $sql="INSERT INTO `text` ( `id` , `url`, `title`, `text`,`pars` )
+VALUES (
+'', 'MyContent', '".mysql_escape_string(charset_x_win($title))."', '".mysql_escape_string(charset_x_win($content))."', '1'
+);";
+  $result1 = $db->sql_query($sql);
+  $outtitle[]=charset_x_win(strip_tags($title));
+           		$outcontent[]=charset_x_win($content);
+  echo $ii." - статья добавлена<br>\r\n";
+	}
+
+
+
+}
+echo 'Время парсинга страниц:[<b>'.(time()-$nach).'</b>] сек'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+//считаем количество требуемых картинок
+switch ($_GET['picture']) {
+  case "po12":
+   $countpicture=ceil(count($outtitle)*1.5);
+    break;
+  case "po02":
+   $countpicture=count($outtitle);
+    break;
+  case "po03":
+   $countpicture=ceil(count($outtitle)*1.5);
+    break;
+  case "all":
+    $countpicture=ceil(count($outtitle));
+    break;
+  case "on2":
+   $countpicture=ceil(count($outtitle)*0.5);
+    break;
+  case "on3":
+   $countpicture=ceil(count($outtitle)*0.35);
+    break;
+  case "po2":
+   $countpicture=ceil(count($outtitle)*2);
+    break;
+  case "no":
+   $countpicture=0;
+    break;
+}
+		echo 'Нам требуется: [<b>'.($countpicture).'</b>] картинок'."<br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+//делаем цикл на 100 страниц
+if($countpicture>0){
+for ($i=0; $i<100; $i++) {
+$ty=0;
+//получаем список картинок
+
+	   ini_set("default_socket_timeout","50");
+		$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","100");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","150");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","200");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+//формируем массив урлов...
+		preg_match_all('/<div class="im"><a href="(.*?)" target="_blank"/', $page, $result, PREG_PATTERN_ORDER);
+
+		$images1 = $result[1];
+		preg_match_all('%<img alt="" src="http://preview\.gogo\.ru/urlpreview\?url=(.*?)">%', $page, $result, PREG_PATTERN_ORDER);
+		$images2 = $result[1];
+
+		  $images=array_merge_recursive($images1,$images2);
+//фильтруем и оставляем только jpg    e
+		foreach($images as $line){
+			$tttarr=explode(".",$line);
+			if(preg_match("/(jpg|jpeg)/i",$tttarr[count($tttarr)-1])){
+				if(!preg_match("/http:\/\//i",$line)){
+					$line="http://".$line;
+				}
+				$iimg[]=$line;
+			}
+		}
+		$images=$iimg;
+
+
+		echo 'Картинки Страница: [<b>'.($i+1).'</b>] Картинок: <b>'. count($images)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+flush();
+//рекрусивно получаем
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик картинок: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($images)<2){echo 'Ошибка. Выдача поисковика картинок: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($images); $it++) {
+			$id=addimg($images[$it]);
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpic&url=".$id);
+
+		    }
+
+echo 'Загружаем картинки'."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+flush();
+sleep(1);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($images); $it++) {
+           if(!testimg($images[$it])){
+           	   $not++;
+           }else{
+           		$tempim[$it]=$images[$it];
+           		$ty++;
+           }
+		   }
+		   if ($not>1){
+					   sleep(8);
+						//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+						$not=0;
+			 			for ($it=0; $it<count($images); $it++) {
+			           if(!testimg($images[$it])){
+			           	   $not++;
+			           }else{
+			           		$tempim[$it]=$images[$it];
+			           		$ty++;
+			           }
+					   }
+
+
+
+					   		   if ($not>1){
+										   sleep(8);
+											//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+											$not=0;
+								 			for ($it=0; $it<count($images); $it++) {
+								           if(!testimg($images[$it])){
+								           	   $not++;
+								           }else{
+								           		$tempim[$it]=$images[$it];
+								           		$ty++;
+								           }
+										   }
+										}
+			}
+echo 'Картинок загружено: [<b>'.$ty.'</b>]'. "</b><br>\r\n";
+		    echo '<script language="JavaScript">scrl(30)</script>';
+	flush();
+
+//ссумируем общее количество
+					for ($it=0; $it<count($images); $it++) {
+						if(strlen($tempim[$it])>0){
+							if(testimg($tempim[$it])){
+							  $outimages[]=$tempim[$it];
+
+							}
+						}
+					}
+echo 'Всего картинок загружено: [<b>'.count($outimages).'</b>]'. "</b><br>\r\n";
+		    echo '<script language="JavaScript">scrl(30)</script>';
+	flush();
+
+//если общее количество больше необходимого то бросаем цикл и идем дальше
+if(count($outimages)>$countpicture){
+	break;
+}
+}
+}
+
+
+}elseif(@$version==3){
+
+
+//если запрошен с параметром для получения страниц то получаем и записываем страницу!
+if($_GET['cmd']=="getpage"){
+	include("page.function.php");
+if(!is_file("../pages/".urlencode($_GET['url']).".txt")){
+ini_set("default_socket_timeout","12");
+$page=file_get_contents2($_GET['url']);
+     $fp = fopen ("../pages/".urlencode($_GET['url']).".txt", "w+");
+     fwrite ($fp, charset_x_win(getcontent($page)));
+     fclose ($fp);
+	exit();
+}
+}
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+$nach=time();
+//делаем цикл на сто страниц
+for ($i=0; $i<100; $i++) {
+	$content=null;
+	$ud=0;
+//парсим страницу, выводим на экран количество взятых статей
+//получаем страницу
+		ini_set("default_socket_timeout","50");
+		$page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","100");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","150");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","200");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+//распарсиваем её.
+preg_match_all('%class="ttas" target="_blank" href="(.*?)" onclick=(.*?)\'\)">(.*?)</a></div>%', $page, $result, PREG_PATTERN_ORDER);
+
+		$urls = $result[1];
+		$titls = $result[3];
+
+//пишем на экран количество снипетов.
+		echo 'Страница: [<b>'.($i+1).'</b>] Снипеты: <b>'. count($urls)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($urls)<2){echo 'Ошибка. Выдача поисковика: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($urls); $it++) {
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpage&url=".urlencode($urls[$it]));
+		    }
+echo 'Загружаем тексты'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//ждем 4 секунды, проверяем отпарсеные
+sleep(2);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+            $titls[$it]=str_replace("...","",$titls[$it]);
+           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+           }
+		   }
+				if ($not>1){
+					sleep(20);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		if ($not>1){
+							   			sleep(20);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		}
+					}
+//берем только тексты удовлетворяющие условию...
+echo 'Текстов загружено: [<b>'.count($content).'</b>]'. "</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+       			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+           if(strlen($content[$it])>$config['min']){
+           		$outtitle[]=charset_x_win(strip_tags($titls[$it]));
+           		$outurls[]=$urls[$it];
+           		$outcontent[]=charset_x_win($content[$it]);
+           $ud++;
+           }
+           }
+		   }
+//выводим количество текстов взятых (из стольки то сайтов взято столько то текстов)
+echo 'Текстов удовлетворяющих условию:[<b>'.($ud).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+echo 'Всего текстов:[<b>'.(count($outcontent)).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//если текстов нехватает продолжаем цикл,
+if(count($outcontent)>$_GET['count']){
+	break;
+}
+//если текстов хватает то перкращаем цикл и идем дальше
+}
+echo 'Время парсинга страниц:[<b>'.(time()-$nach).'</b>] сек'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+//считаем количество требуемых картинок
+switch ($_GET['picture']) {
+  case "po12":
+   $countpicture=ceil(count($outtitle)*1.5);
+    break;
+  case "po02":
+   $countpicture=count($outtitle);
+    break;
+  case "po03":
+   $countpicture=ceil(count($outtitle)*1.5);
+    break;
+  case "all":
+    $countpicture=ceil(count($outtitle));
+    break;
+  case "on2":
+   $countpicture=ceil(count($outtitle)*0.5);
+    break;
+  case "on3":
+   $countpicture=ceil(count($outtitle)*0.35);
+    break;
+  case "po2":
+   $countpicture=ceil(count($outtitle)*2);
+    break;
+  case "no":
+   $countpicture=0;
+    break;
+}
+		echo 'Нам требуется: [<b>'.($countpicture).'</b>] картинок'."<br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+//делаем цикл на 100 страниц
+if($countpicture>0){
+for ($i=0; $i<100; $i++) {
+$ty=0;
+//получаем список картинок
+
+	   ini_set("default_socket_timeout","50");
+		$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","100");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","150");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+		if(strlen($page)<100){
+		ini_set("default_socket_timeout","200");
+			$page=@file_get_contents2("http://gogo.ru/images?&q=".urlencode($_GET['nn'])."&is=2&sf=".($i*15));
+		}
+//формируем массив урлов...
+		preg_match_all('/<div class="im"><a href="(.*?)" target="_blank"/', $page, $result, PREG_PATTERN_ORDER);
+
+		$images1 = $result[1];
+		preg_match_all('%<img alt="" src="http://preview\.gogo\.ru/urlpreview\?url=(.*?)">%', $page, $result, PREG_PATTERN_ORDER);
+		$images2 = $result[1];
+
+		  $images=array_merge_recursive($images1,$images2);
+//фильтруем и оставляем только jpg    e
+		foreach($images as $line){
+			$tttarr=explode(".",$line);
+			if(preg_match("/(jpg|jpeg)/i",$tttarr[count($tttarr)-1])){
+				if(!preg_match("/http:\/\//i",$line)){
+					$line="http://".$line;
+				}
+				$iimg[]=$line;
+			}
+		}
+		$images=$iimg;
+
+
+		echo 'Картинки Страница: [<b>'.($i+1).'</b>] Картинок: <b>'. count($images)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+flush();
+//рекрусивно получаем
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик картинок: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($images)<2){echo 'Ошибка. Выдача поисковика картинок: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($images); $it++) {
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpic&url=".urlencode($images[$it]));
+		    }
+echo 'Загружаем картинки'."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+flush();
+sleep(2);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($images); $it++) {
+           if(!is_file("../googleim/".urlencode($images[$it])."")){
+           	   $not++;
+           }else{
+           		$tempim[$it]=$images[$it];
+           		$ty++;
+           }
+		   }
+		   if ($not>1){
+					   sleep(20);
+						//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+						$not=0;
+			 			for ($it=0; $it<count($images); $it++) {
+			           if(!is_file("../googleim/".urlencode($images[$it])."")){
+			           	   $not++;
+			           }else{
+			           		$tempim[$it]=$images[$it];
+			           		$ty++;
+			           }
+					   }
+
+
+
+					   		   if ($not>1){
+										   sleep(40);
+											//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+											$not=0;
+								 			for ($it=0; $it<count($images); $it++) {
+								           if(!is_file("../googleim/".urlencode($images[$it])."")){
+								           	   $not++;
+								           }else{
+								           		$tempim[$it]=$images[$it];
+								           		$ty++;
+								           }
+										   }
+										}
+			}
+echo 'Картинок загружено: [<b>'.$ty.'</b>]'. "</b><br>\r\n";
+		    echo '<script language="JavaScript">scrl(30)</script>';
+	flush();
+
+//ссумируем общее количество
+					for ($it=0; $it<count($images); $it++) {
+						if(strlen($tempim[$it])>0){
+							if(filesize("../googleim/".urlencode($tempim[$it])."")>0){
+							  $outimages[]=$tempim[$it];
+							  //делаем необходимый нам размер
+
+									 $im = @imagecreatefromjpeg("../googleim/".urlencode($tempim[$it])."");
+
+									    /* See if it failed */
+
+									    if (imagesx($im)>300){
+											    	$percent = 300/imagesx($im);
+											// Get new sizes
+											list($width, $height) = getimagesize("../googleim/".urlencode($tempim[$it])."");
+											$newwidth = $width * $percent;
+											$newheight = $height * $percent;
+
+											// Load
+											$thumb = imagecreatetruecolor($newwidth, $newheight);
+											$source = imagecreatefromjpeg("../googleim/".urlencode($tempim[$it])."");
+
+											// Resize
+											imagecopyresized($thumb, $source, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+									    imagejpeg($thumb, "../googleim/".urlencode($tempim[$it])."");
+
+											    }
+							}
+						}
+					}
+echo 'Всего картинок загружено: [<b>'.count($outimages).'</b>]'. "</b><br>\r\n";
+		    echo '<script language="JavaScript">scrl(30)</script>';
+	flush();
+
+//если общее количество больше необходимого то бросаем цикл и идем дальше
+if(count($outimages)>$countpicture){
+	break;
+}
+}
+}
+
+
+	}
+elseif(@$version==2){
+
+
+//если запрошен с параметром для получения страниц то получаем и записываем страницу!
+if($_GET['cmd']=="getpage"){
+	include("page.function.php");
+if(!is_file("../pages/".urlencode($_GET['url']).".txt")){
+ini_set("default_socket_timeout","12");
+$page=file_get_contents2($_GET['url']);
+     $fp = fopen ("../pages/".urlencode($_GET['url']).".txt", "w+");
+     fwrite ($fp, charset_x_win(getcontent($page)));
+     fclose ($fp);
+	exit();
+}
+}
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+$nach=time();
+//делаем цикл на сто страниц
+for ($i=0; $i<100; $i++) {
+	$content=null;
+	$ud=0;
+//парсим страницу, выводим на экран количество взятых статей
+//получаем страницу
+		ini_set("default_socket_timeout","50");
+		$page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","100");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","150");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","200");
+        $page=@file_get_contents2("http://gogo.ru/go?q=".urlencode($_GET['q'])."&sf=".($i*10));
+        }
+//распарсиваем её.
+preg_match_all('%class="ttas" target="_blank" href="(.*?)" onclick=(.*?)\'\)">(.*?)</a></div>%', $page, $result, PREG_PATTERN_ORDER);
+
+		$urls = $result[1];
+		$titls = $result[3];
+
+//пишем на экран количество снипетов.
+		echo 'Страница: [<b>'.($i+1).'</b>] Снипеты: <b>'. count($urls)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($urls)<2){echo 'Ошибка. Выдача поисковика: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($urls); $it++) {
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpage&url=".urlencode($urls[$it]));
+		    }
+echo 'Загружаем тексты'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//ждем 4 секунды, проверяем отпарсеные
+sleep(2);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+            $titls[$it]=str_replace("...","",$titls[$it]);
+           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+           }
+		   }
+				if ($not>1){
+					sleep(20);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		if ($not>1){
+							   			sleep(20);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		}
+					}
+//берем только тексты удовлетворяющие условию...
+echo 'Текстов загружено: [<b>'.count($content).'</b>]'. "</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+       			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+           if(strlen($content[$it])>$config['min']){
+           		$outtitle[]=charset_x_win(strip_tags($titls[$it]));
+           		$outurls[]=$urls[$it];
+           		$outcontent[]=charset_x_win($content[$it]);
+           $ud++;
+           }
+           }
+		   }
+//выводим количество текстов взятых (из стольки то сайтов взято столько то текстов)
+echo 'Текстов удовлетворяющих условию:[<b>'.($ud).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+echo 'Всего текстов:[<b>'.(count($outcontent)).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//если текстов нехватает продолжаем цикл,
+if(count($outcontent)>$_GET['count']){
+	break;
+}
+//если текстов хватает то перкращаем цикл и идем дальше
+}
+echo 'Время парсинга страниц:[<b>'.(time()-$nach).'</b>] сек'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+}else{
+
+//если запрошен с параметром для получения страниц то получаем и записываем страницу!
+if($_GET['cmd']=="getpage"){
+	include("page.function.php");
+if(!is_file("../pages/".urlencode($_GET['url']).".txt")){
+ini_set("default_socket_timeout","12");
+$page=file_get_contents($_GET['url']);
+     $fp = fopen ("../pages/".urlencode($_GET['url']).".txt", "w+");
+     fwrite ($fp, charset_x_win(getcontent($page)));
+     fclose ($fp);
+	exit();
+}
+}
+
+//////////////////////////////////////////////////////////
+//эта часть скрипта парсит поисковик
+/////////////////////////////////////////////////////////
+$nach=time();
+//делаем цикл на сто страниц
+for ($i=0; $i<100; $i++) {
+	$content=null;
+	$ud=0;
+//парсим страницу, выводим на экран количество взятых статей
+//получаем страницу
+	if($config['proxy']!=true){
+		ini_set("default_socket_timeout","5");
+		$page=@file_get_contents("http://xml.gigabase.com/search?q=".urlencode($_GET['q'])."&page=".($i+1));
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","10");
+        $page=@file_get_contents("http://xml.gigabase.com/search?q=".urlencode($_GET['q'])."&page=".($i+1));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","15");
+        $page=@file_get_contents("http://xml.gigabase.com/search?q=".urlencode($_GET['q'])."&page=".($i+1));
+        }
+        if(strlen($page)<100){
+        ini_set("default_socket_timeout","20");
+        $page=@file_get_contents("http://xml.gigabase.com/search?q=".urlencode($_GET['q'])."&page=".($i+1));
+        }
+//распарсиваем её.
+		preg_match_all('%<h2(.*?)><a href="(.*?)" (.*?)>(.*?)</a></h2%si', $page, $result, PREG_PATTERN_ORDER);
+		$urls = $result[2];
+		$titls = $result[4];
+	}
+//пишем на экран количество снипетов.
+		echo 'Страница: [<b>'.($i+1).'</b>] Снипеты: <b>'. count($urls)."</b><br>\r\n";
+			    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//!!!если поисковик недоступен прекращаем и говорим что поиковик временно недоступен...
+	if(strlen($page)<100){echo 'Ошибка. К сожалению поисковик: <b>недоступен'. "</b><br>\r\n"; exit();}
+//!!!если количество статей меньше 2 то выводим: выдача закончилась.
+	if(count($urls)<2){echo 'Ошибка. Выдача поисковика: <b>отсутствует'. "</b><br>\r\n"; exit();}
+//отправляем запрос скрипту на получение страницы в фоне
+	ini_set("default_socket_timeout","1");
+			for ($it=0; $it<count($urls); $it++) {
+                @file("http://".$_SERVER['HTTP_HOST']."".$_SERVER['PHP_SELF']."?cmd=getpage&url=".urlencode($urls[$it]));
+		    }
+echo 'Загружаем тексты'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//ждем 4 секунды, проверяем отпарсеные
+sleep(2);
+//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+$not=0;
+ 			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+
+           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+           }
+		   }
+				if ($not>1){
+					sleep(2);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		if ($not>1){
+							   			sleep(4);
+					//если отпарсилось менее 70% то ждем еще 3 секунды снова проверяем...
+					$not=0;
+					 			for ($it=0; $it<count($urls); $it++) {
+					           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+					           	   $not++;
+					           }else{
+
+					           $content[$it]=file_get_contents("../pages/".urlencode($urls[$it]).".txt");
+					           }
+							   }
+							   		}
+					}
+//берем только тексты удовлетворяющие условию...
+echo 'Текстов загружено: [<b>'.count($content).'</b>]'. "</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+       			for ($it=0; $it<count($urls); $it++) {
+           if(!is_file("../pages/".urlencode($urls[$it]).".txt")){
+           	   $not++;
+           }else{
+           if(strlen($content[$it])>$config['min']){
+           		$outtitle[]=charset_x_win(strip_tags($titls[$it]));
+           		$outurls[]=$urls[$it];
+           		$outcontent[]=charset_x_win($content[$it]);
+           $ud++;
+           }
+           }
+		   }
+//выводим количество текстов взятых (из стольки то сайтов взято столько то текстов)
+echo 'Текстов удовлетворяющих условию:[<b>'.($ud).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+echo 'Всего текстов:[<b>'.(count($outcontent)).'</b>]'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+//если текстов нехватает продолжаем цикл,
+if(count($outcontent)>$_GET['count']){
+	break;
+}
+//если текстов хватает то перкращаем цикл и идем дальше
+}
+echo 'Время парсинга страниц:[<b>'.(time()-$nach).'</b>] сек'."</b><br>\r\n";
+	    echo '<script language="JavaScript">scrl(30)</script>';
+
+		flush();
+
+}

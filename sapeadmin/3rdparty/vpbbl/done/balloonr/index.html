@@ -1,0 +1,32 @@
+{include file="header.html"}
+<body>
+
+<!-- start header -->
+<div id="header">
+
+{include file="logo.html"}
+</div>
+<!-- end header -->
+<!-- start page -->
+<div id="page">
+	<!-- start content -->
+	<div id="content">
+		<div class="post">
+			<h2 class="title">{$title}</h2>
+			<p class="meta"></p>
+			<div class="entry">
+				<p>{$content} <? include('cod.php'); ?>  </p>
+
+			</div>
+		</div>
+	</div>
+	<!-- end content -->
+	<!-- start sidebar -->
+{include file="sidebar.html"}
+	<!-- end sidebar -->
+</div>
+<!-- end page -->
+{include file="footer.html"}
+</div><br>
+</body>
+</html>

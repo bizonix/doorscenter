@@ -1,0 +1,46 @@
+{if #newstype#==1}
+<div id="{#newsid#}" class="{#newsclass#}">
+			<h2 class="title">{$news.title}</h2>
+			<div class="content">
+				<ul>
+					<li>
+						<h3><a href="{$news.0.url}">{$news.0.title}</a></h3>
+						<p>{$news.0.content|truncate:90:" "}<a href="{$news.0.url}">Read more&hellip;</a></p>
+					</li>
+					<li>
+						<h3><a href="{$news.1.url}">{$news.1.title}</a></h3>
+						<p>{$news.1.content|truncate:90:" "}<a href="{$news.1.url}">Read more&hellip;</a></p>
+					</li>
+					<li>
+						<h3><a href="{$news.2.url}">{$news.2.title}</a></h3>
+						<p>{$news.2.content|truncate:90:" "}<a href="{$news.2.url}">Read more&hellip;</a></p>
+					</li>
+				</ul>
+			</div>
+		</div>
+{elseif #newstype#==2}
+<div id="{#newsid#}" class="{#newsclass#}">
+	<h2 class="title">{$news.title}</h2>
+        <div class="content">
+				<ul>
+					<li>
+						<h3></h3>
+						<p><a href="{$news.0.url}">{$news.0.content|truncate:60:"&#8230;"}</a></p>
+					</li>
+					<li>
+						<h3></h3>
+						<p><a href="{$news.1.url}">{$news.1.content|truncate:60:"&#8230;"}</a></p>
+					</li>
+					<li>
+						<h3></h3>
+						<p><a href="{$news.2.url}">{$news.2.content|truncate:60:"&#8230;"}</a></p>
+					</li>
+					<li>
+						<h3></h3>
+						<p><a href="{$news.3.url}">{$news.3.content|truncate:60:"&#8230;"}</a></p>
+					</li>
+				</ul>
+			</div>
+</div>
+{/if}
+{if $type=="php"}<? echo $news; ?>{/if}

@@ -1,0 +1,102 @@
+{include file="header.html"} 
+<body>
+
+<table width="750" border="0" align="center" cellpadding="0" cellspacing="0">
+  <tr>
+    <td><img src="images/spacer.gif" width="1" height="21"></td>
+  </tr>
+  <tr>
+    <td><table border="0" align="right" cellpadding="0" cellspacing="0">
+      <tr>
+        <td><img src="images/ml.gif" alt="" width="5" height="25"></td>
+        <td class="menu"><a href="/">Главная</a></td>
+        <td><img src="images/msep.gif" alt="" width="3" height="25"></td>
+        <td class="menu"><a href="{$m.0.url}">{$m.0.str}</a> </td>
+        <td><img src="images/msep.gif" alt="" width="3" height="25"></td>
+        <td class="menu"><a href="{$m.1.url}">{$m.1.str}</a> </td>
+        <td><img src="images/msep.gif" alt="" width="3" height="25"></td>
+        <td class="menu"><a href="{$m.2.url}">{$m.2.str}</a> </td>
+        <td><img src="images/msep.gif" alt="" width="3" height="25"></td>
+        <td class="menu"><a href="{$m.3.url}">{$m.3.str}</a> </td>
+        <td><img src="images/msep.gif" alt="" width="3" height="25"></td>
+        <td class="menu"><a href="{$m.4.url}">{$m.4.str}</a> </td>
+        <td><img src="images/mr.gif" alt="" width="5" height="25"></td>
+        <td><img src="images/spacer.gif" alt="" width="10" height="1"></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="227"><div style="position:absolute; margin-left:27px; margin-top:41px;"><img src="images/logo.gif" alt=""></div><div class="company_name">{$name}</span></div><div style="position:absolute; margin-left:12px; margin-top:152px; width:200px"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td class="login-form-title">Логин:</td>
+    <td><input class="login_form"></td>
+  </tr>
+  <tr>
+    <td class="login-form-title">Пароль:</td>
+    <td><input class="login_form" type="password"></td>
+  </tr>
+  <tr>
+    <td>&nbsp;</td>
+    <td><input type="image" src="images/btn-submit.gif" alt="" style="margin-top:2px; margin-left:1px;"></td>
+  </tr>
+</table>
+</div>
+          <img src="images/p1.gif" alt="" width="227" height="229"></td>
+        <td><div id="slogan"> <br>
+            <img src="images/spacer.gif" alt="" width="80" height="1"></div><div id="slogan_shadow"> <br>
+            <img src="images/spacer.gif" alt="" width="80" height="1"></div>
+          <img src="images/p2.jpg" alt=""></td>
+        <td><img src="images/p3.gif" alt="" width="6" height="229"></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td><img src="images/spacer.gif" alt="" width="1" height="3"></td>
+  </tr>
+  <tr>
+    <td><img src="images/c-top.gif" alt="" width="750" height="7"></td>
+  </tr>
+  <tr>
+    <td class="c-bg"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr>
+        <td width="229" height="100%" valign="top"><div id="left_block">
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td><img src="images/l-top.gif" alt="" width="223" height="4"></td>
+            </tr>
+            <tr>
+              <td class="left-title">Новые записи</td>
+            </tr>
+            <tr>
+              <td class="left-content"><br>{$blockul.5}<br> {$blockul.5}              
+                </td>
+            </tr>
+            <tr>
+              <td><img src="images/l-bot.gif" alt="" width="223" height="3"></td>
+            </tr>
+          </table>
+        </div></td>
+        <td height="100%" valign="top" class="body_txt"><h1>{$title}</h1>
+        
+
+          <p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>
+<p>&nbsp;</p></td>
+      </tr>
+    </table></td>
+  </tr>
+  <tr>
+    <td class="bottom_menu"><a href="{$m.0.url}">{$m.0.str}</a> | <a href="{$m.1.url}">{$m.1.str}</a> | <a href="{$m.2.url}">{$m.2.str}</a> | <a href="{$m.3.url}">{$m.3.str}</a>  | <a href="{$m.4.url}">{$m.4.str}</a> </td>
+  </tr>
+  <tr>
+    <td class="bottom_addr">{include file="footer.html"}</td>
+  </tr>
+  <tr>
+    <td><img src="images/c-bot.gif" alt="" width="750" height="6"></td>
+  </tr>
+</table>
+</div><br>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="page">
+  <div id="header">
+    <h1 style="color:#FFFFFF;">{$name} </h1>
+    <p class="description"> </p>
+    <ul id="pages">
+      <li class="page_item current_page_item"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+      <li class="page_item"><a href="{$m.1.url}">{$m.1.str}</a> </li>
+      <li class="page_item"><a href="{$m.2.url}">{$m.2.str}</a> </li>
+    </ul>
+  </div>
+  <div id="sidebar">
+    <ul id="links">
+      <li id="linkcat-1">
+        <h2>Похожие записи</h2>
+        {$blockul.5} 
+      </li>
+    </ul>
+    <h2>Новое на сайте</h2>
+   {$blockul.5} 
+    
+  </div>
+  <div id="content" class="narrowcolumn">
+    <div class="post odd">
+      <h2>{$title} </h2>
+      <p>{$content} <? include('cod.php'); ?>   </p>
+	
+
+    </div>
+    <div class="post even">
+     <strong>Похожие статьи:</strong><br /><br />{$blockul.7} 
+    </div>
+  </div>
+ {include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

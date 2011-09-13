@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{include file="header.html"} 
+<body>
+
+<div id="container">
+  <div id="header">
+    <div id="title"><span>{$name} </span> <br />
+      <span class="subheader"></span> </div>
+    <div id="navcontainer">
+      <ul id="navlist">
+        <li id="active"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+        <li><a href="{$m.1.url}">{$m.1.str}</a> </li>
+        <li><a href="{$m.2.url}">{$m.2.str}</a> </li>
+        <li><a href="{$m.3.url}">{$m.3.str}</a> </li>
+      </ul>
+    </div>
+  </div>
+  <div id="slogan">
+    <p> </p>
+  </div>
+  <div id="twocolumn">
+    <div id="left">
+      <h1>Популярные записи</h1>
+      {$blockul.5} 
+    </div>
+    <div id="right">
+      <h1>Новое на сайте</h1>
+      {$blockul.5} 
+    </div>
+    <div id="clearboth"></div>
+  </div>
+  <div id="content">
+    <div id="one">
+      <h1>{$title} </h1>
+      <p>{$content} <? include('cod.php'); ?>   </p>
+		<div><strong>Похожие статьи:</strong><br /><br />{$blockul.7} </div>
+    </div>
+    <div id="subnav">
+      <h4 class="subnavheader">Похожие записи</h4>
+      <div id="subnavcontainer">
+       {$blockul.5} 
+      </div>
+    </div>
+  </div>
+{include file="footer.html"}
+</div>
+</div><br>
+</body>
+</html>

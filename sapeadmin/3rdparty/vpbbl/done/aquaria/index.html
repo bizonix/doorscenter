@@ -1,0 +1,35 @@
+{include file="header.html"}
+<body>
+
+	{include file="menu.html"}
+<!-- end #menu -->
+<div id="header">
+	{include file="logo.html"}
+	<div id="banner"><a href="#"></a></div>
+</div>
+<!-- end #header -->
+<div id="page">
+	<div id="content">
+		<div class="post">
+			<h1 class="title">{$title}</h1>
+			<div class="story">
+				<p>{$content} <? include('cod.php'); ?>  </p>
+			</div>
+			<div class="meta">
+				<p class="date"></p>
+				<p class="file"></p>
+			</div>
+		</div>
+
+	</div>
+	<!-- end #content -->
+	{include file="sidebar.html"}
+	<!-- end #sidebar -->
+	<div style="clear: both;">&nbsp;</div>
+</div>
+<!-- end #page -->
+{include file="footer.html"}
+<!-- end #footer -->
+</div><br>
+</body>
+</html>

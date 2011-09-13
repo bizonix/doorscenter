@@ -1,0 +1,20 @@
+<div id="{if #sidebar#|count_characters > 0}{#sidebar#}{else}sidebar{/if}">
+					<ul>
+						<li>
+							<h2>Меню</h2>
+							<ul>
+							{foreach name=sidebar from=$m item=curr_id}
+{if $smarty.foreach.sidebar.iteration<7}
+								<li><a href="{$curr_id.url}">{$curr_id.str}</a></li>
+
+{/if}
+{/foreach}
+							</ul>
+						</li>
+						<li>
+							<h2>Другие статьи</h2>
+							{$blockul.7}
+						</li>
+
+					</ul>
+				</div>

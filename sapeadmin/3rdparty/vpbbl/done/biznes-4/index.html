@@ -1,0 +1,99 @@
+{include file="header.html"} 
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" height="100%"  border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td height="1" colspan="3" background="images/bg_1.jpg"><img src="images/empty.gif" width="1" height="7"></td>
+</tr>
+<tr>
+<td colspan="3"><img src="images/empty.gif" width="1" height="1"></td>
+</tr>
+<tr>
+<td width="230" valign="middle" background="images/bg_2.jpg"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td width="66"><img src="images/empty.gif" width="16" height="1"><img src="images/logo.jpg" width="43" height="43"><img src="images/empty.gif" width="7" height="1"></td>
+<td class="logo"><strong>{$name}</strong><br> </td>
+</tr>
+</table></td>
+<td width="4" background="images/bg_2.jpg"><img src="images/empty.gif" width="4" height="66"></td>
+<td align="right" background="images/bg_2.jpg"><img src="images/e_2.jpg" width="222" height="66"></td>
+</tr>
+<tr>
+<td colspan="3"><img src="images/empty.gif" width="1" height="1"></td>
+</tr>
+<tr >
+<td height="2" colspan="3" background="images/bg_3.jpg"><img src="images/empty.gif" width="1" height="2">
+</td>
+</tr>
+<tr>
+<td valign="top"><img src="images/men.jpg" width="230" height="196">
+<br>
+<div style=" width:200px; padding:10px;">
+{include file="block.html"} 
+</div>
+
+</td>
+<td>&nbsp;</td>
+<td valign="top"><table width="100%" border="0" cellpadding="0" cellspacing="0">
+<tr>
+<td colspan="2" background="images/bg_5.jpg"><table border="0" cellpadding="0" cellspacing="0" bgcolor="#FFFFFF">
+<tr>
+<td width="9" height="31" align="left"><img src="images/btn_l.jpg" width="9" height="31"></td>
+<td align="center" background="images/btn_bg.jpg"><a href="{$m.0.url}" style="color:#ffffff;">{$m.0.str}</a> </td>
+<td width="9" align="left"><img src="images/btn_r.jpg" width="9" height="31"></td>
+<td width="1" align="left"><img src="images/empty.gif" width="1" height="1"></td>
+<td width="9" align="left"><img src="images/btn_l.jpg" width="9" height="31"></td>
+<td align="center" background="images/btn_bg.jpg"><a href="{$m.1.url}" style="color:#ffffff;">{$m.1.str}</a> </td>
+<td width="9" align="left"><img src="images/btn_r.jpg" width="9" height="31"></td>
+<td width="1" align="left"><img src="images/empty.gif" width="1" height="1"></td>
+<td width="9" align="left"><img src="images/btn_l.jpg" width="9" height="31"></td>
+<td align="center" background="images/btn_bg.jpg"><a href="{$m.2.url}" style="color:#ffffff;">{$m.2.str}</a></td>
+<td width="9" align="left"><img src="images/btn_r.jpg" width="9" height="31"></td>
+<td width="1" align="left"><img src="images/empty.gif" width="1" height="1"></td>
+<td width="9" align="left"><img src="images/btn_l.jpg" width="9" height="31"></td>
+<td align="center" background="images/btn_bg.jpg"><a href="{$m.3.url}" style="color:#ffffff;">{$m.3.str}</a> </td>
+<td width="9" align="left"><img src="images/btn_r.jpg" width="9" height="31"></td>
+<td width="1"><img src="images/empty.gif" width="1" height="1"></td>
+</tr>
+<tr>
+<td height="1" colspan="16"></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="3" colspan="2"><img src="images/empty.gif" width="1" height="3"></td>
+</tr>
+<tr>
+<td width="17" background="images/bg_4.jpg"><img src="images/e_1.jpg" width="4" height="40"><img src="images/empty.gif" width="13" height="1"></td>
+<td background="images/bg_4.jpg"><h1>{$title}</h1></td>
+</tr>
+<tr>
+<td height="1" colspan="2" background="images/bg_6.jpg"><img src="images/empty.gif" width="1" height="1"></td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+<td height="100%"><table width="436" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td valign="top">
+<p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div> </p>
+</td>
+</tr>
+<tr>
+<td>&nbsp;</td>
+</tr>
+</table></td>
+</tr>
+</table></td>
+</tr>
+<tr>
+<td height="1" colspan="3" class="menu"><table width="100%"  border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td height="81" align="center" valign="middle" bgcolor="#63802E" class="m2"><a href="{$m.0.url}" style="color:#FFFFFF;">{$m.0.str}</a> | <a href="{$m.1.url}" style="color:#FFFFFF;">{$m.1.str}</a> | <a href="{$m.2.url}" style="color:#FFFFFF;">{$m.2.str}</a> | <a href="{$m.3.url}" style="color:#FFFFFF;">{$m.3.str}</a>  | <a href="{$m.4.url}" style="color:#FFFFFF;">{$m.4.str}</a> <br>
+{include file="footer.html"}</td>
+</tr>
+</table></td>
+</tr>
+</table>
+</div><br>
+</body>
+</html>

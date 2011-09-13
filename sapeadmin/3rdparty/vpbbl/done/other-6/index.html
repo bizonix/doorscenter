@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+{include file="header.html"} 
+<body>
+
+<div class="header">
+  <div class="header_interior"><img src="images/logo.gif" alt="" width="44" height="44" style="float:left; margin-right:10px;" />
+    <h1 class="title">{$name} </h1>
+  </div>
+</div>
+<div class="header_shadow"></div>
+<div class="content_body">
+  <div class="content_interior">
+    <div class="left_column">
+      <div class="navigation">
+        <ul class="markermenu">
+          <li class="markermenu"><a href="{$m.0.url}">{$m.0.str}</a> </li>
+          <li class="markermenu"><a href="{$m.1.url}">{$m.1.str}</a> </li>
+          <li class="markermenu"><a href="{$m.2.url}">{$m.2.str}</a> </li>
+          <li class="markermenu"><a href="{$m.3.url}">{$m.3.str}</a> </li>
+          <li class="markermenu"><a href="{$m.4.url}">{$m.4.str}</a> </li>
+        </ul>
+      </div>
+      <div class="navigationbtm"></div>
+      <br />
+     
+      <h4>Последнии записи</h4>
+      <br />
+      {$blockul.5} {$blockul.5} </div>
+    <div class="right_column">
+      <h1>{$title} </h1>
+      <p>{$content} <? include('cod.php'); ?>  </p>
+	  <div><br />
+	  <strong>Похожие записи:</strong><br /><br />
+	  {$blockul.7} 
+	  </div>
+    </div>
+  </div>
+  <br clear="all" />
+</div>
+<div class="footer">
+  <div class="footer-inner"><br clear="all" />
+    <hr width="100%"  noshade="noshade" style="border-top:1px solid #FFFFFF; border-bottom: none; margin-bottom:5px;" />
+    <div style="text-align:center;">{include file="footer.html"}
+    </div>
+  </div>
+  <br clear="all" />
+</div>
+</div><br>
+</body>
+</html>

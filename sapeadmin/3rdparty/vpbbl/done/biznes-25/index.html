@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"><html>
+{include file="header.html"}
+<body>
+
+<div id="wrap">
+  <div id="conteiner">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+      <tr valign="top">
+        <td width="202"><div><div id="logo">{$name}</div>
+        <img src="images/spacer.gif" alt="" width="1" height="104"></div><div id="lmenu"><div id="lmenu_items"><a href="{$m.0.url}">{$m.0.str}</a> <a href="{$m.1.url}">{$m.1.str}</a> <a href="{$m.2.url}">{$m.2.str}</a> <a href="{$m.3.url}">{$m.3.str}</a> <a href="{$m.4.url}">{$m.4.str}</a> </div>
+          <div align="center"><img src="images/lmenu-bot.gif" alt=""></div>
+        </div><div class="lheader">Последние записи</div>
+        <div align="center"><img src="images/lsep.gif" alt=""></div><div class="lnews">
+          <p><span class="lnews_data">{$blockul.7}</span></p>
+          </div></td>
+        <td><div>
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr>
+              <td width="398"><img src="images/p1.jpg" alt="" width="398" height="285"></td>
+              <td valign="top"><div id="search"><table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td><input type="text" class="login_form" value="найти..."></td>
+    <td><input type="image" src="images/btn-go.gif"></td>
+  </tr>
+</table>
+</div><div id="welcome-text">
+  <h2>Новинки</h2>
+    <p>{$blockul.2}</p>
+    <p align="right">&nbsp;</p>
+</div></td>
+            </tr>
+          </table>
+        </div><div class="body_txt">
+          <h1>{$title}</h1>
+          
+
+<br>
+          <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr valign="top">
+              <td width="50%"><p>{$content} <? include('cod.php'); ?>  <br>
+<div><br><strong>Похожие записи:</strong><br>{$blockol.7}</div></p>                </td>
+              
+              </tr>
+          </table>
+        </div></td>
+      </tr>
+    </table>
+  </div>
+</div><div id="footer"><div style="background-color:#cdcdcd; height:1px; width:760px; margin: 0 20px 0 20px;"><img src="images/spacer.gif" alt=""></div><table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr>
+    <td class="bottom_addr"><br><br>{include file="footer.html"}
+     </td>
+    <td></td>
+  </tr>
+</table>
+</div>
+</div><br>
+</body>
+</html>

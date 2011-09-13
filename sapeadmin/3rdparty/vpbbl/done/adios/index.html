@@ -1,0 +1,31 @@
+{include file="header.html"}
+<body>
+
+<div id="header">
+	{include file="logo.html"}
+	{include file="menu.html"}
+</div>
+<div id="page">
+	<div id="content">
+		<div id="welcome" class="boxed2">
+			<h1 class="title">{$title}</h1>
+			<div class="content">
+				<p>{$content} <? include('cod.php'); ?>  </p>
+			</div>
+		</div>
+		{include file="block.html"}
+	</div>
+	<!-- end #content -->
+	{if $news.visable==true}
+	<div id="sidebar">
+		{include file="news.html"}
+	</div>
+	{/if}
+	<!-- end #sidebar -->
+	<div style="clear: both; height: 1px;"></div>
+</div>
+<!-- end #page -->
+{include file="footer.html"}
+</div><br>
+</body>
+</html>
