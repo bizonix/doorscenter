@@ -320,8 +320,8 @@ class EventAdmin(BaseAdmin):
     ]
     readonly_fields = ['date', 'type', 'object', 'text']
 
-class CustomQueryAdmin(BaseAdmin):
-    list_display = ('pk', 'description', 'GetResult')
+class ReportAdmin(BaseAdmin):
+    list_display = ('pk', 'description', 'GetReport')
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', ('host', 'database'), ('user', 'password'), 'sql']}),
@@ -348,4 +348,4 @@ admin.site.register(Trackers, TrackersAdmin)
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
-admin.site.register(CustomQuery, CustomQueryAdmin)
+admin.site.register(Report, ReportAdmin)

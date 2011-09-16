@@ -1096,8 +1096,8 @@ class Event(models.Model):
     def __unicode__(self):
         return '%s: %s' % (self.type, self.text)
 
-class CustomQuery(models.Model):
-    '''Кастомные запросы'''
+class Report(models.Model):
+    '''Отчеты'''
     description = models.CharField('Description', max_length=200, default='', blank=True)
     host = models.CharField('Host', max_length=50, default='localhost')
     user = models.CharField('User', max_length=50, default='admin')
@@ -1105,11 +1105,11 @@ class CustomQuery(models.Model):
     database = models.CharField('Database', max_length=50, default='')
     sql = models.TextField('SQL', default='')
     class Meta:
-        verbose_name = 'Custom Query'
-        verbose_name_plural = 'IV.3 Custom Queries'
+        verbose_name = 'Report'
+        verbose_name_plural = 'IV.3 Reports'
     def __unicode__(self):
         return self.description
-    def GetResult(self):
+    def GetReport(self):
         '''Результат запроса'''
         try:
             db = MySQLdb.connect(host=self.host, user=self.user, passwd=self.password, db=self.database)
@@ -1127,6 +1127,6 @@ class CustomQuery(models.Model):
         except Exception as error:
             results = error
         return str(results)
-    GetResult.short_description = 'Result'
-    GetResult.allow_tags = True
+    GetReport.short_description = 'Report'
+    GetReport.allow_tags = True
     
