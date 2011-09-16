@@ -416,7 +416,7 @@ class Net(BaseNet):
                                            domainFolder='')
                 p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
                 p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
-                p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
+                #p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
                 p.spamLinksCount = min(p.spamLinksCount, p.pagesCount)  # максимум число страниц дора.
                 p.save()
                 linksLimit -= (p.spamLinksCount + 1)  # + карта сайта

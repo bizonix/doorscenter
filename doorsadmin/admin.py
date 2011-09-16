@@ -172,7 +172,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'snippetsSet', 'GetSpamTasksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'GetSpamTasksCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
@@ -214,7 +214,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
                 failed += 1
             processed += 1
         self.message_user(request, "%s checked, %d failed." % (GetMessageBit(processed), failed))
-    CheckOwnership.short_description = "b. Check domain ownership"
+    CheckOwnership.short_description = "b. Check ownership"
     def Reset(self, request, queryset):
         '''Сбрасываем параметры доменов'''
         processed = 0
