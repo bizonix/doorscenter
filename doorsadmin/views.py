@@ -1,7 +1,6 @@
 # coding=utf8
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
-# from django.db.models import Q
 from django.db import transaction
 from doorsadmin.models import Agent, EventLog, ObjectLog, GetObjectByTaskType
 import pickle, datetime, base64
@@ -9,7 +8,6 @@ import pickle, datetime, base64
 @transaction.commit_manually
 def get(request, agentId):
     '''Получить задание из очереди'''
-    result = pickle.dumps(None)
     agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
@@ -40,17 +38,16 @@ def get(request, agentId):
                     ObjectLog(agent, agent.currentTask)
                     transaction.commit()
                     '''Формируем ответ'''
-                    result = pickle.dumps(data)
-                    break
+                    return HttpResponse(base64.b64encode(pickle.dumps(data)))
     except Exception as error:
-        transaction.rollback()
         EventLog('error', 'Cannot handle "get" request', None, error)
-    return HttpResponse(base64.b64encode(result))
+    transaction.rollback()
+    '''Формируем ответ'''
+    return HttpResponse(base64.b64encode(pickle.dumps(None)))
 
 @transaction.commit_manually
 def update(request, agentId):
     '''Обновить состояние задания'''
-    result = 'error'
     agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
@@ -80,16 +77,16 @@ def update(request, agentId):
             EventLog('error', 'Error in "OnUpdate" event', agent, error)
         transaction.commit()
         '''Формируем ответ'''
-        result = 'ok'
+        return HttpResponse('ok')
     except Exception as error:
-        transaction.rollback()
         EventLog('error', 'Cannot handle "update" request', agent, error)
-    return HttpResponse(result)
+    transaction.rollback()
+    '''Формируем ответ'''
+    return HttpResponse('error')
 
 @transaction.commit_manually
 def ping(request, agentId):
     '''Обновить состояние задания'''
-    result = 'error'
     agent = get_object_or_404(Agent, pk=agentId)
     try:
         '''Пишем дату пинга'''
@@ -98,8 +95,9 @@ def ping(request, agentId):
         agent.save()
         transaction.commit()
         '''Формируем ответ'''
-        result = 'ok'
+        return HttpResponse('ok')
     except Exception as error:
-        transaction.rollback()
         EventLog('error', 'Cannot handle "ping" request', None, error)
-    return HttpResponse(result)
+    transaction.rollback()
+    '''Формируем ответ'''
+    return HttpResponse('error')
