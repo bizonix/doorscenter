@@ -15,6 +15,7 @@ class XrumerAgent(agent.BaseAgent):
         self.appFolder = 'c:\\work\\xrumer707'  # папка с приложением
         self.appCaption = 'XRumer 7.07 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appCaptionControl = 'Control of permanent running'
+        self.appConfigFile = os.path.join(self.appFolder, 'config.ini')
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
         self.appSettingsControlFile = os.path.join(self.appFolder, 'control.ini')
@@ -188,6 +189,7 @@ TimeRange=120
         self._Settings()
         '''Установка настроек'''
         if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
+            threadsCount = 110
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode1)
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
@@ -199,9 +201,16 @@ TimeRange=120
                 except Exception as error:
                     print('Cannot remove old base R: %s' % error)
         if self.currentTask['type'] == 'SpamTask':  # mode 2
+            threadsCount = 160
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode2)
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
+        with open(self.appConfigFile, 'r') as fd:
+            config = fd.readlines()
+        config[3] = '%d\n' % threadsCount  # число потоков
+        config[8] = 'ON\n'  # автопродолжение
+        with open(self.appConfigFile, 'w') as fd:
+            fd.writelines(config)
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
         with open(self.appSettingsControlFile, 'w') as fd:
