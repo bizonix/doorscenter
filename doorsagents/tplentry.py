@@ -46,6 +46,7 @@ strIndex = r'''<html>
   <body>
     <div id="wrapper">
       <h1>{ABOSKEYWORD}</h1>
+      <?php include("/var/www/common/bidtraffic.php"); ad('{BOSKEYWORD}'); ?>
       {{strEntries}}
       <br/>{FOR(1,{RAND(5,15)})}{CRANDLINK} {ENDFOR} {FOR(1,{RAND(1,3)})}{RANDMYLINK} {ENDFOR}<br/>
       <div id="footer">
@@ -179,5 +180,5 @@ Allow: /
 Disallow: /script
 '''
 
-strRegister = r'''<?php header('Location: http://searchpro.ws/go.php?sid={{tdsSchema}}'); ?>
+strRegister = r'''<?php header('Location: go.php?sid={{tdsSchema}}'); ?>
 '''

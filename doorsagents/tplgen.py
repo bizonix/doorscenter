@@ -7,7 +7,7 @@ class TemplateGenerator1(object):
     '''Генератор шаблонов.'''
     
     def __init__(self, code, tplPath):
-        '''Пример кода: "xgen1-adult-596".'''
+        '''Пример кода: "xgen1-adult-596-27".'''
         params = code.split('-')
         genKind = params[0]
         tplKind = params[1]
