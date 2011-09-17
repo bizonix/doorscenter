@@ -20,7 +20,7 @@ def Helper():
     '''Запуск из командной строки'''
     for niche in Niche.objects.filter(active=True).order_by('pk').all():
         niche.GenerateSpamTasksMultiple()
-    
+
 def ExpandNets():
     '''Плетем сети'''
     avgSpamTaskDuration = 15  # настройка: средняя продолжительность прогона по базе R, минут
@@ -32,7 +32,7 @@ def ExpandNets():
     dd = datetime.date.today()
     for net in Net.objects.filter(active=True).order_by('?').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            domainsLimitActual, linksLimitActual = net.AddDomains(None, linksLimitActual)
+            domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
         if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))

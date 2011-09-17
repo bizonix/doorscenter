@@ -575,7 +575,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     '''Сниппеты'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     localFile = models.CharField('Local File', max_length=200, default='')
-    keywordsCount = models.IntegerField('Keywords', null=True, default=500)
+    keywordsCount = models.IntegerField('Keywords', null=True, default=200)
     interval = models.IntegerField('Interval, h.', null=True, default=100)
     dateLastParsed = models.DateTimeField('Last Parsed', null=True, blank=True)
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
@@ -1066,7 +1066,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseR, SpamTask]
+            return [SpamTask]
+            #return [XrumerBaseR, SpamTask]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:
