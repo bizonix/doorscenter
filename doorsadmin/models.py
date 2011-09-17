@@ -1070,7 +1070,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [SpamTask]
+            return [SpamTask, XrumerBaseR]
             #return [XrumerBaseR, SpamTask]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
@@ -1090,14 +1090,14 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     GetDateLastPingAgo.allow_tags = True
     def GetTasksState(self):
         '''Состояние очередей агента'''
-        countNew = 0
+        countUndone = 0
         countDone = 0
         countError = 0
         for queue in self.GetQueues():
-            countNew += queue.objects.filter(stateManaged='new').count()
+            countUndone += queue.objects.filter(Q(stateManaged='new') | Q(stateManaged='inproc')).count()
             countDone += queue.objects.filter(stateManaged='done').count()
             countError += queue.objects.filter(stateManaged='error').count()
-        return '%d - %d - %d' % (countNew, countDone, countError)
+        return '%d - %d - %d' % (countUndone, countDone, countError)
     GetTasksState.short_description = 'Tasks'
     GetTasksState.allow_tags = True
 
