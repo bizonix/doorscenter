@@ -12,13 +12,16 @@ class XrumerAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'c:\\work\\xrumer707'  # папка с приложением
+        self.appFolder = 'c:\\work\\xrumer707'
+        self.appFolderControl1 = 'c:\\work\\control1'
+        self.appFolderControl2 = 'c:\\work\\control2'
         self.appCaption = 'XRumer 7.07 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appCaptionControl = 'Control of permanent running'
         self.appConfigFile = os.path.join(self.appFolder, 'config.ini')
         self.appSettingsFile = os.path.join(self.appFolder, 'xuser.ini')
         self.appScheduleFile = os.path.join(self.appFolder, 'schedule.xml')
-        self.appSettingsControlFile = os.path.join(self.appFolder, 'control.ini')
+        self.appSettingsControl1File = os.path.join(self.appFolderControl1, 'control.ini')
+        self.appSettingsControl2File = os.path.join(self.appFolderControl2, 'control.ini')
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         self.snippetsFolder = 'C:\\Work\\snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
@@ -165,9 +168,11 @@ class XrumerAgent(agent.BaseAgent):
         '''Файл настроек control.exe'''
         self.appSettingsControl = '''[Settings]
 ApplicationName=%s
-Mode=1
+Mode=%d
 TimeRange=120
-''' % os.path.join(self.appFolder, 'xpymep.exe')
+'''
+        self.appSettingsControl1 = self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 0) 
+        self.appSettingsControl2 = self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 1) 
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
@@ -213,12 +218,16 @@ TimeRange=120
             fd.writelines(config)
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
-        with open(self.appSettingsControlFile, 'w') as fd:
-            fd.write(self.appSettingsControl)
+        with open(self.appSettingsControl1File, 'w') as fd:
+            fd.write(self.appSettingsControl1)
+        with open(self.appSettingsControl2File, 'w') as fd:
+            fd.write(self.appSettingsControl2)
         '''Запуск приложений'''
         self._RunApp(os.path.join(self.appFolder, 'xpymep.exe'))
         time.sleep(3)
-        self._RunApp(os.path.join(self.appFolder, 'control.exe'))
+        self._RunApp(os.path.join(self.appFolderControl1, 'control.exe'))
+        time.sleep(1)
+        self._RunApp(os.path.join(self.appFolderControl2, 'control.exe'))
         return True
 
     def _ActionOff(self):
@@ -229,7 +238,9 @@ TimeRange=120
         self.currentTask['failsCount'] = 0 
         self.currentTask['profilesCount'] = 0
         self.currentTask['rBaseLinksCount'] = 0
-        '''Закрытие приложения'''
+        '''Закрытие приложений'''
+        self._CloseApp(self.appCaptionControl)
+        time.sleep(1)
         self._CloseApp(self.appCaptionControl)
         time.sleep(3)
         self._CloseApp(self.appCaption)
