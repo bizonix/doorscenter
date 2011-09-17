@@ -262,6 +262,18 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GetSpamDomainLinks(self, domain):
         '''Ссылки по домену, которые надо спамить'''
         return SpamLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+    def _CreateSpamTask(self, xrumerBaseR, linksList):
+        '''Создаем задание на спам'''
+        if len(linksList) == 0:
+            return
+        spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
+        spamTask.save()
+        #print("spam task pk: %d" % spamTask.pk)
+        for pk in linksList:
+            spamLink = SpamLink.objects.get(pk=pk)
+            spamLink.spamTask = spamTask
+            spamLink.save()
+            #print("- (%d) %s" % (pk, spamLink.url))
     def GenerateSpamTasksMultiple(self):
         '''Генерация заданий сразу в несколько баз'''
         try:
@@ -272,9 +284,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             linksLists = []
             domainsCounts = []
             for n in range(xrumerBasesRCount):
-                xrumerBaseR = xrumerBasesR[n]
                 linksLists.append([])
-                domainsCounts.append(random.randint(xrumerBasesR[n].spamTaskDomainsMin, xrumerBasesR[n].spamTaskDomainsMax))
+                xrumerBaseR = xrumerBasesR[n]
+                domainsCounts.append(random.randint(xrumerBaseR.spamTaskDomainsMin, xrumerBaseR.spamTaskDomainsMax))
             '''Цикл по доменам с заданиями на спам'''
             domains = Domain.objects.filter(niche=self).order_by('pk').all()
             for domain in domains:
@@ -292,18 +304,14 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                     domainsCounts[n] -= 1
                     '''Если задание сформировано'''
                     if domainsCounts[n] == 0:
-                        spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
-                        spamTask.save()
-                        #print("spam task pk: %d" % spamTask.pk)
-                        for pk in linksLists[n]:
-                            spamLink = SpamLink.objects.get(pk=pk)
-                            spamLink.spamTask = spamTask
-                            spamLink.save()
-                            #print("- (%d) %s" % (pk, spamLink.url))
+                        self._CreateSpamTask(xrumerBaseR, linksLists[n])
                         linksLists[n] = []
-                        domainsCounts[n] = random.randint(xrumerBasesR[n].spamTaskDomainsMin, xrumerBasesR[n].spamTaskDomainsMax)
+                        domainsCounts[n] = random.randint(xrumerBaseR.spamTaskDomainsMin, xrumerBaseR.spamTaskDomainsMax)
+            '''Сохраняем нераспределенные остатки'''
+            #for n in range(xrumerBasesRCount):
+            #    xrumerBaseR = xrumerBasesR[n]
+            #    self._CreateSpamTask(xrumerBaseR, linksLists[n])
         except Exception as error:
-            #print(error)
             EventLog('error', 'Error in GenerateSpamTasksMultiple', self, error)
 
 class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
@@ -360,19 +368,21 @@ class Net(BaseNet):
             return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def AddDomains(self, count = None, linksLimit = 9999):
-        '''Добавление доменов в сетку. Аргументы: count - сколько доменов присоединять, 
+    def AddDomains(self, count = None, domainsLimit = 9999, linksLimit = 9999):
+        '''Добавление доменов в сетку. Аргументы: 
+        count - сколько доменов присоединять, 
+        domainsLimit - лимит по доменам, 
         linksLimit - максимальное количество ссылок для спама на сгенеренных дорах. 
-        Возвращает обновленный лимит.'''
+        Возвращает обновленные лимиты.'''
         if self.settings == '':
-            return linksLimit
+            return domainsLimit, linksLimit
         if count == None:
             count = self.domainsPerDay
         netChain = self.settings.split(';')
         netDomains = self.domain_set.order_by('pk')
         '''Цикл по активным и непривязанным к сеткам доменам, у которых ниша и группа пустые или совпадают с параметрами сетки'''
         for domain in Domain.objects.filter(Q(net=None), (Q(niche=self.niche) | Q(niche=None)), (Q(group=self.domainGroup) | Q(group='')), Q(active=True)).order_by('-group', 'pk').all():  # сначала берем домены из группы, затем без группы
-            if (count <= 0) or (linksLimit <= 0) or (netDomains.count() >= len(netChain)):
+            if (count <= 0) or (domainsLimit <= 0) or (linksLimit <= 0) or (netDomains.count() >= len(netChain)):
                 break
             try:
                 domain.linkedDomains.clear()
@@ -383,6 +393,7 @@ class Net(BaseNet):
                 domain.niche = self.niche
                 domain.save()
                 count -= 1
+                domainsLimit -= 1
                 '''Генерируем дорвей'''
                 linksLimit = self.GenerateDoorways(1, domain, linksLimit)
                 '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
@@ -393,7 +404,7 @@ class Net(BaseNet):
         if netDomains.count() >= len(netChain):
             self.domainsPerDay = 0
             self.save()
-        return linksLimit
+        return domainsLimit, linksLimit
     def GenerateDoorways(self, count = None, domain = None, linksLimit = 9999):
         '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, 
         domain - на каком домене генерировать, linksLimit - максимальное количество 

@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Net, Domain, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -11,26 +11,31 @@ def CronHourly():
 
 def CronDaily():
     '''Функция вызывается по расписанию'''
-    GenerateNets()
+    ExpandNets()
     #GenerateDoorways()  # дорвеи генерируются при добавлении домена в сеть
     #GenerateSpamTasks()  # вызывается по событию апдейта агента доргена
     ClearEventLog()
 
 def Helper():
     '''Запуск из командной строки'''
-    CheckOwnershipTk()
+    for niche in Niche.objects.filter(active=True).order_by('pk').all():
+        niche.GenerateSpamTasksMultiple()
     
-def GenerateNets():
+def ExpandNets():
     '''Плетем сети'''
-    spamTasksLimit = 100  # настройка
-    linksLimitBase = spamTasksLimit * 12
+    avgSpamTaskDuration = 15  # настройка: средняя продолжительность прогона по базе R, минут
+    avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
+    domainsLimitBase = 18  # настройка: лимит расхода доменов в сутки
+    linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
+    domainsLimitActual = domainsLimitBase
     linksLimitActual = linksLimitBase
     dd = datetime.date.today()
-    for net in Net.objects.filter(active=True).order_by('pk').all():
+    for net in Net.objects.filter(active=True).order_by('?').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            linksLimitActual = net.AddDomains(None, linksLimitActual)
-        if linksLimitActual <= 0:
+            domainsLimitActual, linksLimitActual = net.AddDomains(None, linksLimitActual)
+        if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
             break
+    EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
     EventLog('info', 'Links limit: %d/%d' % (linksLimitBase - linksLimitActual, linksLimitBase))
 
 def RenewSnippets():
