@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
-import datetime, random, re, MySQLdb, google, os
+import datetime, random, os, re, MySQLdb, google, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -870,6 +870,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             if url.endswith('/index.html'):
                 url = url.replace('/index.html', '/sitemap.html')
                 SpamLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+        '''Проверяем дор на тошноту'''
+        isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
+        if not isGood:
+            send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
         if self.template == None:
@@ -1072,8 +1076,9 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         '''Событие апдейта задачи'''
         try:
             if self.type == 'doorgen':
+                '''Генерируем задания для спама'''  
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
-                    '''Генерируем задания для спама'''  # def GenerateSpamTasks():
+                    # def GenerateSpamTasks():
                     for niche in Niche.objects.filter(active=True).order_by('pk').all():
                         niche.GenerateSpamTasksMultiple()
         except Exception as error:
