@@ -1,9 +1,13 @@
 # coding=utf8
 import random, glob, godaddy
 
-def GenDomainNamesPast(zone, count):
+def GenDomainNamesPast(zone, count, niche = None):
     '''Выбираем из базы Пастухова'''
-    with open('/home/sasch/temp/names-past/names%.2d.txt' % random.randint(1, 72)) as fd:
+    if niche:
+        fileName = '/home/sasch/temp/names-past/names-%s.txt' % niche
+    else:
+        fileName = '/home/sasch/temp/names-past/names%.2d.txt' % random.randint(1, 72)
+    with open(fileName) as fd:
         lines = fd.readlines()
     random.shuffle(lines)
     domainNames1 = [line.strip() + zone for line in lines[:count]]
@@ -22,8 +26,18 @@ def GenDomainNamesSape(zone, count):
     domainNames = ['%s%d%s' % (line, random.randint(10, 99), zone) for line in lines[:count]]
     return domainNames
 
-names = GenDomainNamesPast('.info', 50)
-print('*** past (%d) ***' % len(names))
+names = GenDomainNamesPast('.info', 30)
+print('*** past common (%d) ***' % len(names))
+print('\n'.join(names))
+print('')
+
+names = GenDomainNamesPast('.info', 30, 'dat')
+print('*** past dat (%d) ***' % len(names))
+print('\n'.join(names))
+print('')
+
+names = GenDomainNamesPast('.info', 30, 'gay')
+print('*** past gay (%d) ***' % len(names))
 print('\n'.join(names))
 print('')
 
