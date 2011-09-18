@@ -313,7 +313,7 @@ class Site(BaseSapeObject):
             pass
         ftp.quit()
         '''Удаляем локальную папку'''
-        shutil.rmtree(localFolder)
+        #shutil.rmtree(localFolder)
         '''Меняем статус сайта'''
         self.state = 'uploaded'
         self.save()
