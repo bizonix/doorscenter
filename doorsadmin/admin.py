@@ -81,7 +81,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
-        ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
+        ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay')], 'classes': ['expanded']}),
         ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
@@ -122,7 +122,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
-        ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
+        ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay')], 'classes': ['expanded']}),
         ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),

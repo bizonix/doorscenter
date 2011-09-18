@@ -236,46 +236,51 @@ def ReplaceZero(s):
     else:
         return s
 
-def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNodesCount, makeLevel2):
+def GenerateNetConfig(minLevelsCount, maxLevelsCount, minSubNodesCount, maxSubNodesCount, minLength, maxLength, makeLevel2):
     '''Генерация сетки'''
     levels1Count = 0
     levels2Count = 0
-    '''Generate net level 1'''
-    net = [[]]
-    queue1 = [1]
-    for _ in range(random.randint(minLevelsCount, maxLevelsCount)):
-        queue2 = []
-        while len(queue1) > 0:
-            rootNodeNumber = queue1.pop(0)
-            for _ in range(random.randint(minSubNodesCount, maxSubNodesCount)):
-                net.append([rootNodeNumber])
+    while True:
+        '''Уровень 1'''
+        net = [[]]
+        queue1 = [1]
+        for _ in range(random.randint(minLevelsCount, maxLevelsCount)):
+            queue2 = []
+            while len(queue1) > 0:
+                rootNodeNumber = queue1.pop(0)
+                for _ in range(random.randint(minSubNodesCount, maxSubNodesCount)):
+                    net.append([rootNodeNumber])
+                    queue2.append(len(net))
+            queue1 = []
+            queue1.extend(queue2)
+            levels1Count += 1
+        '''Уровень 2'''
+        if makeLevel2:
+            queue2 = []
+            while True:
+                rootNodes = []
+                for _ in range(min(random.randint(minSubNodesCount, maxSubNodesCount), len(queue1))):
+                    rootNodes.append(queue1.pop(0)) 
+                net.append(rootNodes)
                 queue2.append(len(net))
-        queue1 = []
-        queue1.extend(queue2)
-        levels1Count += 1
-    '''Generate net level 2'''
-    if makeLevel2:
-        queue2 = []
-        while True:
-            rootNodes = []
-            for _ in range(min(random.randint(minSubNodesCount, maxSubNodesCount), len(queue1))):
-                rootNodes.append(queue1.pop(0)) 
-            net.append(rootNodes)
-            queue2.append(len(net))
-            if len(queue1) == 0:
-                levels2Count += 1
-                if len(queue2) == 1:
-                    break
-                queue1 = []
-                queue1.extend(queue2)
-                queue2 = []
-    '''Make net config string'''
-    netConfig = ''
-    for n in range(len(net)):
-        netConfig += ('%d' % (n + 1))
-        for nn in range(len(net[n])):
-            netConfig += '-' + ('%d' % net[n][nn])
-        netConfig += ';'
-    netConfig = netConfig[:-1]
-    '''Results'''
+                if len(queue1) == 0:
+                    levels2Count += 1
+                    if len(queue2) == 1:
+                        break
+                    queue1 = []
+                    queue1.extend(queue2)
+                    queue2 = []
+        '''Формируем строку конфигурации'''
+        netConfig = ''
+        for n in range(len(net)):
+            netConfig += ('%d' % (n + 1))
+            for nn in range(len(net[n])):
+                netConfig += '-' + ('%d' % net[n][nn])
+            netConfig += ';'
+        netConfig = netConfig[:-1]
+        '''Проверяем размер сети'''
+        netSize = len(netConfig.split(';'))
+        if netSize >= minLength and netSize <= maxLength:
+            break
+    '''Возвращаем результаты'''
     return netConfig, len(net), levels1Count, levels2Count

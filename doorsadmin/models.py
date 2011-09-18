@@ -339,6 +339,54 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     GetNetSize.short_description = 'Net Size'
     GetNetSize.allow_tags = True
 
+class NetPlan(BaseNet):
+    '''План по созданию сеток'''
+    netsCount = models.IntegerField('Plan', default=5, null=True, blank=True)
+    generateNetsNow = models.IntegerField('Generate Now', default=0, blank=True)
+    class Meta:
+        verbose_name = 'Net Plan'
+        verbose_name_plural = 'I.2 Net Plans'
+    def GetNetsCount(self):
+        return '%d/%d' % (self.net_set.count(), self.netsCount)
+    GetNetsCount.short_description = 'Nets'
+    GetNetsCount.allow_tags = True
+    def GetDomainsCount(self):
+        return '%d' % self.GetNetSize()
+    GetDomainsCount.short_description = 'Domains'
+    GetDomainsCount.allow_tags = True
+    def GenerateNets(self, count = 1):
+        '''Генерация сетей'''
+        netsGenerated = 0
+        while (self.net_set.count() < self.netsCount) and (count > 0):
+            net = Net.objects.create(description='%s %.3d' % (self.description, self.net_set.count() + 1),
+                                     niche=self.niche,
+                                     template=self.template,
+                                     keywordsSet=self.keywordsSet,
+                                     minPagesCount=self.minPagesCount,
+                                     maxPagesCount=self.maxPagesCount,
+                                     minSpamLinksPercent=self.minSpamLinksPercent,
+                                     maxSpamLinksPercent=self.maxSpamLinksPercent,
+                                     minMaxSpamLinksCount=self.minMaxSpamLinksCount,
+                                     maxMaxSpamLinksCount=self.maxMaxSpamLinksCount,
+                                     settings=self.settings,
+                                     makeSpam=self.makeSpam,
+                                     domainGroup=self.domainGroup,
+                                     domainsPerDay=self.domainsPerDay,
+                                     doorsPerDay=self.doorsPerDay,
+                                     dateStart=datetime.date.today(),
+                                     netPlan=self)
+            net.save()
+            count -= 1
+            netsGenerated += 1
+        return netsGenerated
+    def save(self, *args, **kwargs):
+        '''Немедленная генерация сетей'''
+        if self.generateNetsNow > 0:
+            n = self.generateNetsNow
+            self.generateNetsNow = 0
+            self.GenerateNets(n)
+        super(NetPlan, self).save(*args, **kwargs)
+
 class Net(BaseNet):
     '''Сетка доров'''
     addDomainsNow = models.IntegerField('Add domains now', default=0, blank=True)
@@ -444,9 +492,12 @@ class Net(BaseNet):
         '''Автогенерация сетки'''
         try:
             if self.stateSimple == 'new' and self.settings == '#gen':
-                self.settings, _, _, _ = GenerateNetConfig(2, 3, 2, 3, False)
+                self.settings, _, _, _ = GenerateNetConfig(2, 4, 2, 4, 20, 50, False)
         except Exception as error:
             EventLog('error', 'Cannot generate net params', None, error)
+        '''Генерируем всю сеть целиком'''
+        if self.stateSimple == 'new' and self.domainsPerDay == -1:
+            self.domainsPerDay = self.GetNetSize()
         '''Немендленное добавление доменов в сеть'''
         if self.addDomainsNow > 0:
             n = self.addDomainsNow
@@ -465,54 +516,6 @@ class NetDescription(Net):
         verbose_name = 'Net Description'
         verbose_name_plural = 'I.3.b Net Descriptions'
         proxy = True
-
-class NetPlan(BaseNet):
-    '''План по созданию сеток'''
-    netsCount = models.IntegerField('Plan', default=5, null=True, blank=True)
-    generateNetsNow = models.IntegerField('Generate Now', default=0, blank=True)
-    class Meta:
-        verbose_name = 'Net Plan'
-        verbose_name_plural = 'I.2 Net Plans'
-    def GetNetsCount(self):
-        return '%d/%d' % (self.net_set.count(), self.netsCount)
-    GetNetsCount.short_description = 'Nets'
-    GetNetsCount.allow_tags = True
-    def GetDomainsCount(self):
-        return '%d' % self.GetNetSize()
-    GetDomainsCount.short_description = 'Domains'
-    GetDomainsCount.allow_tags = True
-    def GenerateNets(self, count = 1):
-        '''Генерация сетей'''
-        netsGenerated = 0
-        while (self.net_set.count() < self.netsCount) and (count > 0):
-            net = Net.objects.create(description='%s %.3d' % (self.description, self.net_set.count() + 1),
-                                     niche=self.niche,
-                                     template=self.template,
-                                     keywordsSet=self.keywordsSet,
-                                     minPagesCount=self.minPagesCount,
-                                     maxPagesCount=self.maxPagesCount,
-                                     minSpamLinksPercent=self.minSpamLinksPercent,
-                                     maxSpamLinksPercent=self.maxSpamLinksPercent,
-                                     minMaxSpamLinksCount=self.minMaxSpamLinksCount,
-                                     maxMaxSpamLinksCount=self.maxMaxSpamLinksCount,
-                                     settings=self.settings,
-                                     makeSpam=self.makeSpam,
-                                     domainGroup=self.domainGroup,
-                                     domainsPerDay=self.domainsPerDay,
-                                     doorsPerDay=self.doorsPerDay,
-                                     dateStart=datetime.date.today(),
-                                     netPlan=self)
-            net.save()
-            count -= 1
-            netsGenerated += 1
-        return netsGenerated
-    def save(self, *args, **kwargs):
-        '''Немедленная сетей'''
-        if self.generateNetsNow > 0:
-            n = self.generateNetsNow
-            self.generateNetsNow = 0
-            self.GenerateNets(n)
-        super(NetPlan, self).save(*args, **kwargs)
 
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов. Folder-based.'''
