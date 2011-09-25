@@ -25,7 +25,7 @@ def ExpandNets():
     '''Плетем сети'''
     avgSpamTaskDuration = 15  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
-    domainsLimitBase = 18  # настройка: лимит расхода доменов в сутки
+    domainsLimitBase = 30  # настройка: лимит расхода доменов в сутки
     linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitActual = domainsLimitBase
     linksLimitActual = linksLimitBase

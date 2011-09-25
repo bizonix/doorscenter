@@ -492,7 +492,7 @@ class Net(BaseNet):
         '''Автогенерация сетки'''
         try:
             if self.stateSimple == 'new' and self.settings == '#gen':
-                self.settings, _, _, _ = GenerateNetConfig(2, 4, 2, 4, 20, 50, False)
+                self.settings, _, _, _ = GenerateNetConfig(2, 4, 2, 4, 10, 25, False)
         except Exception as error:
             EventLog('error', 'Cannot generate net params', None, error)
         '''Генерируем всю сеть целиком'''
