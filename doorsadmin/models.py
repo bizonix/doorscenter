@@ -150,8 +150,8 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
         self.halfSuccessCount = data['halfSuccessCount']
         self.failsCount = data['failsCount']
         self.profilesCount = data['profilesCount']
-        if self.successCount * 1.0 / (self.successCount + self.halfSuccessCount + self.failsCount + 1.0) < 0.3:
-            EventLog('warning', 'Too few successful posts (%d)' % self.successCount, self)
+        if (self.successCount < 500) or (self.successCount * 1.0 / (self.successCount + self.halfSuccessCount + self.failsCount + 1.0) < 0.3):
+            EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
 
 '''Real models'''
 
