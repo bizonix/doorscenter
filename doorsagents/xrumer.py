@@ -169,10 +169,8 @@ class XrumerAgent(agent.BaseAgent):
         self.appSettingsControl = '''[Settings]
 ApplicationName=%s
 Mode=%d
-TimeRange=120
+TimeRange=%d
 '''
-        self.appSettingsControl1 = self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 0) 
-        self.appSettingsControl2 = self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 1) 
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
@@ -195,6 +193,7 @@ TimeRange=120
         '''Установка настроек'''
         if self.currentTask['type'] == 'XrumerBaseR':  # mode 1
             threadsCount = 110
+            timeRange = 120
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode1)
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode1)
@@ -207,6 +206,7 @@ TimeRange=120
                     print('Cannot remove old base R: %s' % error)
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             threadsCount = 160
+            timeRange = 60
             with open(self.appScheduleFile, 'w') as fd:
                 fd.write(self.appScheduleFileContentsMode2)
             common.ModifyIniFile(self.appSettingsFile, self.appSettingsDictMode2)
@@ -219,9 +219,9 @@ TimeRange=120
         with codecs.open(self.projectFile, 'w', 'utf8') as fd:
             fd.write(self.projectFileContents)
         with open(self.appSettingsControl1File, 'w') as fd:
-            fd.write(self.appSettingsControl1)
+            fd.write(self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 0, timeRange))
         with open(self.appSettingsControl2File, 'w') as fd:
-            fd.write(self.appSettingsControl2)
+            fd.write(self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 1, timeRange))
         '''Запуск приложений'''
         self._RunApp(os.path.join(self.appFolder, 'xpymep.exe'))
         time.sleep(3)
