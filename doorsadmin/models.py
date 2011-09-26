@@ -1073,8 +1073,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [SpamTask, XrumerBaseR]
-            #return [XrumerBaseR, SpamTask]
+            return [XrumerBaseR, SpamTask]
+            #return [SpamTask, XrumerBaseR]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:
