@@ -966,6 +966,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         result['baseNumber'] = self.xrumerBaseR.baseNumber  # перезаписываем нужные параметры
         result['snippetsFile'] = self.snippetsSet.localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
+        result['niche'] = self.xrumerBaseR.niche.description
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
@@ -1057,7 +1058,7 @@ class Trackers(BaseDoorObject):
         verbose_name_plural = 'III.4 Trackers'
     def __unicode__(self):
         return '%s - %s' % (self.tdsUrl, self.piwikUrl)
-    
+
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)
