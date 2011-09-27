@@ -5,7 +5,7 @@ from xml.sax.saxutils import escape
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: baseNumber, baseNumberDest, nickName, realName, password, emailAddress, emailPassword, 
-    emailLogin, emailPopServer, subject, snippetsFile, spamLinksList.
+    emailLogin, emailPopServer, subject, snippetsFile, spamLinksList, niche.
     Выходные: successCount, halfSuccessCount, failsCount, profilesCount, rBaseLinksCount.
     
     Два режима работы: 1 - создание базы R из сырой базы, 2 - спам по базе R.'''
@@ -37,6 +37,8 @@ class XrumerAgent(agent.BaseAgent):
         self.logHalfSuccess = self.logFileTemplate % 'Halfsuccess'
         self.logFails = self.logFileTemplate % 'Others'
         self.logProfiles = self.logFileTemplate % 'Profiles'
+        self.logAnchors = self.logFileTemplate % 'Anchors'
+        self.nicheAnchorsFile = os.path.join(self.appFolder, 'Anchors', '%s.txt' % self.currentTask['niche'])
         self.appLinksFolder = os.path.join(self.appFolder, 'Links')
         self.baseR1File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumber'])
         self.baseR2File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberDest'])
@@ -98,14 +100,15 @@ class XrumerAgent(agent.BaseAgent):
   <SecondarySection>
     <Subject1>#file_links[%s,1,N]</Subject1>
     <Subject2></Subject2>
-    <PostText>#file_links[%s,7,S] %s</PostText>
+    <PostText>#file_links[%s,7,S] %s #file_links[%s,1,N]</PostText>
     <Prior></Prior>
     <OnlyPriors>false</OnlyPriors>
   </SecondarySection>
 </XRumerProject>
 ''' % (escape(self.projectName), escape(self.currentTask['nickName']), escape(self.currentTask['realName']), escape(self.currentTask['password']), 
        escape(self.currentTask['emailAddress']), escape(self.currentTask['emailPassword']), escape(self.currentTask['emailLogin']), 
-       escape(self.currentTask['emailPopServer']), escape(self.subjectsFile), escape(self.snippetsFile), escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')))
+       escape(self.currentTask['emailPopServer']), escape(self.subjectsFile), escape(self.snippetsFile), 
+       escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251')), escape(self.nicheAnchorsFile))
         
         '''Файл расписания'''
         self.appScheduleFileContents = '''<?xml version="1.0" encoding="UTF-8"?>
@@ -222,6 +225,10 @@ TimeRange=%d
             fd.write(self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 0, timeRange))
         with open(self.appSettingsControl2File, 'w') as fd:
             fd.write(self.appSettingsControl % (os.path.join(self.appFolder, 'xpymep.exe'), 1, timeRange))
+        '''Если анкоров по нише нет, создаем пустой файл'''
+        if not os.path.exists(self.nicheAnchorsFile):
+            with open(self.nicheAnchorsFile, 'w') as fd:
+                fd.write('')
         '''Запуск приложений'''
         self._RunApp(os.path.join(self.appFolder, 'xpymep.exe'))
         time.sleep(3)
@@ -250,6 +257,11 @@ TimeRange=%d
                 shutil.copyfile(self.baseR1File, self.baseR2File)
             except Exception as error:
                 print('Cannot copy the new base R: %s' % error)
+        '''Копирование анкоров'''
+        try:
+            shutil.copyfile(self.logAnchors, self.nicheAnchorsFile)
+        except Exception as error:
+            print('Cannot copy anchors: %s' % error)
         '''Фильтрация базы R по успешным и полууспешным'''
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             try:
