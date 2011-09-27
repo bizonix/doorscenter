@@ -17,7 +17,7 @@ import random, time, re, codecs
 
 class Kwk8:
     '''Базовый класс'''
-    def __init__(self, path, verbose=True, encoding='cp1251'):
+    def __init__(self, path, verbose=False, encoding='cp1251'):
         '''path - входной файл, isLinks - кеи или ссылки'''
         self.pathOriginal = path  # исходный файл
         self.countOriginal = 0  # число строк в исходном файле
@@ -32,7 +32,7 @@ class Kwk8:
         with codecs.open(path, 'r', encoding) as fd:
             self.lines = fd.readlines()
         self.countOriginal = self.Count()
-        print("- %d lines loaded %s" % (self.Count(), self._TimeFinish()))
+        self._Print("- %d lines loaded %s" % (self.Count(), self._TimeFinish()))
         return self
         
     def Save(self, path = '', encoding='cp1251'):
@@ -43,7 +43,7 @@ class Kwk8:
         self._TimeStart()
         with codecs.open(path, 'w', encoding) as fd:
             fd.writelines(self.lines)
-        print("- {0} lines saved {1}".format(self.Count(), self._TimeFinish()))
+        self._Print("- {0} lines saved {1}".format(self.Count(), self._TimeFinish()))
         return self
     
     def Count(self):

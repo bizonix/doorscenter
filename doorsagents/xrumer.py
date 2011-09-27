@@ -188,7 +188,7 @@ TimeRange=%d
                 fd.write(line)
             for line in open(self.logHalfSuccess, 'r'):
                 fd.write(line)
-        kwk8.Kwk8Links(self.baseR1File, False).SelectByFile(logTemp).Save(self.baseR1File)
+        kwk8.Kwk8Links(self.baseR1File).SelectByFile(logTemp).Save(self.baseR1File)
         os.unlink(logTemp)
         
     def _ActionOn(self):
@@ -265,30 +265,30 @@ TimeRange=%d
         '''Фильтрация базы R по успешным и полууспешным'''
         if self.currentTask['type'] == 'SpamTask':  # mode 2
             try:
-                if kwk8.Kwk8Links(self.logFails, False).Count() > 700:
+                if kwk8.Kwk8Links(self.logFails).Count() > 700:
                     self._FilterBaseR()
             except Exception as error:
                 print('Cannot filter new base R: %s' % error)
         '''Выходные параметры'''
         self.currentTask['spamLinksList'] = []
         try:
-            self.currentTask['successCount'] = kwk8.Kwk8Links(self.logSuccess, False).Count()
+            self.currentTask['successCount'] = kwk8.Kwk8Links(self.logSuccess).Count()
         except Exception as error:
             print('Cannot count success links: %s' % error)
         try:
-            self.currentTask['halfSuccessCount'] = kwk8.Kwk8Links(self.logHalfSuccess, False).Count()
+            self.currentTask['halfSuccessCount'] = kwk8.Kwk8Links(self.logHalfSuccess).Count()
         except Exception as error:
             print('Cannot count halfsuccess links: %s' % error)
         try:
-            self.currentTask['failsCount'] = kwk8.Kwk8Links(self.logFails, False).Count()
+            self.currentTask['failsCount'] = kwk8.Kwk8Links(self.logFails).Count()
         except Exception as error:
             print('Cannot count fails links: %s' % error)
         try:
-            self.currentTask['profilesCount'] = kwk8.Kwk8Links(self.logProfiles, False).Count()
+            self.currentTask['profilesCount'] = kwk8.Kwk8Links(self.logProfiles).Count()
         except Exception as error:
             print('Cannot count profiles links: %s' % error)
         try:
-            self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File, False).Count()
+            self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File).Count()
         except Exception as error:
             print('Cannot count base R links: %s' % error)
         return True

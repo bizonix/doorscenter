@@ -203,7 +203,6 @@ class BaseAgent(object):
         '''Запускаем приложение и не ждем завершения. 
         По завершении наше приложение должно вызвать этот же скрипт с 
         агрументом командной строки "done".'''
-        print('Running %s...' % path)
         subprocess.Popen('start ' + path, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
         
     def _ActionOn(self):

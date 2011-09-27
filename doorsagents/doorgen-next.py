@@ -50,14 +50,15 @@ class DoorgenAgent(agent.BaseAgent):
         '''Загружаем на FTP'''
         remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
         ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
-        try:
-            ftp.mkd(remoteFolder)
-        except Exception as error:
-            print(error)
-        try:
-            ftp.sendcmd('SITE CHMOD 02775 ' + remoteFolder)
-        except Exception as error:
-            print(error)
+        if self.currentTask['domainFolder'] != '/':
+            try:
+                ftp.mkd(remoteFolder)
+            except Exception as error:
+                print(error)
+            try:
+                ftp.sendcmd('SITE CHMOD 02775 ' + remoteFolder)
+            except Exception as error:
+                print(error)
         try:
             ftp.storbinary('STOR ' + remoteFolder + '/' + archiveFile, fileObj)
         except Exception as error:

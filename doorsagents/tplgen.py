@@ -15,7 +15,6 @@ class TemplateGenerator1(object):
         tdsSchema = params[3]
         if genKind == 'xgen1':
             self._Generate(tplKind, '/images/' + tplKind, imgCount, tdsSchema, tplPath)
-            print('done')
     
     def _GetRandomColor(self):
         '''Случайный цвет'''
