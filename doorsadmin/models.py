@@ -449,9 +449,8 @@ class Net(BaseNet):
             except Exception as error:
                 EventLog('error', 'Error in AddDomains', self, error)
         '''Если сеть полностью построена'''
-        if netDomains.count() >= len(netChain):
-            self.domainsPerDay = 0
-            self.save()
+        self.domainsPerDay = max(0, min(self.domainsPerDay, len(netChain) - netDomains.count()))
+        self.save()
         return domainsLimit, linksLimit
     def GenerateDoorways(self, count = None, domain = None, linksLimit = 9999):
         '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, 

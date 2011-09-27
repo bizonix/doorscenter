@@ -88,7 +88,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
-    actions = ['AddDomains', 'GenerateDoorways']
+    actions = ['AddDomains', 'AddDomainsAll', 'GenerateDoorways']
     def AddDomains(self, request, queryset):
         '''Добавляем в сеть один домен'''
         processed = 0
@@ -97,6 +97,14 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s added." % GetMessageBit(processed))
     AddDomains.short_description = "a. Add a domain"
+    def AddDomainsAll(self, request, queryset):
+        '''Добавляем в сеть один домен'''
+        processed = 0
+        for net in queryset:
+            net.AddDomains()
+            processed += 1
+        self.message_user(request, "%s processed." % GetMessageBit(processed))
+    AddDomainsAll.short_description = "b. Build the net"
     def GenerateDoorways(self, request, queryset):
         '''Генерируем в сети один дорвей'''
         processed = 0
@@ -104,7 +112,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
             net.GenerateDoorways(1)
             processed += 1
         self.message_user(request, "%s generated." % GetMessageBit(processed))
-    GenerateDoorways.short_description = "b. Generate a doorway"
+    GenerateDoorways.short_description = "c. Generate a doorway"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
