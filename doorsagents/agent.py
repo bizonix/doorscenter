@@ -86,7 +86,7 @@ class BaseAgent(object):
             print('Error in _GetNextTask: %s' % error)
         self._SaveCurrentTaskData()
     
-    def _ReportTaskState(self):
+    def _ReportTask(self):
         '''Сообщить в ЦА о завершении текущего задания.
         state: done, error'''
         result = False
@@ -98,8 +98,12 @@ class BaseAgent(object):
             result = (reply == 'ok')
             print('Send data reply: %s' % reply)
         except Exception as error:
-            print('Error in _ReportTaskState: %s' % error)
-        return result
+            print('Error in _ReportTask: %s' % error)
+        if result:
+            self.currentTask = None
+        else:
+            self.currentTask['reportError'] = True
+        self._SaveCurrentTaskData()
     
     def _ReportPing(self):
         '''Сделать пинг в случае, если не можем начать выполнение задания
@@ -147,6 +151,10 @@ class BaseAgent(object):
         except Exception as error:
             print('Error in _SetCurrentTaskState: %s' % error)
     
+    def _HasReportError(self):
+        '''Есть ли неудачно отправленный отчет?'''
+        return 'reportError' in self.currentTask
+    
     def _HasTask(self):
         '''Есть ли выполняющееся задание?'''
         return self.currentTask != None
@@ -167,14 +175,18 @@ class BaseAgent(object):
                         except Exception as error:
                             print('Error: %s' % error)
                             self._SetCurrentTaskState('error', str(error))
-                            self._ReportTaskState()
+                            self._ReportTask()
                     else:
                         print('%s - No tasks found' % dts)
                 else:
                     print('%s - Heavy load detected' % dts)
                     self._ReportPing()
             else:
-                print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
+                if self._HasReportError():
+                    print('%s - Reporting again task #%s' % (dts, self._GetCurrentTaskId()))
+                    self._ReportTask()
+                else:
+                    print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
         else:
             print('%s - Maintenance mode' % dts)
 
@@ -193,9 +205,7 @@ class BaseAgent(object):
             except Exception as error:
                 print('Error: %s' % error)
                 self._SetCurrentTaskState('error', str(error))
-            if self._ReportTaskState():
-                self.currentTask = None
-                self._SaveCurrentTaskData()
+            self._ReportTask()
         else:
             print('%s - No task is currently running' % dts)
     
@@ -203,7 +213,8 @@ class BaseAgent(object):
         '''Запускаем приложение и не ждем завершения. 
         По завершении наше приложение должно вызвать этот же скрипт с 
         агрументом командной строки "done".'''
-        subprocess.Popen('start ' + path, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
+        #subprocess.Popen('start ' + path, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
+        subprocess.Popen(path, stdin=None, stdout=None, stderr=None)
         
     def _ActionOn(self):
         '''Выполнение полученного задания. Абстрактный метод'''
