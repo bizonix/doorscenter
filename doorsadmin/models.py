@@ -407,6 +407,14 @@ class Net(BaseNet):
         return '%d/%d' % (self.domain_set.count(), self.GetNetSize())
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
+    def GetIndexCount(self):
+        return ReplaceZero(self.domain_set.aggregate(x = Sum('indexCount'))['x'])
+    GetIndexCount.short_description = 'Index'
+    GetIndexCount.allow_tags = True
+    def GetBackLinksCount(self):
+        return ReplaceZero(self.domain_set.aggregate(x = Sum('backLinksCount'))['x'])
+    GetBackLinksCount.short_description = 'YBL'
+    GetBackLinksCount.allow_tags = True
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:

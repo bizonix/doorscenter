@@ -76,7 +76,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'GetDoorsCount', 'GetPagesCount', 'GetIndexCount', 'GetBackLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -88,7 +88,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
-    actions = ['AddDomains', 'AddDomainsAll', 'GenerateDoorways']
+    actions = ['AddDomains', 'AddDomainsAll', 'GenerateDoorways', 'UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount']
     def AddDomains(self, request, queryset):
         '''Добавляем в сеть один домен'''
         processed = 0
@@ -113,6 +113,38 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s generated." % GetMessageBit(processed))
     GenerateDoorways.short_description = "c. Generate a doorway"
+    def UpdateSECount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        google.Initialize()
+        yahoo.Initialize()
+        for net in queryset:
+            for domain in net.domain_set.all():
+                domain.UpdateIndexCount()
+                domain.UpdateBackLinksCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateSECount.short_description = "d. Check both GI and YBL"
+    def UpdateIndexCount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        google.Initialize()
+        for net in queryset:
+            for domain in net.domain_set.all():
+                domain.UpdateIndexCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateIndexCount.short_description = "e. Check Google index"
+    def UpdateBackLinksCount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        yahoo.Initialize()
+        for net in queryset:
+            for domain in net.domain_set.all():
+                domain.UpdateBackLinksCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateBackLinksCount.short_description = "f. Check Yahoo backlinks"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
