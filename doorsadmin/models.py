@@ -638,7 +638,8 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
                 'emailPopServer': self.emailPopServer, 
                 'snippetsFile': self.snippetsSet.localFile,
                 'spamLinksList': [],
-                'subjectsList': []}
+                'subjectsList': [],
+                'niche': self.niche.description}
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()

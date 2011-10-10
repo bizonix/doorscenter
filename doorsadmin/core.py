@@ -18,8 +18,10 @@ def CronDaily():
 
 def Helper():
     '''Запуск из командной строки'''
-    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-        niche.GenerateSpamTasksMultiple()
+    #for niche in Niche.objects.filter(active=True).order_by('pk').all():
+    #    niche.GenerateSpamTasksMultiple()
+    Net.objects.get(pk=146).AddDomains()
+    pass
 
 def ExpandNets():
     '''Плетем сети'''
