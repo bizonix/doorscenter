@@ -37,10 +37,13 @@ def Initialize():
     except Exception:
         return False
 
+def GetIndexLink(siteName):
+    return url_search % urllib.quote_plus('site:' + siteName)
+
 def GetIndex(siteName):
     pages = 0
     try:
-        html = GetPage(url_search % urllib.quote_plus('site:' + siteName))
+        html = GetPage(GetIndexLink(siteName))
         pages = GetPagesCount(html)
     except Exception:
         pass

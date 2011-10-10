@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
-import datetime, random, os, re, MySQLdb, google, nausea
+import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -683,6 +683,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
     indexCountDate = models.DateField('Index Date', null=True, blank=True)
+    backLinksCount = models.IntegerField('YBL', null=True, blank=True)
+    backLinksCountDate = models.DateField('YBL Date', null=True, blank=True)
     class Meta:
         verbose_name = 'Domain'
         verbose_name_plural = 'II.1 # Domains - [act, large]'
@@ -723,10 +725,31 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
+    def GetIndexCount(self):
+        '''...'''
+        if self.indexCount:
+            return '<a href="%s">%d</a>' % (google.GetIndexLink(self.name), self.indexCount)
+        else:
+            return '<a href="%s">-</a>' % (google.GetIndexLink(self.name))
+    GetIndexCount.short_description = 'Index'
+    GetIndexCount.allow_tags = True
     def UpdateIndexCount(self):
         '''Проверяем индекс в гугле'''
         self.indexCount = google.GetIndex(self.name)
         self.indexCountDate = datetime.datetime.now()
+        self.save()
+    def GetBackLinksCount(self):
+        '''...'''
+        if self.backLinksCount:
+            return '<a href="%s">%d</a>' % (yahoo.GetBackLinksLink(self.name), self.backLinksCount)
+        else:
+            return '<a href="%s">-</a>' % (yahoo.GetBackLinksLink(self.name))
+    GetBackLinksCount.short_description = 'YBL'
+    GetBackLinksCount.allow_tags = True
+    def UpdateBackLinksCount(self):
+        '''Проверяем индекс в гугле'''
+        self.backLinksCount = yahoo.GetBackLinks(self.name)
+        self.backLinksCountDate = datetime.datetime.now()
         self.save()
     def CheckOwnership(self):
         '''Проверка на то, что домен не отобрали'''

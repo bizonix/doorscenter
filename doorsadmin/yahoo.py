@@ -39,10 +39,13 @@ def Initialize():
     except Exception:
         return False
 
+def GetBackLinksLink(siteName):
+    return url_search % urllib.quote_plus(siteName)
+
 def GetBackLinks(siteName):
     pages = 0
     try:
-        html = GetPage(url_search % urllib.quote_plus(siteName))
+        html = GetPage(GetBackLinksLink(siteName))
         pages = GetBackLinksCount(html)
     except Exception:
         pass

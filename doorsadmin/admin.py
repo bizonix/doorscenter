@@ -2,7 +2,7 @@
 from django.contrib import admin
 from doorsadmin.models import *
 from django.contrib.admin.actions import delete_selected
-import google
+import google, yahoo
 delete_selected.short_description = '9. Delete selected items'
 
 def GetMessageBit(rows_updated):
@@ -192,7 +192,7 @@ class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['nickName', 'realName', 'password', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'GetDoorsMaxCount', 'GetPagesCount', 'indexCount', 'indexCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'GetDoorsMaxCount', 'GetPagesCount', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
@@ -203,7 +203,18 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    actions = ['UpdateIndexCount', 'CheckOwnership', 'Reset']
+    actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset']
+    def UpdateSECount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        google.Initialize()
+        yahoo.Initialize()
+        for domain in queryset:
+            domain.UpdateIndexCount()
+            domain.UpdateBackLinksCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateSECount.short_description = "a. Check both GI and YBL"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -212,7 +223,16 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "a. Check Google index"
+    UpdateIndexCount.short_description = "b. Check Google index"
+    def UpdateBackLinksCount(self, request, queryset):
+        '''Проверяем индекс в гугле'''
+        processed = 0
+        yahoo.Initialize()
+        for domain in queryset:
+            domain.UpdateBackLinksCount()
+            processed += 1
+        self.message_user(request, "%s checked." % GetMessageBit(processed))
+    UpdateBackLinksCount.short_description = "c. Check Yahoo backlinks"
     def CheckOwnership(self, request, queryset):
         '''Проверка на то, что домен не отобрали'''
         processed = 0
@@ -222,7 +242,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
                 failed += 1
             processed += 1
         self.message_user(request, "%s checked, %d failed." % (GetMessageBit(processed), failed))
-    CheckOwnership.short_description = "b. Check ownership"
+    CheckOwnership.short_description = "d. Check ownership"
     def Reset(self, request, queryset):
         '''Сбрасываем параметры доменов'''
         processed = 0
@@ -230,7 +250,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.Reset()
             processed += 1
         self.message_user(request, "%s reset." % GetMessageBit(processed))
-    Reset.short_description = "c. Reset domains"
+    Reset.short_description = "e. Reset domains"
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
