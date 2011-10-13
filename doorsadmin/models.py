@@ -19,6 +19,7 @@ hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('dedicated
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
+baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
 
 '''Helper functions'''
 
@@ -608,8 +609,8 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         if self.phrasesCount <= 5000:
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
 
-class XrumerBaseSpam(BaseXrumerBase, BaseDoorObjectSpammable):
-    '''База R для спама по топикам. File-based.'''
+class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
+    '''Предок баз профилей, доров на форумах и спама по топикам'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -620,6 +621,29 @@ class XrumerBaseSpam(BaseXrumerBase, BaseDoorObjectSpammable):
     emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
+    creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
+    registerRun = models.BooleanField('Register Run', default=True)
+    registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
+    class Meta:
+        abstract = True
+    def save(self, *args, **kwargs):
+        '''Если не указан набор сниппетов - берем случайные по нише'''
+        if self.snippetsSet == None:
+            self.snippetsSet = self.niche.GetRandomSnippetsSet()
+        '''Если не указаны ник, имя и пароль - генерим случайные'''
+        if self.nickName == '':
+            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        if self.realName == '':
+            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        if self.password == '':
+            self.password = GenerateRandomWord(12)
+        '''Если не надо предварительно регистрироваться, снимаем галочку'''
+        if self.stateSimple == 'new':
+            self.registerRun = self.creationType.find('reg') >= 0
+        super(BaseXrumerBaseAdv, self).save(*args, **kwargs)
+
+class XrumerBaseSpam(BaseXrumerBaseAdv):
+    '''База R для спама по топикам. File-based.'''
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
     spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
     spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
@@ -658,18 +682,6 @@ class XrumerBaseSpam(BaseXrumerBase, BaseDoorObjectSpammable):
         if data['rBaseLinksCount'] != 0:
             self.linksCount = data['rBaseLinksCount'] / 1000.0
         super(XrumerBaseSpam, self).SetTaskDetails(data)
-    def save(self, *args, **kwargs):
-        '''Если не указан набор сниппетов - берем случайные по нише'''
-        if self.snippetsSet == None:
-            self.snippetsSet = self.niche.GetRandomSnippetsSet()
-        '''Если не указаны ник, имя и пароль - генерим случайные'''
-        if self.nickName == '':
-            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        if self.realName == '':
-            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        if self.password == '':
-            self.password = GenerateRandomWord(12)
-        super(XrumerBaseSpam, self).save(*args, **kwargs)
 
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''

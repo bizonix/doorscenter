@@ -7,6 +7,7 @@ def CronHourly():
     '''Функция вызывается по расписанию'''
     RenewSnippets()
     RenewBasesSpam()
+    ResumeAfterReg()
     CheckAgentsActivity()
 
 def CronDaily():
@@ -55,11 +56,24 @@ def RenewBasesSpam():
             xrumerBaseSpam.stateManaged = 'new'
             xrumerBaseSpam.save()
 
+def ResumeAfterReg():
+    '''Заново создаем базы и профили после регистрации'''
+    _ResumeAfterRegEntity(XrumerBaseSpam)
+    
+def _ResumeAfterRegEntity(entity):
+    '''То же самое по заданному типу'''
+    dt = datetime.datetime.now()
+    for item in entity.objects.filter(Q(active=True), Q(registerRun=True), Q(stateManaged='done')).order_by('pk').all():            
+        if (item.registerRunDate != None) and (item.registerRunDate + datetime.timedelta(0, 24 * 60 * 60, 0) < dt):
+            item.registerRun = False
+            item.stateManaged = 'new'
+            item.save()
+
 def CheckAgentsActivity():
     '''Проверяем активность агентов'''
     dt = datetime.datetime.now()
     for agent in Agent.objects.filter(active=True).order_by('pk').all():
-        if (agent.stateSimple == 'ok') and (agent.dateLastPing != None) and (agent.dateLastPing + datetime.timedelta(0, agent.interval*60*60, 0) < dt):
+        if (agent.stateSimple == 'ok') and (agent.dateLastPing != None) and (agent.dateLastPing + datetime.timedelta(0, agent.interval * 60 * 60, 0) < dt):
             EventLog('error', 'Agent long inactivity', agent)
             agent.stateSimple = 'error'
             agent.save()
