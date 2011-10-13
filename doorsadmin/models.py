@@ -58,6 +58,10 @@ def GetObjectByTaskType(taskType):
         return XrumerBaseSpam
     elif taskType == 'SpamTask':
         return SpamTask
+    elif taskType == 'XrumerBaseDoors':
+        return XrumerBaseDoors
+    elif taskType == 'XrumerBaseProfiles':
+        return XrumerBaseProfiles
 
 def NextYearDate():
     '''Сегодняшняя дата плюс год'''
@@ -1140,8 +1144,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseSpam, SpamTask]
-            #return [SpamTask, XrumerBaseSpam]
+            return [XrumerBaseSpam, SpamTask, XrumerBaseProfiles, XrumerBaseDoors]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:

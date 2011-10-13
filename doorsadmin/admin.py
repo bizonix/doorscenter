@@ -334,8 +334,7 @@ class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
-    list_filter = ['niche', 'active', 'stateManaged', 'priority']
-    ordering = ['niche__description']
+    list_filter = ['active', 'stateManaged', 'priority']
     fieldsets = [
         (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('creationType', 'registerRun', 'registerRunDate'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
         ('Profile parameters', {'fields': [('homePage'), ('signature')], 'classes': ['expanded']}),
