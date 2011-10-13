@@ -53,8 +53,8 @@ def GetObjectByTaskType(taskType):
         return SnippetsSet
     elif taskType == 'Doorway':
         return Doorway
-    elif taskType == 'XrumerBaseR':
-        return XrumerBaseR
+    elif taskType == 'XrumerBaseSpam':
+        return XrumerBaseSpam
     elif taskType == 'SpamTask':
         return SpamTask
 
@@ -64,7 +64,7 @@ def NextYearDate():
 
 def NextBaseNumber():
     '''Следующий номер базы'''
-    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseR.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
 '''Abstract models'''
 
@@ -191,10 +191,10 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.domain_set, {'active': True}, lambda x: x <= 30 and self.active)
     GetDomainsCount.short_description = 'Domns'
     GetDomainsCount.allow_tags = True
-    def GetXrumerBasesRCount(self):
-        return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
-    GetXrumerBasesRCount.short_description = 'Bas. R'
-    GetXrumerBasesRCount.allow_tags = True
+    def GetXrumerBasesSpamCount(self):
+        return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'}, lambda x: x <= 0 and self.active)
+    GetXrumerBasesSpamCount.short_description = 'Bas. R'
+    GetXrumerBasesSpamCount.allow_tags = True
     def GetSnippetsSetsCount(self):
         return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetSnippetsSetsCount.short_description = 'Snip.'
@@ -234,12 +234,12 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         except Exception as error:
             EventLog('warning', 'Cannot find a snippets set', self, error)
             return None
-    def GetRandomBaseR(self):
-        '''Получить случайную базу R'''
+    def GetRandomBaseSpam(self):
+        '''Получить случайную базу R для спама'''
         try:
-            return XrumerBaseR.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?')[:1].get()
+            return XrumerBaseSpam.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?')[:1].get()
         except Exception as error:
-            EventLog('warning', 'Cannot find a base R', self, error)
+            EventLog('warning', 'Cannot find a spam base', self, error)
             return None
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
@@ -262,11 +262,11 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GetSpamDomainLinks(self, domain):
         '''Ссылки по домену, которые надо спамить'''
         return SpamLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
-    def _CreateSpamTask(self, xrumerBaseR, linksList):
+    def _CreateSpamTask(self, xrumerBaseSpam, linksList):
         '''Создаем задание на спам'''
         if len(linksList) == 0:
             return
-        spamTask = SpamTask.objects.create(xrumerBaseR=xrumerBaseR)
+        spamTask = SpamTask.objects.create(xrumerBaseSpam=xrumerBaseSpam)
         spamTask.save()
         #print("spam task pk: %d" % spamTask.pk)
         for pk in linksList:
@@ -278,39 +278,39 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         '''Генерация заданий сразу в несколько баз'''
         try:
             '''Получаем список баз R для данной ниши'''
-            xrumerBasesR = XrumerBaseR.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?').all()
-            xrumerBasesRCount = len(xrumerBasesR)
+            xrumerBasesSpam = XrumerBaseSpam.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?').all()
+            xrumerBasesSpamCount = len(xrumerBasesSpam)
             '''Инициализация списков: список ссылок и список количеств оставшихся доменов'''
             linksLists = []
             domainsCounts = []
-            for n in range(xrumerBasesRCount):
+            for n in range(xrumerBasesSpamCount):
                 linksLists.append([])
-                xrumerBaseR = xrumerBasesR[n]
-                domainsCounts.append(random.randint(xrumerBaseR.spamTaskDomainsMin, xrumerBaseR.spamTaskDomainsMax))
+                xrumerBaseSpam = xrumerBasesSpam[n]
+                domainsCounts.append(random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax))
             '''Цикл по доменам с заданиями на спам'''
             domains = Domain.objects.filter(niche=self).order_by('pk').all()
             for domain in domains:
                 '''Получаем список непроспамленных ссылок домена'''
                 spamLinks = self.GetSpamDomainLinks(domain).order_by('pk').all()
                 '''Распределяем их по базам'''
-                for n in range(xrumerBasesRCount):
+                for n in range(xrumerBasesSpamCount):
                     if len(spamLinks) == 0:
                         break
-                    xrumerBaseR = xrumerBasesR[n]
-                    linksCount = random.randint(xrumerBaseR.spamTaskDomainLinksMin, xrumerBaseR.spamTaskDomainLinksMax)
+                    xrumerBaseSpam = xrumerBasesSpam[n]
+                    linksCount = random.randint(xrumerBaseSpam.spamTaskDomainLinksMin, xrumerBaseSpam.spamTaskDomainLinksMax)
                     for spamLink in spamLinks[:linksCount]:
                         linksLists[n].append(spamLink.pk)
                     spamLinks = spamLinks[linksCount:]
                     domainsCounts[n] -= 1
                     '''Если задание сформировано'''
                     if domainsCounts[n] == 0:
-                        self._CreateSpamTask(xrumerBaseR, linksLists[n])
+                        self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
                         linksLists[n] = []
-                        domainsCounts[n] = random.randint(xrumerBaseR.spamTaskDomainsMin, xrumerBaseR.spamTaskDomainsMax)
+                        domainsCounts[n] = random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax)
             '''Сохраняем нераспределенные остатки'''
-            #for n in range(xrumerBasesRCount):
-            #    xrumerBaseR = xrumerBasesR[n]
-            #    self._CreateSpamTask(xrumerBaseR, linksLists[n])
+            #for n in range(xrumerBasesSpamCount):
+            #    xrumerBaseSpam = xrumerBasesSpam[n]
+            #    self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
         except Exception as error:
             EventLog('error', 'Error in GenerateSpamTasksMultiple', self, error)
 
@@ -608,8 +608,8 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         if self.phrasesCount <= 5000:
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
 
-class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
-    '''База R для Хрумера. File-based.'''
+class XrumerBaseSpam(BaseXrumerBase, BaseDoorObjectSpammable):
+    '''База R для спама по топикам. File-based.'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -625,8 +625,8 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
     spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
     spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
     class Meta:
-        verbose_name = 'Xrumer Base R'
-        verbose_name_plural = 'I.7 Xrumer Bases R - [act, managed]'
+        verbose_name = 'Xrumer Base Spam'
+        verbose_name_plural = 'I.7 Xrumer Bases Spam - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam'
@@ -657,7 +657,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
         '''Обработка данных агента'''
         if data['rBaseLinksCount'] != 0:
             self.linksCount = data['rBaseLinksCount'] / 1000.0
-        super(XrumerBaseR, self).SetTaskDetails(data)
+        super(XrumerBaseSpam, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -669,7 +669,7 @@ class XrumerBaseR(BaseXrumerBase, BaseDoorObjectSpammable):
             self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
         if self.password == '':
             self.password = GenerateRandomWord(12)
-        super(XrumerBaseR, self).save(*args, **kwargs)
+        super(XrumerBaseSpam, self).save(*args, **kwargs)
 
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''
@@ -980,7 +980,7 @@ class SpamLink(models.Model):
 
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
-    xrumerBaseR = models.ForeignKey('XrumerBaseR', verbose_name='Base R', null=True)
+    xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
     class Meta:
         verbose_name = 'Spam Task'
@@ -993,22 +993,22 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         return s
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        result = self.xrumerBaseR.GetTaskDetailsCommon()  # берем общую информацию из базы R
-        result['baseNumber'] = self.xrumerBaseR.baseNumber  # перезаписываем нужные параметры
+        result = self.xrumerBaseSpam.GetTaskDetailsCommon()  # берем общую информацию из базы R
+        result['baseNumber'] = self.xrumerBaseSpam.baseNumber  # перезаписываем нужные параметры
         result['snippetsFile'] = self.snippetsSet.localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
-        result['niche'] = self.xrumerBaseR.niche.description
+        result['niche'] = self.xrumerBaseSpam.niche.description
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         if data['rBaseLinksCount'] != 0:
-            self.xrumerBaseR.linksCount = data['rBaseLinksCount'] / 1000.0
-            self.xrumerBaseR.save()
+            self.xrumerBaseSpam.linksCount = data['rBaseLinksCount'] / 1000.0
+            self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише базы'''
         if self.snippetsSet == None:
-            self.snippetsSet = self.xrumerBaseR.niche.GetRandomSnippetsSet()
+            self.snippetsSet = self.xrumerBaseSpam.niche.GetRandomSnippetsSet()
         super(SpamTask, self).save(*args, **kwargs)
 
 class Host(BaseDoorObject):
@@ -1075,10 +1075,10 @@ class XrumerBaseRaw(BaseXrumerBase):
     class Meta:
         verbose_name = 'Xrumer Base Raw'
         verbose_name_plural = 'III.3 Xrumer Bases Raw - [act]'
-    def GetXrumerBasesRCount(self):
-        return GetCounter(self.xrumerbaser_set, {'active': True, 'stateManaged': 'done'})
-    GetXrumerBasesRCount.short_description = 'Bases R'
-    GetXrumerBasesRCount.allow_tags = True
+    def GetXrumerBasesSpamCount(self):
+        return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'})
+    GetXrumerBasesSpamCount.short_description = 'Bases Spam'
+    GetXrumerBasesSpamCount.allow_tags = True
 
 class Trackers(BaseDoorObject):
     '''Связка TDS+Piwik'''
@@ -1105,8 +1105,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseR, SpamTask]
-            #return [SpamTask, XrumerBaseR]
+            return [XrumerBaseSpam, SpamTask]
+            #return [SpamTask, XrumerBaseSpam]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:

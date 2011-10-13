@@ -63,7 +63,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesRCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -211,7 +211,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     ]
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseRAdmin(BaseAdminActivatable, BaseAdminManaged):
+class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'GetSpamTasksCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
@@ -310,10 +310,10 @@ class SpamLinkAdmin(BaseAdmin):
     ]
 
 class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'xrumerBaseR', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('pk', 'xrumerBaseSpam', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': [('xrumerBaseR', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
+        (None, {'fields': [('xrumerBaseSpam', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -343,7 +343,7 @@ class IPAddressAdmin(BaseAdminSimple):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesRCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesSpamCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'stateSimple']
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
@@ -394,7 +394,7 @@ admin.site.register(NetPlan, NetPlanAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
-admin.site.register(XrumerBaseR, XrumerBaseRAdmin)
+admin.site.register(XrumerBaseSpam, XrumerBaseSpamAdmin)
 
 admin.site.register(Domain, DomainAdmin)
 admin.site.register(Doorway, DoorwayAdmin)

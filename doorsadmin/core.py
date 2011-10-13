@@ -1,12 +1,12 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseR, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseSpam, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
     RenewSnippets()
-    RenewBasesR()
+    RenewBasesSpam()
     CheckAgentsActivity()
 
 def CronDaily():
@@ -48,12 +48,12 @@ def RenewSnippets():
             snippetsSet.stateManaged = 'new'
             snippetsSet.save()
 
-def RenewBasesR():
+def RenewBasesSpam():
     '''Перегенерируем изношенные базы'''
-    for xrumerBaseR in XrumerBaseR.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
-        if xrumerBaseR.linksCount < 2:  # в тысячах
-            xrumerBaseR.stateManaged = 'new'
-            xrumerBaseR.save()
+    for xrumerBaseSpam in XrumerBaseSpam.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
+        if xrumerBaseSpam.linksCount < 2:  # в тысячах
+            xrumerBaseSpam.stateManaged = 'new'
+            xrumerBaseSpam.save()
 
 def CheckAgentsActivity():
     '''Проверяем активность агентов'''
