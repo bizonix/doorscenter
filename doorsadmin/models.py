@@ -107,7 +107,7 @@ class BaseDoorObjectTrackable(models.Model):
         abstract = True
 
 class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
-    '''База Хрумера. File-based.'''
+    '''База Хрумера'''
     baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
     linksCount = models.FloatField('Count, k.', null=True, blank=True)
     language = models.CharField('Language', max_length=50, choices=languages, blank=True)
@@ -153,6 +153,54 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
         self.profilesCount = data['profilesCount']
         if (self.successCount < 500) or (self.successCount * 1.0 / (self.successCount + self.halfSuccessCount + self.failsCount + 1.0) < 0.3):
             EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
+
+class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
+    '''Предок баз профилей, доров на форумах и спама по топикам'''
+    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
+    xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
+    snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
+    nickName = models.CharField('Nick Name', max_length=200, default='')
+    realName = models.CharField('Real Name', max_length=200, default='')
+    password = models.CharField('Password', max_length=200, default='')
+    emailAddress = models.CharField('E.Address', max_length=200, default='niiokr2012@gmail.com')
+    emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
+    emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
+    emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
+    creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
+    registerRun = models.BooleanField('Register Run', default=True)
+    registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
+    class Meta:
+        abstract = True
+    def GetTaskDetailsCommon(self):
+        '''Подготовка данных для работы агента - общая часть для задания на спам'''
+        return {'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
+                'baseNumberDest': self.baseNumber,  # в случае создания базы R здесь указывается номер, присваемый созданной базе, в случае спама по базе R параметр не имеет значения
+                'nickName': self.nickName, 
+                'realName': self.realName, 
+                'password': self.password, 
+                'emailAddress': self.emailAddress.replace('@gmail.com', '+%s@gmail.com' % self.nickName), 
+                'emailPassword': self.emailPassword, 
+                'emailLogin': self.emailLogin, 
+                'emailPopServer': self.emailPopServer, 
+                'snippetsFile': self.snippetsSet.localFile,
+                'spamLinksList': [],
+                'subjectsList': [],
+                'niche': self.niche.description}
+    def save(self, *args, **kwargs):
+        '''Если не указан набор сниппетов - берем случайные по нише'''
+        if self.snippetsSet == None:
+            self.snippetsSet = self.niche.GetRandomSnippetsSet()
+        '''Если не указаны ник, имя и пароль - генерим случайные'''
+        if self.nickName == '':
+            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        if self.realName == '':
+            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        if self.password == '':
+            self.password = GenerateRandomWord(12)
+        '''Если не надо предварительно регистрироваться, снимаем галочку'''
+        if self.stateSimple == 'new':
+            self.registerRun = self.creationType.find('reg') >= 0
+        super(BaseXrumerBaseAdv, self).save(*args, **kwargs)
 
 '''Real models'''
 
@@ -526,7 +574,7 @@ class NetDescription(Net):
         proxy = True
 
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
-    '''Набор ключевых слов. Folder-based.'''
+    '''Набор ключевых слов'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     localFolder = models.CharField('Local Folder', max_length=200, default='')
     encoding = models.CharField('Encoding', max_length=50, choices=encodings, default='cp1251')
@@ -564,7 +612,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         super(KeywordsSet, self).save(*args, **kwargs)
 
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
-    '''Шаблон дора. Folder-based.'''
+    '''Шаблон дора'''
     type = models.CharField('Type', max_length=50, choices=templateTypes, default='none', blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True, blank=True)
     localFolder = models.CharField('Local Folder', max_length=200, default='', blank=True)
@@ -609,41 +657,8 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         if self.phrasesCount <= 5000:
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
 
-class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
-    '''Предок баз профилей, доров на форумах и спама по топикам'''
-    niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
-    xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
-    snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
-    nickName = models.CharField('Nick Name', max_length=200, default='')
-    realName = models.CharField('Real Name', max_length=200, default='')
-    password = models.CharField('Password', max_length=200, default='')
-    emailAddress = models.CharField('E.Address', max_length=200, default='niiokr2012@gmail.com')
-    emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
-    emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
-    emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
-    creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
-    registerRun = models.BooleanField('Register Run', default=True)
-    registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
-    class Meta:
-        abstract = True
-    def save(self, *args, **kwargs):
-        '''Если не указан набор сниппетов - берем случайные по нише'''
-        if self.snippetsSet == None:
-            self.snippetsSet = self.niche.GetRandomSnippetsSet()
-        '''Если не указаны ник, имя и пароль - генерим случайные'''
-        if self.nickName == '':
-            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        if self.realName == '':
-            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        if self.password == '':
-            self.password = GenerateRandomWord(12)
-        '''Если не надо предварительно регистрироваться, снимаем галочку'''
-        if self.stateSimple == 'new':
-            self.registerRun = self.creationType.find('reg') >= 0
-        super(BaseXrumerBaseAdv, self).save(*args, **kwargs)
-
 class XrumerBaseSpam(BaseXrumerBaseAdv):
-    '''База R для спама по топикам. File-based.'''
+    '''База R для спама по топикам'''
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
     spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
     spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
@@ -657,21 +672,6 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     GetSpamTasksCount.allow_tags = True
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
-    def GetTaskDetailsCommon(self):
-        '''Подготовка данных для работы агента - общая часть для задания на спам'''
-        return {'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
-                'baseNumberDest': self.baseNumber,  # в случае создания базы R здесь указывается номер, присваемый созданной базе, в случае спама по базе R параметр не имеет значения
-                'nickName': self.nickName, 
-                'realName': self.realName, 
-                'password': self.password, 
-                'emailAddress': self.emailAddress.replace('@gmail.com', '+%s@gmail.com' % self.nickName), 
-                'emailPassword': self.emailPassword, 
-                'emailLogin': self.emailLogin, 
-                'emailPopServer': self.emailPopServer, 
-                'snippetsFile': self.snippetsSet.localFile,
-                'spamLinksList': [],
-                'subjectsList': [],
-                'niche': self.niche.description}
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -993,7 +993,6 @@ class SpamLink(models.Model):
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
     xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
-    snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
     class Meta:
         verbose_name = 'Spam Task'
         verbose_name_plural = 'II.4 Spam Tasks - [large, managed]'
@@ -1007,7 +1006,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseSpam.GetTaskDetailsCommon()  # берем общую информацию из базы R
         result['baseNumber'] = self.xrumerBaseSpam.baseNumber  # перезаписываем нужные параметры
-        result['snippetsFile'] = self.snippetsSet.localFile
+        result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
         result['niche'] = self.xrumerBaseSpam.niche.description
         return result
@@ -1017,11 +1016,35 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             self.xrumerBaseSpam.linksCount = data['rBaseLinksCount'] / 1000.0
             self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
-    def save(self, *args, **kwargs):
-        '''Если не указан набор сниппетов - берем случайные по нише базы'''
-        if self.snippetsSet == None:
-            self.snippetsSet = self.xrumerBaseSpam.niche.GetRandomSnippetsSet()
-        super(SpamTask, self).save(*args, **kwargs)
+
+class XrumerBaseDoors(BaseXrumerBaseAdv):
+    '''База R для доров на форумах'''
+    body = models.TextField('Doorway body', default='', blank=True)
+    class Meta:
+        verbose_name = 'Xrumer Base Doors'
+        verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(XrumerBaseDoors, self).SetTaskDetails(data)
+
+class XrumerBaseProfiles(BaseXrumerBaseAdv):
+    '''База профилей'''
+    homePage = models.CharField('Home page', max_length=200, default='', blank=True)
+    signature = models.CharField('Signature', max_length=200, default='', blank=True)
+    class Meta:
+        verbose_name = 'Xrumer Base Profiles'
+        verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(XrumerBaseProfiles, self).SetTaskDetails(data)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''
@@ -1083,7 +1106,7 @@ class IPAddress(BaseDoorObject):
     GetPagesCount.allow_tags = True
 
 class XrumerBaseRaw(BaseXrumerBase):
-    '''Сырая база Хрумера. File-based.'''
+    '''Сырая база Хрумера'''
     class Meta:
         verbose_name = 'Xrumer Base Raw'
         verbose_name_plural = 'III.3 Xrumer Bases Raw - [act]'

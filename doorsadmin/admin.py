@@ -310,15 +310,39 @@ class SpamLinkAdmin(BaseAdmin):
     ]
 
 class SpamTaskAdmin(BaseAdminManaged):
-    list_display = ('pk', 'xrumerBaseSpam', 'snippetsSet', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('pk', 'xrumerBaseSpam', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': [('xrumerBaseSpam', 'snippetsSet'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
+        (None, {'fields': [('xrumerBaseSpam'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
     #inlines = [SpamLinkInline]
+
+class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateManaged', 'priority']
+    ordering = ['niche__description']
+    fieldsets = [
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('creationType', 'registerRun', 'registerRunDate'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        ('Doorway parameters', {'fields': [('body')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['nickName', 'realName', 'password', 'registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+
+class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateManaged', 'priority']
+    ordering = ['niche__description']
+    fieldsets = [
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('creationType', 'registerRun', 'registerRunDate'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        ('Profile parameters', {'fields': [('homePage'), ('signature')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['nickName', 'realName', 'password', 'registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class HostAdmin(BaseAdminSimple):
     list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
@@ -400,6 +424,8 @@ admin.site.register(Domain, DomainAdmin)
 admin.site.register(Doorway, DoorwayAdmin)
 admin.site.register(SpamLink, SpamLinkAdmin)
 admin.site.register(SpamTask, SpamTaskAdmin)
+admin.site.register(XrumerBaseDoors, XrumerBaseDoorsAdmin)
+admin.site.register(XrumerBaseProfiles, XrumerBaseProfilesAdmin)
 
 admin.site.register(Host, HostAdmin)
 admin.site.register(IPAddress, IPAddressAdmin)
