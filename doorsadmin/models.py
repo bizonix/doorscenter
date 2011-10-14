@@ -180,8 +180,8 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     def GetTaskDetailsCommon(self):
         '''Подготовка данных для работы агента - общая часть для задания на спам'''
         return {'niche': self.niche.description,
-                'baseNumber': self.xrumerBaseRaw.baseNumber,  # база, по которой спамим. в случае создания базы R здесь указывается номер сырой базы, в случае спама по базе R здесь указывается номер базы R
-                'baseNumberDest': self.baseNumber,  # база, которую создаем. в случае создания базы R здесь указывается номер, присваемый созданной базе, в случае спама по базе R параметр не имеет значения
+                'baseNumberMain': self.baseNumber,  # база, которую создаем, либо по которой спамим
+                'baseNumberSource': self.xrumerBaseRaw.baseNumber,  # база, на основе которой создаем новую
                 'snippetsFile': self.snippetsSet.localFile,
                 'nickName': self.nickName, 
                 'realName': self.realName, 
@@ -683,12 +683,13 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
+        result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
         result['subjectsList'] = self.niche.GenerateKeywordsList(5000)
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        if data['rBaseLinksCount'] != 0:
-            self.linksCount = data['rBaseLinksCount'] / 1000.0
+        if data['baseLinksCount'] != 0:
+            self.linksCount = data['baseLinksCount'] / 1000.0
         super(XrumerBaseSpam, self).SetTaskDetails(data)
 
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
@@ -1012,15 +1013,14 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         return s
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
-        result = self.xrumerBaseSpam.GetTaskDetailsCommon()  # берем общую информацию из базы R
-        result['baseNumber'] = self.xrumerBaseSpam.baseNumber  # перезаписываем нужные параметры
+        result = self.xrumerBaseSpam.GetTaskDetailsCommon()
         result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        if data['rBaseLinksCount'] != 0:
-            self.xrumerBaseSpam.linksCount = data['rBaseLinksCount'] / 1000.0
+        if data['baseLinksCount'] != 0:
+            self.xrumerBaseSpam.linksCount = data['baseLinksCount'] / 1000.0
             self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
 

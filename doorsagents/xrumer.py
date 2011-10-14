@@ -7,14 +7,11 @@ xrumerSettingsGroup2 = ('edit-profile')
 xrumerSettingsGroup3 = ('post', 'reply')
 xrumerSettingsGroup4 = ('LinksList', 'RLinksList')
 
-'''TODO: baseNumber (baseR1) и baseNumberDest (baseR2) переименовать в from и main.
-Копировать базу до создания.'''
-
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: niche, baseNumber, baseNumberDest, snippetsFile, nickName, realName, password, emailAddress, emailPassword, 
+    Входные: niche, baseNumberMain, baseNumberSource, snippetsFile, nickName, realName, password, emailAddress, emailPassword, 
     emailLogin, emailPopServer, subject, spamLinksList, creationType, registerRun.
-    Выходные: successCount, halfSuccessCount, failsCount, profilesCount, registeredAccountsCount, rBaseLinksCount.'''
+    Выходные: successCount, halfSuccessCount, failsCount, profilesCount, registeredAccountsCount, baseLinksCount.'''
     
     def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount, controlTimeRange, 
                        projSubject, projBody, projHomePage = '', projSignature = ''):
@@ -191,8 +188,10 @@ TimeRange=''' + str(controlTimeRange) + '''
         self.nicheAnchorsFile = os.path.join(self.appFolder, 'Anchors', '%s.txt' % self.currentTask['niche'])
         self.subjectsFile = os.path.join(self.appFolder, 'Subjects', '%s.txt' % self.currentTask['niche'])
         self.appLinksFolder = os.path.join(self.appFolder, 'Links')
-        self.baseR1File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumber'])
-        self.baseR2File = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberDest'])
+        self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
@@ -200,14 +199,14 @@ TimeRange=''' + str(controlTimeRange) + '''
         win32gui.SendMessage(p, 0x10, 0, 0)
     
     def _FilterBaseR(self):
-        '''Фильтрация базы R'''
+        '''Фильтрация базы R по успешным и полууспешным'''
         logTemp = self.logFileTemplate % 'Temporary'
         with open(logTemp, 'w') as fd:
             for line in open(self.logSuccess, 'r'):
                 fd.write(line)
             for line in open(self.logHalfSuccess, 'r'):
                 fd.write(line)
-        kwk8.Kwk8Links(self.baseR1File).SelectByFile(logTemp).Save(self.baseR1File)
+        kwk8.Kwk8Links(self.baseMainRFile).SelectByFile(logTemp).Save(self.baseMainRFile)
         os.unlink(logTemp)
         
     def _ActionOn(self):
@@ -234,7 +233,7 @@ TimeRange=''' + str(controlTimeRange) + '''
         self.currentTask['failsCount'] = 0 
         self.currentTask['profilesCount'] = 0
         self.currentTask['registeredAccountsCount'] = 0
-        self.currentTask['rBaseLinksCount'] = 0
+        self.currentTask['baseLinksCount'] = 0
         '''Закрытие приложений'''
         self._CloseApp(self.appCaptionControl)
         time.sleep(1)
@@ -271,7 +270,7 @@ TimeRange=''' + str(controlTimeRange) + '''
         except Exception as error:
             print('Cannot count success links: %s' % error)
         try:
-            self.currentTask['rBaseLinksCount'] = kwk8.Kwk8Links(self.baseR1File).Count()
+            self.currentTask['baseLinksCount'] = kwk8.Kwk8Links(self.baseMainRFile).Count()
         except Exception as error:
             print('Cannot count base R links: %s' % error)
         return True
@@ -315,18 +314,24 @@ class XrumerHelperBaseSpam():
         '''Пишем темы'''
         with codecs.open(self.agent.subjectsFile, 'w', 'cp1251') as fd:
             fd.write('\n'.join(self.agent.currentTask['subjectsList']))
+        '''Копируем исходную базу в целевую'''
+        try:
+            shutil.copyfile(self.agent.baseSourceFile, self.agent.baseMainFile)
+        except Exception as error:
+            print('Cannot copy source base to main: %s' % error)
         '''Удаляем существующую базу R'''
-        if os.path.isfile(self.agent.baseR1File): 
+        if os.path.isfile(self.agent.baseMainRFile): 
             try:
-                os.remove(self.agent.baseR1File)
+                os.remove(self.agent.baseMainRFile)
             except Exception as error:
                 print('Cannot remove old base R: %s' % error)
     def ActionOff(self):
-        '''Копирование базы R'''
-        try:
-            shutil.copyfile(self.agent.baseR1File, self.agent.baseR2File)
-        except Exception as error:
-            print('Cannot copy the new base R: %s' % error)
+        '''Удаляем целевую базу, которую копировали ранее'''
+        if os.path.isfile(self.agent.baseMainFile): 
+            try:
+                os.remove(self.agent.baseMainFile)
+            except Exception as error:
+                print('Cannot remove old base R: %s' % error)
 
 class XrumerHelperSpamTask():
     '''Задание для спама по топикам'''
