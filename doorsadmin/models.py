@@ -69,7 +69,7 @@ def NextYearDate():
 
 def NextBaseNumber():
     '''Следующий номер базы'''
-    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseProfiles.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
 '''Abstract models'''
 
@@ -173,7 +173,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
     creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
-    registerRun = models.BooleanField('Register Run', default=True)
+    registerRun = models.BooleanField('Reg.', default=True)
     registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=24, null=True, blank=True)
     class Meta:
@@ -195,6 +195,10 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
                 'subjectsList': [],
                 'creationType': self.creationType,
                 'registerRun': self.registerRun}
+    def SetTaskDetails(self, data):
+        if self.registerRun:
+            self.registerRunDate = datetime.datetime.now()
+        super(BaseXrumerBaseAdv, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -1056,6 +1060,10 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         super(XrumerBaseProfiles, self).SetTaskDetails(data)
+    def save(self, *args, **kwargs):
+        if self.stateSimple == 'new':
+            self.creationType = 'reg + post'
+        super(XrumerBaseProfiles, self).save(*args, **kwargs)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''

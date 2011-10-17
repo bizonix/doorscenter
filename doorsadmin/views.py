@@ -58,7 +58,11 @@ def update(request, agentId):
         '''Обновляем задание'''
         data = pickle.loads(base64.b64decode(request.POST['data']))
         task = GetObjectByTaskType(data['type']).objects.get(pk=data['id'])
-        task.SetTaskDetails(data)
+        try:
+            task.SetTaskDetails(data)
+        except Exception as errorHandle:
+            data['state'] = 'error'
+            data['error'] += '. Handle error:' + str(errorHandle)
         task.stateManaged = data['state']
         task.lastError = data['error']
         task.runTime = data['runTime']
