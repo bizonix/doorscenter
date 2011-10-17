@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseSpam, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -59,12 +59,14 @@ def RenewBasesSpam():
 def ResumeAfterReg():
     '''Заново создаем базы и профили после регистрации'''
     _ResumeAfterRegEntity(XrumerBaseSpam)
+    _ResumeAfterRegEntity(XrumerBaseDoors)
+    _ResumeAfterRegEntity(XrumerBaseProfiles)
     
 def _ResumeAfterRegEntity(entity):
     '''То же самое по заданному типу'''
     dt = datetime.datetime.now()
     for item in entity.objects.filter(Q(active=True), Q(registerRun=True), Q(stateManaged='done')).order_by('pk').all():            
-        if (item.registerRunDate != None) and (item.registerRunDate + datetime.timedelta(0, 24 * 60 * 60, 0) < dt):
+        if (item.registerRunDate != None) and (item.registerRunDate + datetime.timedelta(0, item.registerRunTimeout * 60 * 60, 0) < dt):
             item.registerRun = False
             item.stateManaged = 'new'
             item.save()

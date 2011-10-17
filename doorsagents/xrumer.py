@@ -38,7 +38,7 @@ class XrumerAgent(agent.BaseAgent):
             'AggressiveMode': '0', 
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': ('1' if settings2 == 'edit-profile' else '0'), 
-            'UploadAvatars': '0', 
+            'UploadAvatars': ('1' if settings2 == 'edit-profile' else '0'), 
             'EnableRefspam': '0', 
             'BBtoHTML': '1', 
             'PostNewMode': ('1' if settings3 == 'post' else '3'),
