@@ -28,7 +28,8 @@ class XrumerAgent(agent.BaseAgent):
             config = fd.readlines()
         config[3] = '%d\n' % threadsCount
         config[8] = 'ON\n'  # автопродолжение
-        with open(self.appConfigFile, 'w') as fd:
+        config[9] = 'ON\n' if settings1 == 'register-only' else 'OFF\n'  # только регистрация
+        with open(configFile, 'w') as fd:
             fd.writelines(config)
         
         '''Файл xuser.ini'''
@@ -39,13 +40,14 @@ class XrumerAgent(agent.BaseAgent):
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': ('1' if settings2 == 'edit-profile' else '0'), 
             'UploadAvatars': ('1' if settings2 == 'edit-profile' else '0'), 
-            'EnableRefspam': '0', 
+            'LogInIfBusy': '1',
             'BBtoHTML': '1', 
+            'EnableRefspam': '0', 
             'PostNewMode': ('1' if settings3 == 'post' else '3'),
             'SchedulerEnabled': '1',
             'CurrentJob': '0'}
         common.ModifyIniFile(settingsFile, settingsDict)
-        
+
         '''Расписание schedule.xml'''
         with open(scheduleFile, 'w') as fd:
             fd.write('''<?xml version="1.0" encoding="UTF-8"?>
@@ -69,14 +71,14 @@ class XrumerAgent(agent.BaseAgent):
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
     <JobNum>5</JobNum>
-    <JobParameter>''' + ('0' if settings1 == 'LinksList' else '3') + '''</JobParameter>
+    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
   </Schedule2>
   <Schedule3>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
     <JobNum>10</JobNum>
-    <JobParameter>''' + self.currentTask['baseNumber'] + '''</JobParameter>
+    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
   </Schedule3>
   <Schedule4>
     <PerformedTime></PerformedTime>
@@ -158,17 +160,17 @@ TimeRange=''' + str(controlTimeRange) + '''
     def _Settings(self):
         '''Создание класса-хелпера'''
         if self.currentTask['type'] == 'XrumerBaseSpam':
-            self.helper = XrumerHelperBaseSpam()
+            self.helper = XrumerHelperBaseSpam(self)
         elif self.currentTask['type'] == 'SpamTask':
-            self.helper = XrumerHelperSpamTask()
+            self.helper = XrumerHelperSpamTask(self)
         elif self.currentTask['type'] == 'XrumerBaseDoors':
-            self.helper = XrumerHelperBaseDoors()
+            self.helper = XrumerHelperBaseDoors(self)
         elif self.currentTask['type'] == 'XrumerBaseProfiles':
-            self.helper = XrumerHelperBaseProfiles()
+            self.helper = XrumerHelperBaseProfiles(self)
         '''Настройки'''
-        self.appFolder = 'D:\\Miscellaneous\\Lodger6\\xrumer707'
-        self.appFolderControl1 = 'D:\\Miscellaneous\\Lodger6\\control1'
-        self.appFolderControl2 = 'D:\\Miscellaneous\\Lodger6\\control2'
+        self.appFolder = 'C:\\Work\\xrumer707'
+        self.appFolderControl1 = 'C:\\Work\\control1'
+        self.appFolderControl2 = 'C:\\Work\\control2'
         self.appApplication = os.path.join(self.appFolder, 'xpymep.exe')
         self.appApplicationControl1 = os.path.join(self.appFolderControl1, 'control.exe')
         self.appApplicationControl2 = os.path.join(self.appFolderControl2, 'control.exe')
@@ -177,17 +179,21 @@ TimeRange=''' + str(controlTimeRange) + '''
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         self.snippetsFolder = 'C:\\Work\\snippets'
         self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
+        
         self.projectName = self.helper.GetProjectName()
-        self.logFileTemplate = os.path.join(self.appFolder, 'Logs', self.projectName, '%s id%d.txt' % ('%s', self.currentTask['baseNumber']))
+        self.logFileTemplate = os.path.join(self.appFolder, 'Logs', self.projectName, '%s id%d.txt' % ('%s', self.currentTask['baseNumberMain']))
         self.logSuccess = self.logFileTemplate % 'Success'
         self.logHalfSuccess = self.logFileTemplate % 'Halfsuccess'
         self.logFails = self.logFileTemplate % 'Others'
         self.logProfiles = self.logFileTemplate % 'Profiles'
         self.logRegisteredAccounts = os.path.join(self.appFolder, 'Logs', self.projectName, 'Registered Accounts.txt')
         self.logAnchors = self.logFileTemplate % 'Anchors'
-        self.nicheAnchorsFile = os.path.join(self.appFolder, 'Anchors', '%s.txt' % self.currentTask['niche'])
-        self.subjectsFile = os.path.join(self.appFolder, 'Subjects', '%s.txt' % self.currentTask['niche'])
+        
+        self.appAnchorsFolder = os.path.join(self.appFolder, 'Anchors')
+        self.appSubjectsFolder = os.path.join(self.appFolder, 'Subjects')
         self.appLinksFolder = os.path.join(self.appFolder, 'Links')
+        self.nicheAnchorsFile = os.path.join(self.appAnchorsFolder, '%s.txt' % self.currentTask['niche'])
+        self.subjectsFile = os.path.join(self.appSubjectsFolder, '%s.txt' % self.currentTask['niche'])
         self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
@@ -213,13 +219,19 @@ TimeRange=''' + str(controlTimeRange) + '''
         self._Settings()
         '''Вызываем хэлпер'''
         self.helper.ActionOn()
+        '''Удаляем старый RegisteredAccounts.txt'''
+        if os.path.isfile(self.logRegisteredAccounts): 
+            try:
+                os.remove(self.logRegisteredAccounts)
+            except Exception as error:
+                print('Cannot remove old base R: %s' % error)
         '''Если анкоров по нише нет, создаем пустой файл'''
         if not os.path.exists(self.nicheAnchorsFile):
             with open(self.nicheAnchorsFile, 'w') as fd:
                 fd.write('')
         '''Запуск приложений'''
         self._RunApp(self.appApplication)
-        time.sleep(3)
+        time.sleep(1)
         self._RunApp(self.appApplicationControl1)
         time.sleep(1)
         self._RunApp(self.appApplicationControl2)
@@ -238,7 +250,7 @@ TimeRange=''' + str(controlTimeRange) + '''
         self._CloseApp(self.appCaptionControl)
         time.sleep(1)
         self._CloseApp(self.appCaptionControl)
-        time.sleep(3)
+        time.sleep(1)
         self._CloseApp(self.appCaption)
         '''Вызываем хэлпер'''
         self.helper.ActionOff()
@@ -288,7 +300,7 @@ class XrumerHelper():
     def ActionOff(self):
         pass
     
-class XrumerHelperBaseSpam():
+class XrumerHelperBaseSpam(XrumerHelper):
     '''База R для спама по топикам'''
     def GetProjectName(self):
         return 'ProjectR%d' % self.agent.currentTask['id']
@@ -333,7 +345,7 @@ class XrumerHelperBaseSpam():
             except Exception as error:
                 print('Cannot remove old base R: %s' % error)
 
-class XrumerHelperSpamTask():
+class XrumerHelperSpamTask(XrumerHelper):
     '''Задание для спама по топикам'''
     def GetProjectName(self):
         return 'ProjectS%d' % self.agent.currentTask['id']
@@ -353,7 +365,7 @@ class XrumerHelperSpamTask():
         except Exception as error:
             print('Cannot filter new base R: %s' % error)
 
-class XrumerHelperBaseDoors():
+class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
     def GetProjectName(self):
         return 'ProjectD%d' % self.agent.currentTask['id']
@@ -362,7 +374,7 @@ class XrumerHelperBaseDoors():
     def ActionOff(self):
         pass
 
-class XrumerHelperBaseProfiles():
+class XrumerHelperBaseProfiles(XrumerHelper):
     '''Профили'''
     def GetProjectName(self):
         return 'ProjectP%d' % self.agent.currentTask['id']
@@ -373,9 +385,19 @@ class XrumerHelperBaseProfiles():
         if self.registerRun:
             self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', 'none', '', '')
         else:
-            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', '#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
+            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
+        '''Копируем исходную базу в целевую'''
+        try:
+            shutil.copyfile(self.agent.baseSourceFile, self.agent.baseMainFile)
+        except Exception as error:
+            print('Cannot copy source base to main: %s' % error)
     def ActionOff(self):
-        pass
+        '''Копируем созданные профили в папку с анкорами для последующего спама'''
+        if not self.registerRun:
+            try:
+                shutil.copy(self.agent.logProfiles, self.agent.appAnchorsFolder)
+            except Exception as error:
+                print('Cannot copy source base to main: %s' % error)
 
 if __name__ == '__main__':
-    agent = XrumerAgent('http://127.0.0.1:8000/doorsadmin', 3)
+    agent = XrumerAgent('http://searchpro.name/doorscenter/doorsadmin', 3)
