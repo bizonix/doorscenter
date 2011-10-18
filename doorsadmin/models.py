@@ -1031,7 +1031,8 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
 
 class XrumerBaseDoors(BaseXrumerBaseAdv):
     '''База R для доров на форумах'''
-    body = models.TextField('Doorway body', default='', blank=True)
+    body = models.TextField('Body', default='', blank=True)
+    runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Doors'
         verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
@@ -1042,6 +1043,10 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
+        if (self.runCount > 0) and (data['state'] == 'done'):
+            self.runCount -= 1
+            self.save()
+            data['state'] = 'new'
         super(XrumerBaseDoors, self).SetTaskDetails(data)
 
 class XrumerBaseProfiles(BaseXrumerBaseAdv):
