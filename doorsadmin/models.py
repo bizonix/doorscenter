@@ -192,7 +192,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
                 'emailLogin': self.emailLogin, 
                 'emailPopServer': self.emailPopServer, 
                 'spamLinksList': [],
-                'subjectsList': [],
+                'keywordsList': [],
                 'creationType': self.creationType,
                 'registerRun': self.registerRun}
     def SetTaskDetails(self, data):
@@ -689,7 +689,7 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
         result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
-        result['subjectsList'] = self.niche.GenerateKeywordsList(5000)
+        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
@@ -1040,6 +1040,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
         result['body'] = self.body
+        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
