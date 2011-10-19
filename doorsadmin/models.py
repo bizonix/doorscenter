@@ -134,6 +134,7 @@ class BaseDoorObjectManaged(models.Model):
         except:
             return ''
     GetRunTime.short_description = 'Run Time'
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         pass
@@ -660,6 +661,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
@@ -691,6 +693,7 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     GetSpamTasksCount.allow_tags = True
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
@@ -900,6 +903,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         for spamLink in SpamLink.objects.filter(doorway=self):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return Doorway.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
@@ -1028,6 +1032,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         for spamLink in SpamLink.objects.filter(spamTask=self):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
@@ -1051,6 +1056,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
     class Meta:
         verbose_name = 'Xrumer Base Doors'
         verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')
@@ -1075,6 +1081,7 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     class Meta:
         verbose_name = 'Xrumer Base Profiles'
         verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
+    @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
         return XrumerBaseProfiles.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
