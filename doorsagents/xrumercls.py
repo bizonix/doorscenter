@@ -13,14 +13,15 @@ class XrumerHelper():
         self.registerRun = self.agent.currentTask['registerRun']
         snippetsFolder = 'C:\\Work\\snippets'
         keywordsFolder = os.path.join(self.agent.appFolder, 'Keywords')
-        self.keywordsFile = escape(os.path.join(keywordsFolder, '%s.txt' % self.agent.currentTask['niche']))
-        self.snippetsFile = escape(os.path.join(snippetsFolder, self.agent.currentTask['snippetsFile']))
-        self.anchorsFile = escape(self.linker.GetSpamAnchorsFile())
-        self.profilesFile = escape(self.linker.GetProfilesFile())
+        self.keywordsFile = os.path.join(keywordsFolder, '%s.txt' % self.agent.currentTask['niche'])
+        self.keywordsFileEsc = escape(self.keywordsFile)
+        self.snippetsFileEsc = escape(os.path.join(snippetsFolder, self.agent.currentTask['snippetsFile']))
+        self.anchorsFileEsc = escape(self.linker.GetSpamAnchorsFile())
+        self.profilesFileEsc = escape(self.linker.GetProfilesFile())
     
     def _WriteKeywords(self):
         '''Пишем кейворды'''
-        with codecs.open(self.agent.keywordsFile, 'w', 'cp1251') as fd:
+        with codecs.open(self.keywordsFile, 'w', 'cp1251') as fd:
             fd.write('\n'.join(self.agent.currentTask['keywordsList']))
     
     def _CopyBase(self, sourceFileName, destFileName):
@@ -67,8 +68,8 @@ class XrumerHelperBaseSpam(XrumerHelper):
     def ActionOn(self):
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
-        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFile, spamLinksList, self.anchorsFile, self.profilesFile, self.snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
+        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Создаем настройки'''
         threadsCount = 110
         controlTimeRange = 120
@@ -92,6 +93,7 @@ class XrumerHelperBaseSpam(XrumerHelper):
     def ActionOff(self):
         '''Копируем анкоры и удаляем базу, которую копировали ранее'''
         self.linker.AddSpamAnchorsFile()
+        self._FilterBase(self.agent.baseMainRFile)
         self._DeleteBase(self.agent.baseMainFile) 
 
 class XrumerHelperSpamTask(XrumerHelper):
@@ -103,12 +105,14 @@ class XrumerHelperSpamTask(XrumerHelper):
     def ActionOn(self):
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
-        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFile, spamLinksList, self.anchorsFile, self.profilesFile, self.snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
+        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Создаем настройки'''
         threadsCount = 160
         controlTimeRange = 60
         self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
+        '''Пишем кейворды'''
+        self._WriteKeywords()
     
     def ActionOff(self):
         '''Копируем анкоры и фильтруем базу R от неуспешных'''
@@ -124,8 +128,8 @@ class XrumerHelperBaseDoors(XrumerHelper):
     def ActionOn(self):
         '''Содержимое проекта'''
         body = escape(self.agent.currentTask['body'])
-        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
-        projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, self.keywordsFile, self.anchorsFile, self.profilesFile, self.snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
+        projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, self.keywordsFileEsc, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Если первый проход'''
         if not os.path.isfile(self.agent.baseMainRFile):
             '''Создаем настройки'''
