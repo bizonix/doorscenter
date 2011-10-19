@@ -1043,6 +1043,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseSpam.GetTaskDetailsCommon()
         result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
+        result['keywordsList'] = self.xrumerBaseSpam.niche.GenerateKeywordsList(5000)
         result['spamLinksList'] = HtmlLinksToBBCodes(EncodeListForAgent(self.GetSpamLinksList()))
         return result
     def SetTaskDetails(self, data):
