@@ -169,9 +169,14 @@ TimeRange=''' + str(controlTimeRange) + '''
         self.appCaption = 'XRumer 7.07 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appCaptionControl = 'Control of permanent running'
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
-        self.snippetsFolder = 'C:\\Work\\snippets'
-        self.snippetsFile = os.path.join(self.snippetsFolder, self.currentTask['snippetsFile'])
-
+        
+        '''Базы'''
+        self.appLinksFolder = os.path.join(self.appFolder, 'Links')
+        self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        
         '''Создание классов-хелперов'''
         if self.currentTask['type'] == 'XrumerBaseSpam':
             self.helper = XrumerHelperBaseSpam(self)
@@ -191,15 +196,6 @@ TimeRange=''' + str(controlTimeRange) + '''
         self.logProfiles = self.logFileTemplate % 'Profiles'
         self.logRegisteredAccounts = os.path.join(self.appFolder, 'Logs', self.projectName, 'Registered Accounts.txt')
         self.logAnchors = self.logFileTemplate % 'Anchors'
-        
-        '''Прочее'''
-        self.appKeywordsFolder = os.path.join(self.appFolder, 'Keywords')
-        self.appLinksFolder = os.path.join(self.appFolder, 'Links')
-        self.keywordsFile = os.path.join(self.appKeywordsFolder, '%s.txt' % self.currentTask['niche'])
-        self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
-        self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
-        self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
-        self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''

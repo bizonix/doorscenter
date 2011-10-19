@@ -1,6 +1,7 @@
 # coding=utf8
 import os, shutil, codecs, kwk8
 from xml.sax.saxutils import escape
+from xrumerxdf import *
 
 class XrumerHelper():
     '''Абстрактный предок хэлперов'''
@@ -10,14 +11,51 @@ class XrumerHelper():
         self.linker = XrumerTopicLinker(self)
         self.creationType = self.agent.currentTask['creationType']
         self.registerRun = self.agent.currentTask['registerRun']
+        snippetsFolder = 'C:\\Work\\snippets'
+        keywordsFolder = os.path.join(self.agent.appFolder, 'Keywords')
+        self.keywordsFile = escape(os.path.join(keywordsFolder, '%s.txt' % self.agent.currentTask['niche']))
+        self.snippetsFile = escape(os.path.join(snippetsFolder, self.agent.currentTask['snippetsFile']))
+        self.anchorsFile = escape(self.linker.GetSpamAnchorsFile())
+        self.profilesFile = escape(self.linker.GetProfilesFile())
+    
+    def _WriteKeywords(self):
+        '''Пишем кейворды'''
+        with codecs.open(self.agent.keywordsFile, 'w', 'cp1251') as fd:
+            fd.write('\n'.join(self.agent.currentTask['keywordsList']))
+    
+    def _CopyBase(self, sourceFileName, destFileName):
+        '''Копируем базу'''
+        try:
+            shutil.copyfile(sourceFileName, destFileName)
+        except Exception as error:
+            print('Cannot copy base: %s' % error)
+    
+    def _DeleteBase(self, baseFileName):
+        '''Удаляем базу'''
+        if os.path.isfile(baseFileName): 
+            try:
+                os.remove(baseFileName)
+            except Exception as error:
+                print('Cannot remove base: %s' % error)
+    
+    def _FilterBase(self, baseFileName):
+        '''Фильтруем базу от неуспешных'''
+        try:
+            if kwk8.Kwk8Links(self.agent.logFails).Count() > 700:
+                kwk8.Kwk8Links(baseFileName).DeleteByFile(self.agent.logFails).Save(baseFileName)
+        except Exception as error:
+            print('Cannot filter base: %s' % error)
     
     def GetProjectName(self):
-        return 'Project%d' % self.agent.currentTask['id']
+        '''Имя проекта'''
+        return 'ProjectX%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
+        '''Действия при старте'''
         pass
     
     def ActionOff(self):
+        '''Действия при финише'''
         pass
     
 class XrumerHelperBaseSpam(XrumerHelper):
@@ -27,17 +65,10 @@ class XrumerHelperBaseSpam(XrumerHelper):
         return 'ProjectR%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
-        '''Пишем кейворды'''
-        with codecs.open(self.agent.keywordsFile, 'w', 'cp1251') as fd:
-            fd.write('\n'.join(self.agent.currentTask['keywordsList']))
         '''Содержимое проекта'''
-        keywordsFile = escape(self.agent.keywordsFile)
-        snippetsFile = escape(self.agent.snippetsFile)
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
-        anchorsFile = escape(self.linker.GetSpamAnchorsFile())
-        profilesFile = escape(self.linker.GetProfilesFile())
-        projSubject = '#file_links[%s,1,N]' % (keywordsFile)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (snippetsFile, spamLinksList, anchorsFile, profilesFile, snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
+        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFile, spamLinksList, self.anchorsFile, self.profilesFile, self.snippetsFile)
         '''Создаем настройки'''
         threadsCount = 110
         controlTimeRange = 120
@@ -53,27 +84,15 @@ class XrumerHelperBaseSpam(XrumerHelper):
             self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reg + reply' and not self.registerRun:
             self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
-        '''Копируем исходную базу в целевую'''
-        try:
-            shutil.copyfile(self.agent.baseSourceFile, self.agent.baseMainFile)
-        except Exception as error:
-            print('Cannot copy source base to main: %s' % error)
-        '''Удаляем существующую базу R'''
-        if os.path.isfile(self.agent.baseMainRFile): 
-            try:
-                os.remove(self.agent.baseMainRFile)
-            except Exception as error:
-                print('Cannot remove old base R: %s' % error)
+        '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
+        self._WriteKeywords()
+        self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
+        self._DeleteBase(self.agent.baseMainRFile) 
     
     def ActionOff(self):
-        '''Копируем анкоры'''
-        self.linker.AddSpamAnchorsFile(self.agent.logAnchors)
-        '''Удаляем целевую базу, которую копировали ранее'''
-        if os.path.isfile(self.agent.baseMainFile): 
-            try:
-                os.remove(self.agent.baseMainFile)
-            except Exception as error:
-                print('Cannot remove old base R: %s' % error)
+        '''Копируем анкоры и удаляем базу, которую копировали ранее'''
+        self.linker.AddSpamAnchorsFile()
+        self._DeleteBase(self.agent.baseMainFile) 
 
 class XrumerHelperSpamTask(XrumerHelper):
     '''Задание для спама по топикам'''
@@ -83,27 +102,18 @@ class XrumerHelperSpamTask(XrumerHelper):
     
     def ActionOn(self):
         '''Содержимое проекта'''
-        keywordsFile = escape(self.agent.keywordsFile)
-        snippetsFile = escape(self.agent.snippetsFile)
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
-        anchorsFile = escape(self.linker.GetSpamAnchorsFile())
-        profilesFile = escape(self.linker.GetProfilesFile())
-        projSubject = '#file_links[%s,1,N]' % (keywordsFile)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (snippetsFile, spamLinksList, anchorsFile, profilesFile, snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
+        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFile, spamLinksList, self.anchorsFile, self.profilesFile, self.snippetsFile)
         '''Создаем настройки'''
         threadsCount = 160
         controlTimeRange = 60
         self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
     
     def ActionOff(self):
-        '''Копируем анкоры'''
-        self.linker.AddSpamAnchorsFile(self.agent.logAnchors)
-        '''Фильтруем базу R от неуспешных'''
-        try:
-            if kwk8.Kwk8Links(self.agent.logFails).Count() > 700:
-                kwk8.Kwk8Links(self.agent.baseMainRFile).DeleteByFile(self.agent.logFails).Save(self.agent.baseMainRFile)
-        except Exception as error:
-            print('Cannot filter new base R: %s' % error)
+        '''Копируем анкоры и фильтруем базу R от неуспешных'''
+        self.linker.AddSpamAnchorsFile()
+        self._FilterBase(self.agent.baseMainRFile)
 
 class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
@@ -112,20 +122,12 @@ class XrumerHelperBaseDoors(XrumerHelper):
         return 'ProjectD%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
-        '''Пишем кейворды'''
-        with codecs.open(self.agent.keywordsFile, 'w', 'cp1251') as fd:
-            fd.write('\n'.join(self.agent.currentTask['keywordsList']))
         '''Содержимое проекта'''
         body = escape(self.agent.currentTask['body'])
-        keywordsFile = escape(self.agent.keywordsFile)
-        snippetsFile = escape(self.agent.snippetsFile)
-        anchorsFile = escape(self.linker.GetDoorsAnchorsFile())
-        profilesFile = escape(self.linker.GetProfilesFile())
-        projSubject = '#file_links[%s,1,N]' % (keywordsFile)
-        projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, keywordsFile, anchorsFile, profilesFile, snippetsFile)
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFile)
+        projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, self.keywordsFile, self.anchorsFile, self.profilesFile, self.snippetsFile)
         '''Если первый проход'''
-        firstPost = not os.path.isfile(self.agent.baseMainRFile)
-        if firstPost:
+        if not os.path.isfile(self.agent.baseMainRFile):
             '''Создаем настройки'''
             threadsCount = 110
             controlTimeRange = 120
@@ -141,32 +143,23 @@ class XrumerHelperBaseDoors(XrumerHelper):
                 self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
             elif self.creationType == 'reg + reply' and not self.registerRun:
                 self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
-            '''Копируем исходную базу в целевую'''
-            try:
-                    shutil.copyfile(self.agent.baseSourceFile, self.agent.baseMainFile)
-            except Exception as error:
-                print('Cannot copy source base to main: %s' % error)
-            '''Удаляем существующую базу R'''
-            if os.path.isfile(self.agent.baseMainRFile): 
-                try:
-                    os.remove(self.agent.baseMainRFile)
-                except Exception as error:
-                    print('Cannot remove old base R: %s' % error)
+            '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
+            self._WriteKeywords()
+            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
+            self._DeleteBase(self.agent.baseMainRFile) 
         else:
             '''Создаем настройки'''
             threadsCount = 160
             controlTimeRange = 60
             self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            '''Пишем кейворды'''
+            self._WriteKeywords()
             
     def ActionOff(self):
-        '''Копируем анкоры'''
-        self.linker.AddDoorsAnchorsFile(self.agent.logAnchors)
-        '''Удаляем целевую базу, которую копировали ранее'''
-        if os.path.isfile(self.agent.baseMainFile): 
-            try:
-                os.remove(self.agent.baseMainFile)
-            except Exception as error:
-                print('Cannot remove base: %s' % error)
+        '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''
+        self.linker.AddDoorsAnchorsFile()
+        self._FilterBase(self.agent.baseMainRFile)
+        self._DeleteBase(self.agent.baseMainFile) 
 
 class XrumerHelperBaseProfiles(XrumerHelper):
     '''Профили'''
@@ -183,67 +176,11 @@ class XrumerHelperBaseProfiles(XrumerHelper):
         else:
             self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
         '''Копируем исходную базу в целевую'''
-        try:
-            shutil.copyfile(self.agent.baseSourceFile, self.agent.baseMainFile)
-        except Exception as error:
-            print('Cannot copy source base to main: %s' % error)
+        if self.registerRun:
+            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
     
     def ActionOff(self):
-        '''Копируем профили для последующего спама'''
+        '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
+        self._FilterBase(self.agent.baseMainFile)
         if not self.registerRun:
-            self.linker.AddProfilesFile(self.agent.logProfiles)
-
-class XrumerTopicLinker(object):
-    '''Менеджер перелинковки топиков и профилей'''
-
-    def __init__(self, helper):
-        self.helper = helper
-        self.agent = self.helper.agent
-        self.allFileName = 'total.txt'
-        self.anchorsSpamFolder = os.path.join(self.agent.appFolder, 'AnchorsSpam')
-        self.anchorsSpamFile = os.path.join(self.anchorsSpamFolder, self.allFileName)
-        if not os.path.exists(self.anchorsSpamFile):
-            open(self.anchorsSpamFile, 'w').write('')
-        self.anchorsDoorsFolder = os.path.join(self.agent.appFolder, 'AnchorsDoors')
-        self.anchorsDoorsFile = os.path.join(self.anchorsDoorsFolder, self.allFileName)
-        if not os.path.exists(self.anchorsDoorsFile):
-            open(self.anchorsDoorsFile, 'w').write('')
-        self.anchorsProfilesFolder = os.path.join(self.agent.appFolder, 'AnchorsProfiles')
-        self.anchorsProfilesFile = os.path.join(self.anchorsProfilesFolder, self.allFileName)
-        if not os.path.exists(self.anchorsProfilesFile):
-            open(self.anchorsProfilesFile, 'w').write('')
-    
-    def GetSpamAnchorsFile(self):
-        '''Отдаем файл с анкорами по топикам спама'''
-        return self.anchorsSpamFile
-    
-    def GetDoorsAnchorsFile(self):
-        '''Отдаем файл с анкорами по дорам на форумах'''
-        return self.anchorsDoorsFile
-    
-    def GetProfilesFile(self):
-        '''Отдаем файл с анкорами по топикам спама'''
-        return self.anchorsProfilesFile
-    
-    def AddSpamAnchorsFile(self, fileName):
-        '''Копируем новые анкоры в базу'''
-        self._AddAnchorsFile(fileName, self.anchorsSpamFolder)
-    
-    def AddDoorsAnchorsFile(self, fileName):
-        '''Копируем новые анкоры в базу'''
-        self._AddAnchorsFile(fileName, self.anchorsDoorsFolder)
-    
-    def AddProfilesFile(self, fileName):
-        '''Копируем новые анкоры в базу'''
-        self._AddAnchorsFile(fileName, self.anchorsProfilesFolder)
-
-    def _AddAnchorsFile(self, fileName, anchorsFolder):
-        '''Копируем файл в папку и объединяем имеющиеся файлы'''
-        try:
-            shutil.copy(fileName, anchorsFolder)
-            with open(os.path.join(anchorsFolder, self.allFileName), 'w') as fd:
-                for fileName in os.listdir(anchorsFolder):
-                    if fileName != self.allFileName:
-                        fd.write(open(os.path.join(anchorsFolder, fileName)).read())
-        except Exception as error:
-            print('Cannot update anchors: %s' % error)
+            self.linker.AddProfilesFile()
