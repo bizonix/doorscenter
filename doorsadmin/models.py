@@ -682,35 +682,6 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
         super(SnippetsSet, self).SetTaskDetails(data)
 
-class XrumerBaseSpam(BaseXrumerBaseAdv):
-    '''База R для спама по топикам'''
-    spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
-    spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
-    spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
-    spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
-    class Meta:
-        verbose_name = 'Xrumer Base Spam'
-        verbose_name_plural = 'I.7 Xrumer Bases Spam - [act, managed]'
-    def GetSpamTasksCount(self):
-        return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
-    GetSpamTasksCount.short_description = 'Spam'
-    GetSpamTasksCount.allow_tags = True
-    def GetSpamTaskDomainLinksCount(self):
-        return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
-    @classmethod
-    def GetTasksList(self):
-        '''Получение списка задач для агента'''
-        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
-    def GetTaskDetails(self):
-        '''Подготовка данных для работы агента'''
-        result = self.GetTaskDetailsCommon()
-        result['snippetsFile'] = self.xrumerBaseSpam.niche.GetRandomSnippetsSet().localFile
-        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
-        return result
-    def SetTaskDetails(self, data):
-        '''Обработка данных агента'''
-        super(XrumerBaseSpam, self).SetTaskDetails(data)
-
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     '''Домен'''
     name = models.CharField('Domain Name', max_length=200, unique=True)
@@ -1023,12 +994,41 @@ class SpamLink(models.Model):
     GetSpamTaskState.short_description = 'Spam State'
     GetSpamTaskState.allow_tags = True
 
+class XrumerBaseSpam(BaseXrumerBaseAdv):
+    '''База R для спама по топикам'''
+    spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
+    spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
+    spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
+    spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
+    class Meta:
+        verbose_name = 'Xrumer Base Spam'
+        verbose_name_plural = 'II.4 Xrumer Bases Spam - [act, managed]'
+    def GetSpamTasksCount(self):
+        return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
+    GetSpamTasksCount.short_description = 'Spam'
+    GetSpamTasksCount.allow_tags = True
+    def GetSpamTaskDomainLinksCount(self):
+        return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
+    @classmethod
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        result['snippetsFile'] = self.niche.GetRandomSnippetsSet().localFile
+        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(XrumerBaseSpam, self).SetTaskDetails(data)
+
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     '''Задание на спам'''
     xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
     class Meta:
         verbose_name = 'Spam Task'
-        verbose_name_plural = 'II.4 Spam Tasks - [large, managed]'
+        verbose_name_plural = 'II.5 Spam Tasks - [large, managed]'
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''
@@ -1059,7 +1059,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Doors'
-        verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
+        verbose_name_plural = 'II.6 Xrumer Bases Doors - [act, managed]'
     @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''
@@ -1084,7 +1084,7 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     signature = models.CharField('Signature', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Profiles'
-        verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
+        verbose_name_plural = 'II.7 Xrumer Bases Profiles - [act, managed]'
     @classmethod
     def GetTasksList(self):
         '''Получение списка задач для агента'''

@@ -211,18 +211,6 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     ]
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
-    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'GetSpamTasksCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
-    list_filter = ['niche', 'active', 'stateManaged', 'priority']
-    ordering = ['niche__description']
-    fieldsets = [
-        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
-        ('Spam parameters', {'fields': [('spamTaskDomainsMin', 'spamTaskDomainsMax', 'spamTaskDomainLinksMin', 'spamTaskDomainLinksMax')], 'classes': ['expanded']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['nickName', 'realName', 'password', 'registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
-
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'GetDoorsMaxCount', 'GetPagesCount', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
@@ -308,6 +296,18 @@ class SpamLinkAdmin(BaseAdmin):
     fieldsets = [
         (None, {'fields': [('url', 'anchor'), ('doorway', 'spamTask', 'makeSpam')]}),
     ]
+
+class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'GetSpamTasksCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateManaged', 'priority']
+    ordering = ['niche__description']
+    fieldsets = [
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress', 'emailLogin'), ('emailPassword', 'emailPopServer'), ('creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        ('Spam parameters', {'fields': [('spamTaskDomainsMin', 'spamTaskDomainsMax', 'spamTaskDomainLinksMin', 'spamTaskDomainLinksMax')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['nickName', 'realName', 'password', 'registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseSpam', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
@@ -417,11 +417,11 @@ admin.site.register(NetPlan, NetPlanAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
-admin.site.register(XrumerBaseSpam, XrumerBaseSpamAdmin)
 
 admin.site.register(Domain, DomainAdmin)
 admin.site.register(Doorway, DoorwayAdmin)
 admin.site.register(SpamLink, SpamLinkAdmin)
+admin.site.register(XrumerBaseSpam, XrumerBaseSpamAdmin)
 admin.site.register(SpamTask, SpamTaskAdmin)
 admin.site.register(XrumerBaseDoors, XrumerBaseDoorsAdmin)
 admin.site.register(XrumerBaseProfiles, XrumerBaseProfilesAdmin)
