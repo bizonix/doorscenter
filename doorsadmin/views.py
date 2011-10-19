@@ -18,9 +18,9 @@ def get(request, agentId):
         '''Ищем задание'''
         if agent.active:
             for queue in agent.GetQueues(): 
-                taskList = list(queue.objects.filter(stateManaged='new').order_by('priority', 'pk')[:1])
-                if taskList:
-                    task = taskList[0]
+                tasksList = queue.GetTasksList()
+                if tasksList:
+                    task = tasksList[0]
                     '''Обновляем задание'''
                     task.agent = agent
                     task.stateManaged = 'inproc'

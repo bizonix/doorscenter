@@ -134,6 +134,9 @@ class BaseDoorObjectManaged(models.Model):
         except:
             return ''
     GetRunTime.short_description = 'Run Time'
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        pass
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         pass
@@ -657,6 +660,9 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'localFile': self.localFile, 
@@ -685,6 +691,9 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     GetSpamTasksCount.allow_tags = True
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -891,6 +900,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         for spamLink in SpamLink.objects.filter(doorway=self):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return Doorway.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
@@ -1016,6 +1028,9 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
         for spamLink in SpamLink.objects.filter(spamTask=self):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseSpam.GetTaskDetailsCommon()
@@ -1036,6 +1051,9 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
     class Meta:
         verbose_name = 'Xrumer Base Doors'
         verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1057,6 +1075,9 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     class Meta:
         verbose_name = 'Xrumer Base Profiles'
         verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
+    def GetTasksList(self):
+        '''Получение списка задач для агента'''
+        return XrumerBaseProfiles.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1188,7 +1209,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         countDone = 0
         countError = 0
         for queue in self.GetQueues():
-            countUndone += queue.objects.filter(Q(stateManaged='new') | Q(stateManaged='inproc')).count()
+            countUndone += queue.GetTasksList().count()
             countDone += queue.objects.filter(stateManaged='done').count()
             countError += queue.objects.filter(stateManaged='error').count()
         return '%d - %d - %d' % (countUndone, countDone, countError)
