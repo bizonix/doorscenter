@@ -3,6 +3,9 @@ import os, shutil, codecs, kwk8
 from xml.sax.saxutils import escape
 from xrumerxdf import *
 
+'''Классы XrumerHelperBaseSpam и XrumerHelperBaseDoors не протестированы на 
+работу с предварительной регистрацией.'''
+
 class XrumerHelper():
     '''Абстрактный предок хэлперов'''
     
@@ -40,12 +43,13 @@ class XrumerHelper():
                 print('Cannot remove base: %s' % error)
     
     def _FilterBase(self, baseFileName):
-        '''Фильтруем базу от неуспешных'''
+        '''Фильтруем базу от неуспешных и считаем число ссылок'''
         try:
             if kwk8.Kwk8Links(self.agent.logFails).Count() > 700:
                 kwk8.Kwk8Links(baseFileName).DeleteByFile(self.agent.logFails).Save(baseFileName)
         except Exception as error:
             print('Cannot filter base: %s' % error)
+        self.agent._CountLinks('baseLinksCount', baseFileName, 'base')
     
     def GetProjectName(self):
         '''Имя проекта'''

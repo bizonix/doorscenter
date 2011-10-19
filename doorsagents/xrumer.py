@@ -242,7 +242,6 @@ TimeRange=''' + str(controlTimeRange) + '''
         self._CountLinks('failsCount', self.logFails, 'fails')
         self._CountLinks('profilesCount', self.logProfiles, 'profiles')
         self._CountLinks('registeredAccountsCount', self.logRegisteredAccounts, 'registered accounts')
-        self._CountLinks('baseLinksCount', self.baseMainRFile, 'base R')
         return True
 
 if __name__ == '__main__':
