@@ -163,6 +163,7 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
         self.registeredAccountsCount = data['registeredAccountsCount']
         if (self.successCount < 500) or (self.successCount * 1.0 / (self.successCount + self.halfSuccessCount + self.failsCount + 1.0) < 0.3):
             EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
+        super(BaseDoorObjectSpammable, self).SetTaskDetails(data)
 
 class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     '''Предок баз профилей, доров на форумах и спама по топикам'''
@@ -202,6 +203,8 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     def SetTaskDetails(self, data):
         if self.registerRun:
             self.registerRunDate = datetime.datetime.now()
+        if data['baseLinksCount'] != 0:
+            self.linksCount = data['baseLinksCount'] / 1000.0
         super(BaseXrumerBaseAdv, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
@@ -677,6 +680,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         self.dateLastParsed = datetime.datetime.now()
         if self.phrasesCount <= 5000:
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
+        super(SnippetsSet, self).SetTaskDetails(data)
 
 class XrumerBaseSpam(BaseXrumerBaseAdv):
     '''База R для спама по топикам'''
@@ -705,8 +709,6 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
-        if data['baseLinksCount'] != 0:
-            self.linksCount = data['baseLinksCount'] / 1000.0
         super(XrumerBaseSpam, self).SetTaskDetails(data)
 
 class Domain(BaseDoorObject, BaseDoorObjectActivatable):
@@ -950,6 +952,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
         if not isGood:
             send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
+        super(Doorway, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
         if self.template == None:
