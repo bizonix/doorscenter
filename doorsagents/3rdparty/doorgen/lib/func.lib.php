@@ -262,8 +262,8 @@
 
 	//--Описание генератора карты-----
 	function generate_map($path_local, $count_ancor_in_map) {
-		global $links_map, $maps, $dor_keys, $extension, $a_key_filename, $total_key_dor, $text_ancor_sitemap_links, $templ_map, $a_rand_number, $a_rand_ancor, $a_rand_text, $a_rand_url, $insert_sitemaps_links_in_all_ancor_log, $insert_sitemaps_links_in_ancor_log, $insert_sitemaps_links_in_bbcode_log, $insert_sitemaps_links_in_bbcode_log_spam, $path_remote, $maps_bb, $maps_ancor, $a_mem_text, $access_macros_text_ancor_sitemap_links, $access_macros_sitemap;
-		$count_map_files = ceil($total_key_dor/$count_ancor_in_map);
+		global $links_map, $maps, $dor_keys, $extension, $a_key_filename, $dor_num_pages, $text_ancor_sitemap_links, $templ_map, $a_rand_number, $a_rand_ancor, $a_rand_text, $a_rand_url, $insert_sitemaps_links_in_all_ancor_log, $insert_sitemaps_links_in_ancor_log, $insert_sitemaps_links_in_bbcode_log, $insert_sitemaps_links_in_bbcode_log_spam, $path_remote, $maps_bb, $maps_ancor, $a_mem_text, $access_macros_text_ancor_sitemap_links, $access_macros_sitemap;
+		$count_map_files = ceil($dor_num_pages/$count_ancor_in_map);
 		$curr_text_ancor_sitemap_links = replace_macros_page($text_ancor_sitemap_links,	$access_macros_text_ancor_sitemap_links);
 
 		for ($x=1;$x<=$count_map_files;$x++) {
@@ -278,7 +278,7 @@
 			$a_rand_url = array(); //очищаем массив уникальных значений макроса RAND_URL
 			$a_mem_text = array(); //очищаем массив значений макроса MEM
 			$links_map = array(); //очищаем массив ссылок на страницы
-			for ($v=($x-1)*$count_ancor_in_map;(($v<$x*$count_ancor_in_map) and ($v<$total_key_dor));$v++) {
+			for ($v=($x-1)*$count_ancor_in_map;(($v<$x*$count_ancor_in_map) and ($v<$dor_num_pages));$v++) {
 				$ancor = $a_key_filename[$dor_keys[$v]];
 				$links_map[] = "<a href=\"".$ancor."\">".$dor_keys[$v]."</a>";
 			}
@@ -418,18 +418,18 @@
 	}
 
 	function rand_url($matches) {
-		global $dor_keys, $keyword, $a_key_filename, $a_rand_url, $total_key_dor;
+		global $dor_keys, $keyword, $a_key_filename, $a_rand_url, $dor_num_pages;
 		//do {
-			$z = mt_rand(0, ($total_key_dor-1));
+			$z = mt_rand(0, ($dor_num_pages-1));
 		//} while (($dor_keys[$z] == $keyword) or (in_array($z, $a_rand_url)));
 		$a_rand_url[] = $z;
 		return $a_key_filename[$dor_keys[$z]];
 	}
 
 	function rand_ancor($matches) {
-		global $dor_keys, $keyword, $a_key_filename, $a_rand_ancor, $total_key_dor;
+		global $dor_keys, $keyword, $a_key_filename, $a_rand_ancor, $dor_num_pages;
 		//do {
-			$z = mt_rand(1, ($total_key_dor-1));
+			$z = mt_rand(1, ($dor_num_pages-1));
 		//} while (($dor_keys[$z] == $keyword) or (in_array($z, $a_rand_ancor)));
 		$z1 = $a_key_filename[$dor_keys[$z]];
 		$a_rand_ancor[] = $z;
@@ -501,11 +501,11 @@
 	}
 
 	function links($matches) {
-		global $dor_keys, $keyword, $a_key_filename, $a_rand_ancor, $total_key_dor;
+		global $dor_keys, $keyword, $a_key_filename, $a_rand_ancor, $dor_num_pages;
 		$cp = mt_rand($matches[2], $matches[3]);
 		for ($x=1;$x<=$cp;$x++) {
 			do {
-				$z = mt_rand(1, ($total_key_dor-1));
+				$z = mt_rand(1, ($dor_num_pages-1));
 			} while (($dor_keys[$z] == $keyword) or (in_array($z, $a_rand_ancor)));
 			$z1 = $a_key_filename[$dor_keys[$z]];
 			$a_rand_ancor[] = $z;
@@ -541,14 +541,14 @@
 	}
 
 	function next_page($matches) {
-		global $total_key_dor, $dor_keys, $a_key_filename, $cur_page_num;
+		global $dor_num_pages, $dor_keys, $a_key_filename, $cur_page_num;
 		for ($x=1;$x<=(int)$matches[1];$x++) {
 			$xx = $cur_page_num + $x;
-			if ($xx<($total_key_dor-1))
+			if ($xx<($dor_num_pages-1))
 				$result = $result."<a href=\"".$a_key_filename[$dor_keys[$xx]]."\">".$xx."</a>".$matches[2];
 		}
-		if ($cur_page_num<($total_key_dor-1))
-			$result = $result."<a href=\"".$a_key_filename[$dor_keys[($total_key_dor-1)]]."\">Last</a>";
+		if ($cur_page_num<($dor_num_pages-1))
+			$result = $result."<a href=\"".$a_key_filename[$dor_keys[($dor_num_pages-1)]]."\">Last</a>";
 		return $result;
 	}
 
@@ -709,9 +709,9 @@
 	}
 
 	function create_sitemap_xml($path_local) {
-		global $dor_keys, $path_remote, $a_key_filename, $total_key_dor;
+		global $dor_keys, $path_remote, $a_key_filename, $dor_num_pages;
 		$timestamp = time();
-		$step = 8035200 / $total_key_dor; // 3 месяца
+		$step = 8035200 / $dor_num_pages; // 3 месяца
 		foreach ($dor_keys as $val) {
 			$timestamp -= $step;
 			$val = $a_key_filename[$val];

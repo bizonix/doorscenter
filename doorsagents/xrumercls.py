@@ -177,11 +177,13 @@ class XrumerHelperBaseProfiles(XrumerHelper):
     
     def ActionOn(self):
         '''Создаем настройки'''
-        threadsCount = 160
-        controlTimeRange = 60
         if self.registerRun:
+            threadsCount = 100
+            controlTimeRange = 240
             self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', 'none', '', '')
         else:
+            threadsCount = 200
+            controlTimeRange = 60
             self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
         '''Копируем исходную базу в целевую'''
         if self.registerRun:
