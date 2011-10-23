@@ -216,7 +216,7 @@
 				$out_page = replace_macros_page(add_page_key($templ_page), $access_macros_page); //если страница индексная обработать page.txt шаблон
 			if ($compression_template) //если включена компрессия готовых страниц то сжимаем готовую страницу перед сохранением
 				$out_page = compression_text($out_page);
-			file_put_contents($path_local.$name_file, $out_page, FILE_APPEND); //сохраняем страницу в папку дора
+			file_put_contents($path_local.$name_file, $out_page); //сохраняем страницу в папку дора
 		}
 		echo "Дор готов. Сгенерирован за: ".(time()-$t1)." секунд</p><script>scroll(0,999999);</script></p>";
 	}
