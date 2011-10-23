@@ -180,7 +180,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
     registerRun = models.BooleanField('Reg.', default=True)
     registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
-    registerRunTimeout = models.IntegerField('Register Timeout, h.', default=24, null=True, blank=True)
+    registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
     class Meta:
         abstract = True
     def GetTaskDetailsCommon(self):
