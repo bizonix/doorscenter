@@ -737,11 +737,14 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
         return self.IsFolderFree('/')
-    def GetNetLinksList(self):
+    def GetNetLinksList(self, exclude):
         '''Получение ссылок для перелинковки'''
         linksList = []
         for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
             for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
+                linksList.extend(doorway.GetSpamLinksList().split('\n'))
+        for doorway in self.doorway_set.filter(stateManaged='done').order_by('pk').all():
+            if doorway != exclude:
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
@@ -883,7 +886,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
-            self.netLinksList = self.domain.GetNetLinksList()
+            self.netLinksList = self.domain.GetNetLinksList(self)
         keywordsListAdd = '\n'.join(self.keywordsSet.GenerateKeywordsList(min(self.pagesCount * 5, 5000)))
         return({
                 'keywordsList': EncodeListForAgent(self.keywordsList), 
@@ -940,7 +943,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount))
         '''Если нет ссылок сетки, то генерируем'''
         if self.netLinksList == '':
-            self.netLinksList = self.domain.GetNetLinksList()
+            self.netLinksList = self.domain.GetNetLinksList(self)
         '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
         try:
             self.trackers = GetFirstObject([self.trackers, self.domain.net.trackers, self.niche.trackers])
