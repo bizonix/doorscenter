@@ -46,7 +46,8 @@ class XrumerAgent(agent.BaseAgent):
             'EnableRefspam': '0', 
             'PostNewMode': ('1' if settings3 == 'post' else '3'),
             'SchedulerEnabled': '1',
-            'CurrentJob': '0'}
+            'CurrentJob': '0',
+            'EnableSleepMode': '0'}
         common.ModifyIniFile(settingsFile, settingsDict)
 
         '''Расписание schedule.xml'''
@@ -125,7 +126,7 @@ class XrumerAgent(agent.BaseAgent):
     <Occupation></Occupation>
     <Interests></Interests>
     <Signature>''' + projSignature + '''</Signature>
-    <Gender>0</Gender>
+    <Gender>1</Gender>
     <UnknownFields></UnknownFields>
     <PollTitle></PollTitle>
     <PollOption1></PollOption1>
@@ -138,8 +139,8 @@ class XrumerAgent(agent.BaseAgent):
     <Subject1>''' + projSubject + '''</Subject1>
     <Subject2></Subject2>
     <PostText>''' + projBody + '''</PostText>
-    <Prior></Prior>
-    <OnlyPriors>false</OnlyPriors>
+    <Prior>''' + ('zxcvfdsa' if settings2 == 'edit-profile' else '') + '''</Prior>
+    <OnlyPriors>''' + ('true' if settings2 == 'edit-profile' else 'false') + '''</OnlyPriors>
   </SecondarySection>
 </XRumerProject>
 ''')
