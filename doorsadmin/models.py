@@ -884,8 +884,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
             self.netLinksList = self.domain.GetNetLinksList()
+        keywordsListAdd = '\n'.join(self.keywordsSet.GenerateKeywordsList(min(self.pagesCount * 5, 5000)))
         return({
                 'keywordsList': EncodeListForAgent(self.keywordsList), 
+                'keywordsListAdd': EncodeListForAgent(keywordsListAdd), 
                 'templateFolder': self.template.localFolder, 
                 'doorgenSettings': EncodeListForAgent(''),  # deprecated 
                 'domain': self.domain.name, 
