@@ -16,6 +16,7 @@
 		<out_dir>out</out_dir>
 		<jobs_dir>jobs</jobs_dir>
 		<text_dir>text</text_dir>
+		<snippet_dir>C:/Work/snippets</snippet_dir>
 		<insert_sitemaps_links_in_all_ancor_log>FALSE</insert_sitemaps_links_in_all_ancor_log>
 		<insert_sitemaps_links_in_ancor_log>FALSE</insert_sitemaps_links_in_ancor_log>
 		<insert_sitemaps_links_in_bbcode_log>FALSE</insert_sitemaps_links_in_bbcode_log>

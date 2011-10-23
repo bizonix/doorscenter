@@ -31,7 +31,8 @@
 		/* 27 */	TRUE /* PAGE_RAND */,
 		/* 28 */	TRUE /* CNT /CNT */,
 		/* 29 */	TRUE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		/* 30 */	TRUE /* JOB_RAND */
+		/* 30 */	TRUE /* JOB_RAND */,
+		/* 31 */	TRUE /* SNIPPET */
 	)) {
 		$all_macros = array();
 
@@ -250,6 +251,12 @@
 			$all_macros[] = $macros2;
 		}
 
+		if ($access_macros[31]) {
+			$macros = "/{(B?B?)SNIPPET\((.*)\)}/U";
+			$text = preg_replace_callback($macros, "snippet", $text);
+			$all_macros[] = $macros;
+		}
+		
 		foreach ($all_macros as $macros) {
 			if (preg_match($macros, $text)) {
 				$text = replace_macros_page($text, $access_macros);
@@ -444,6 +451,32 @@
 	function rand_text($matches) { //{(B?B?)RAND_TEXT_(.*)_(\d*)_(\d*)_(.*)_(.*)}
 		global $text_dir, $a_rand_text;
 		$text = cache_file($text_dir."/".$matches[2]);
+		if (!isset($matches[3]) and !isset($matches[4]))
+			$matches[3] = $matches[4] = 1;
+		if (!isset($matches[5]) or $matches[5]=='\n')
+			$a_text = explode ("\n", $text);
+		else
+			$a_text = explode ($matches[5], $text);
+		$num_lines = count($a_text);
+		$cp = mt_rand($matches[3], $matches[4]);
+		for ($x=1;$x<=$cp;$x++) {
+			do {
+				$z = mt_rand(0, (count($a_text)-1));
+			} while (in_array($z, (array)$a_rand_text[$matches[2]]) and ($num_lines > $cp) and ($num_lines > count((array)$a_rand_text[$matches[2]])));
+			$a_rand_text[$matches[1]][] = $z;
+			switch ($matches[1]) {
+				case "B": $txt = ucfirst(trim($a_text[$z])); break;
+				case "BB": $txt = ucwords(trim($a_text[$z])); break;
+				default: $txt = trim($a_text[$z]);
+			}
+			$result .= $txt.$matches[6];
+		}
+		return $result;
+	}
+
+	function snippet($matches) { //{(B?B?)RAND_TEXT_(.*)_(\d*)_(\d*)_(.*)_(.*)}
+		global $snippet_dir, $a_rand_text;
+		$text = cache_file($snippet_dir."/".$matches[2]);
 		if (!isset($matches[3]) and !isset($matches[4]))
 			$matches[3] = $matches[4] = 1;
 		if (!isset($matches[5]) or $matches[5]=='\n')

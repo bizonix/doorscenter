@@ -33,7 +33,8 @@
 		FALSE /* PAGE_RAND */,
 		FALSE /* CNT /CNT */,
 		FALSE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 	
 	// шаб index.txt
@@ -68,7 +69,8 @@
 		FALSE /* PAGE_RAND */,
 		TRUE /* CNT /CNT */,
 		TRUE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 
 	// шаб page.txt
@@ -103,7 +105,8 @@
 		TRUE /* PAGE_RAND */,
 		TRUE /* CNT /CNT */,
 		TRUE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 
 	// текстовый анкор в ссылках на карты сайтов
@@ -138,7 +141,8 @@
 		FALSE /* PAGE_RAND */,
 		FALSE /* CNT /CNT */,
 		FALSE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 	
 	// шаб map.txt
@@ -173,7 +177,8 @@
 		FALSE /* PAGE_RAND */,
 		FALSE /* CNT /CNT */,
 		TRUE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 
 	// шаб t_*.*
@@ -208,7 +213,8 @@
 		FALSE /* PAGE_RAND */,
 		FALSE /* CNT /CNT */,
 		TRUE /* DOR_MEM /DOR_MEM, DOR_INS */,
-		TRUE /* JOB_RAND */
+		TRUE /* JOB_RAND */,
+		TRUE /* SNIPPET */
 	);
 
 	$macros_name = array (
@@ -242,5 +248,6 @@
 		'PAGE_RAND',
 		'CNT /CNT',
 		'DOR_MEM /DOR_MEM, DOR_INS',
-		'JOB_RAND'
+		'JOB_RAND',
+		'SNIPPET'
 	);

@@ -28,6 +28,7 @@
 	$out_dir = (string)$settings->secondary->out_dir; //папка с готовыми дорами
 	$jobs_dir = (string)$settings->secondary->jobs_dir; //папка, где расположены задания
 	$text_dir = (string)$settings->secondary->text_dir; //откуда дорген будет брать тексты из файлов, для макросов
+	$snippet_dir = (string)$settings->secondary->snippet_dir; //откуда дорген будет брать сниппеты, для макросов
 	$insert_sitemaps_links_in_all_ancor_log = (bool)str_to_bool($settings->secondary->insert_sitemaps_links_in_all_ancor_log); //вставлять ссылки на карты сайтов
 	$insert_sitemaps_links_in_ancor_log = (bool)str_to_bool($settings->secondary->insert_sitemaps_links_in_ancor_log); //вставлять ссылки на карты сайтов
 	$insert_sitemaps_links_in_bbcode_log = (bool)str_to_bool($settings->secondary->insert_sitemaps_links_in_bbcode_log); //вставлять ссылки на карты сайтов
