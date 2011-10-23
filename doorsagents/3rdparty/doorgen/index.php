@@ -219,7 +219,7 @@ switch ($mode) {
 		echo "<form action='index.php' method='post'><tbody id='pn2'><tr><td>Редактировать текстовки</td><td><input name='text_file' type='text' size='40' value='$editor_def_text_file'><input name='mode' type='hidden' value='text'></td><td><input type='submit' value='Править'></tr></tbody></form>";
 		echo "<form action='index.php' method='post'><tbody id='pn'><tr><td>Удалить файл</td><td><input name='delete_file' type='text' size='40' value='$editor_def_delete_file'><input name='mode' type='hidden' value='delete'></td><td><input type='submit' value='Удалить'></tr></form>";
 		echo "</table>";
-		echo "<p align='center' size='5'><a href='engine.php' target='_blank'>Генерация</a></p>";
+		echo "<p align='center' size='5'><a href='engine.php' target='_doorgen'>Генерация</a></p>";
 		exit;
 }
 ?>

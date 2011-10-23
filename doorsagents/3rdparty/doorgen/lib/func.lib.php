@@ -856,6 +856,7 @@
 	}
 
 	function aggress($s) {
+	    // меняем макросы агресса на андрюхи
 		$s = str_replace("{STAT}{ARANDKEYWORD}{/STAT}", "{BBMKEYWORD}", $s);
 		$s = str_replace("{BOSKEYWORD}", "{BKEYWORD}", $s);
 		$s = str_replace("{ABOSKEYWORD}", "{BBKEYWORD}", $s);
@@ -874,5 +875,25 @@
 		$s = str_replace("{I}", "{FOR_NUM}", $s);
 		return $s;
 	}
+
+    function add_page_key($s) {
+        $randkey = "RAND_KEY}";
+        $keyword = "KEYWORD}";
+        // сколько раз встречается рандомный кей
+        $n = substr_count($s, $randkey);
+        // сколько раз будем менять
+        $m = min(mt_rand(3, 5), $n);
+        for ($i = 0; $i < $m; $i++) {
+            // какое вхождение меняем
+            $p = mt_rand(1, $n);
+            $offset = -1;
+            for ($j = 0; $j < $p; $j++)
+                $offset = strpos($s, $randkey, $offset + 1);
+            // нашли, меняем
+            $s = substr_replace($s, $keyword, $offset, strlen($randkey));
+            $n -= 1;
+        }
+        return $s;
+    }
 
 ?>
