@@ -3,7 +3,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: keywordsList, templateFolder, domain, domainFolder, 
+    Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainFolder, 
     netLinksList, tdsUrl tdsId, piwikUrl, piwikId, documentRoot, 
     ftpLogin, ftpPassword, ftpPort.
     Выходные: spamLinksList.
@@ -86,11 +86,12 @@ class DoorgenAgent(agent.BaseAgent):
         '''Кейворды и ссылки сетки'''
         with open(self.appKeywordsFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['keywordsList']))
+            fd.write('\n'.join(self.currentTask['keywordsListAdd']))
         with open(self.appNetLinksFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['netLinksList']))
         '''Задание'''
         with open(self.appJobFile, 'w') as fd:
-            fd.write('1, keywords.txt, %d, 0, %s, %s, door%d' % (len(self.currentTask['keywordsList']), self.currentTask['templateFolder'], self.doorwayUrl, self._GetCurrentTaskId()))
+            fd.write('1, keywords.txt, %d, %d, 0, %s, %s, door%d' % (len(self.currentTask['keywordsList']) + len(self.currentTask['keywordsListAdd']), len(self.currentTask['keywordsList']), self.currentTask['templateFolder'], self.doorwayUrl, self._GetCurrentTaskId()))
         '''Запись piwikId - ПОЗИЦИОННЫЙ ПАРАМЕТР '''
         with open(self.appMacrosFile, 'r') as fd:
             lines = fd.readlines()
@@ -111,6 +112,7 @@ class DoorgenAgent(agent.BaseAgent):
         #self._Settings()  # в текущей версии доргена это не нужно
         '''Значения по умолчанию'''
         self.currentTask['keywordsList'] = []
+        self.currentTask['keywordsListAdd'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
         '''Выходные параметры'''
@@ -131,7 +133,7 @@ class DoorgenAgent(agent.BaseAgent):
             os.unlink(self.appSpamLinksFile)
         except Exception as error:
             print('Error: %s' % error)
-        '''Проверяем код статуса (исключние не перехватывается)'''
+        '''Проверяем код статуса (исключение не перехватывается)'''
         self._CheckStatusCode()
         return True
 

@@ -69,7 +69,7 @@
 	for($i=0;$i<$count_job;$i++) { //вначале проходим по заданиям и генерируем *_log.txt для правильной перелинковки всей сетки. для макроса {RELINKS}. преобразуем все кеи в названия файлов страниц
 //		$job_list[$i] = replace_macros_page($job_list[$i], $access_macros_jobs); //обрабатываем макросы в строках заданий
 		$tmp_job_list[$i] = explode(",", $job_list[$i]); //разделяем по параметрам задание
-		list ($relinks_ids, $dor_file_keys, $dor_num_keys, $enable_shuffle, $dor_templates, $path_remote, $path_local) =  array(trim($tmp_job_list[$i][0]), trim($tmp_job_list[$i][1]), trim($tmp_job_list[$i][2]), trim($tmp_job_list[$i][3]), trim($tmp_job_list[$i][4]), trim($tmp_job_list[$i][5]), trim($tmp_job_list[$i][6]));
+		list ($relinks_ids, $dor_file_keys, $dor_num_keys, $dor_num_pages, $enable_shuffle, $dor_templates, $path_remote, $path_local) =  array(trim($tmp_job_list[$i][0]), trim($tmp_job_list[$i][1]), trim($tmp_job_list[$i][2]), trim($tmp_job_list[$i][3]), trim($tmp_job_list[$i][4]), trim($tmp_job_list[$i][5]), trim($tmp_job_list[$i][6]), trim($tmp_job_list[$i][7]));
 		if ($cached_dor_keys[$dor_file_keys]=="") { //если файл ключей не кэширован, то кэшируем
 			$dor_keys = file($keys_dir."/".$dor_file_keys); //читаем файл с кеями
 			$dor_keys = massTrim($dor_keys); //чистим от \n
@@ -94,8 +94,8 @@
 		$name_dir = key_to_filename($dor_keys[0]); //директория дора по кею главной страницы
 		$path_remote = str_replace("{DOR}", $name_dir, $path_remote); //путь дора удаленно
 		$path_local = str_replace("{DOR}", $name_dir, $path_local); //путь дора локально
-		$job_list[$i] = $relinks_ids.",".$dor_file_keys.",".$dor_num_keys.",".$enable_shuffle.",".$dor_templates.",".$path_remote.",".$path_local;
-		for ($x=0;$x<$total_key_dor;$x++) { //обработка по одной странице дора
+		$job_list[$i] = $relinks_ids.",".$dor_file_keys.",".$dor_num_keys.",".$dor_num_pages.",".$enable_shuffle.",".$dor_templates.",".$path_remote.",".$path_local;
+		for ($x=0;$x<$dor_num_pages;$x++) { //обработка по одной странице дора
 			if ($x == 0)
 				$name_file = "index".$extension;
 			else
@@ -108,6 +108,7 @@
 			$logs_ancor_array[$i][] = $log_ancor_temp; //для использования в функции relinks перелинковки
 			$logs_bbcode_array[] = $log_bbcode_temp; //для использования в % логов для спама
 		}
+		$all_dor_keys[$i] = $dor_keys;
 
 		$logs_bbcode_spam .= get_perc_array($logs_bbcode_array, $num_perc_spam, 1); //собираем все BB линки страниц кол-вом % указанным в $num_perc_spam
 		unset($logs_bbcode_array); //удаляем, так как новый, используется в % логов для спама
@@ -139,7 +140,7 @@
 		unset($dor_rand_number); //очищаем случайное значение макроса DOR__RAND, которое использовалось при генерации предыдущего дора
 		unset($dor_urand_number); //очищаем случайное значение макроса DOR__URAND, которое использовалось при генерации предыдущего дора
 		unset($maps); //очищаем строку со ссылками на карты дора
-		list ($relinks_ids, $dor_file_keys, $dor_num_keys, $enable_shuffle, $templ_this, $path_remote, $path_local) = explode(",", $job_list[$i]); //читаем очередное задание
+		list ($relinks_ids, $dor_file_keys, $dor_num_keys, $dor_num_pages, $enable_shuffle, $templ_this, $path_remote, $path_local) = explode(",", $job_list[$i]); //читаем очередное задание
 		if ($relinks_ids == '') { //если пустой параметр перелинковки, то заполняем параметр перелинковки всеми заданиями кроме текущего
 			for ($xxx=1;$xxx<=$count_job;$xxx++) {
 				if ($xxx != ($i + 1))
@@ -161,7 +162,7 @@
 		$templ_map = file_get_contents($templ_dir."/".$templ_this."/dp_sitemap.html") or die("<b>Ошибка</b>: Не найден файл шаблона. Проверьте: ".$templ_dir."/".$templ_this."/dp_sitemap.html");
 		$templ_map = aggress($templ_map);
 
-		$dor_keys = array_keys($a_all_dor_keys_filename[$i]); //берем кеи из массива ключевиков по каждому дору
+		$dor_keys = $all_dor_keys[$i];  // array_keys($a_all_dor_keys_filename[$i]); //берем кеи из массива ключевиков по каждому дору
 		$a_key_filename = $a_all_dor_keys_filename[$i]; //берем массив кей => имя файла для кадждого дора
 		$total_key_dor = count($dor_keys); //считаем кол-во всех ключей текущего дора
 		echo "Взяли ключей: ".$total_key_dor."<br>";
@@ -200,7 +201,7 @@
 			echo "Генерация пользовательских страниц завершена: ".$cp."<br>";
 		}
 
-		for ($cur_page_num=0;$cur_page_num<$total_key_dor;$cur_page_num++) {  //обработка страниц дора
+		for ($cur_page_num=0;$cur_page_num<$dor_num_pages;$cur_page_num++) {  //обработка страниц дора
 			$a_rand_number = array(); //очищаем массив уникальных значений макроса URAND
 			$a_rand_ancor = array(); //очищаем массив уникальных значений макроса RAND_ANCOR
 			$a_rand_text = array(); //очищаем массив уникальных значений макроса RAND_TEXT
