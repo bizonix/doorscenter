@@ -66,11 +66,6 @@ class TemplateGenerator1(object):
             fd.write(strCmd)
         with open(os.path.join(tplPath, 'robots.txt'), 'w') as fd:
             fd.write(strRobots)
-        tplPathScript = os.path.join(tplPath, 'script')
-        if not os.path.exists(tplPathScript):
-            os.makedirs(tplPathScript)
-        with open(os.path.join(tplPathScript, 'register.html'), 'w') as fd:
-            fd.write(strRegister.replace('{{tdsSchema}}', tdsSchema))
     
 if __name__ == '__main__':
     agent = TemplateGenerator1('xgen1-adult-596-27', '/home/sasch/public_html/test.home/tplview')

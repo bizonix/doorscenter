@@ -135,32 +135,32 @@ strEntries = r'''<br/><br/><img src="{{imgPath}}/img/{RAND(1,{{imgCount}})}.jpg"
 <table cellspacing="10px" align="center" class="tabla">{{strTableEntries}}</table>
 '''
 
-strTableEntries = r'''<tr>{FOR(1,6)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+strTableEntries = r'''<tr>{FOR(1,6)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,6)}<td>{RANDKEYWORD}, {RANDKEYWORD}, {RANDKEYWORD}, {RANDKEYWORD}.</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td><td>{RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD} {RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
-<tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+<tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
 <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
 ---
 <tr>
   <td width="50%">
     <table cellspacing="10px" align="center" class="tabla">
-      <tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+      <tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
       <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
-      <tr>{FOR(1,2)}<td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
+      <tr>{FOR(1,2)}<td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/thumb/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>{ENDFOR}</tr>
       <tr>{FOR(1,2)}<td>{RANDKEYWORD}</td>{ENDFOR}</tr>
     </table>
   </td>
-  <td><a href="script/register.html?member_id={RAND(1000000,9999999)}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>
+  <td><a href="http://searchpro.ws/go2.php?sid={{tdsSchema}}"><img src="{{imgPath}}/imgm/{RAND(1,{{imgCount}})}.jpg" alt="{RANDKEYWORD}" /></a></td>
 </tr>
 '''
 
@@ -178,7 +178,4 @@ unlink('bean.tgz');
 strRobots = r'''User-Agent: *
 Allow: /
 Disallow: /script
-'''
-
-strRegister = r'''<?php header('Location: go.php?sid={{tdsSchema}}'); ?>
 '''
