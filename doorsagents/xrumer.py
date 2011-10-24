@@ -3,7 +3,7 @@ import os, shutil, datetime, time, codecs, kwk8, agent, common, win32gui
 from xrumercls import *
 from xml.sax.saxutils import escape
 
-xrumerSettingsGroup1 = ('', 'register-only', 'from-registered')
+xrumerSettingsGroup1 = ('none', 'register-only', 'from-registered')
 xrumerSettingsGroup2 = ('edit-profile')
 xrumerSettingsGroup3 = ('post', 'reply')
 xrumerSettingsGroup4 = ('LinksList', 'RLinksList')
@@ -35,11 +35,15 @@ class XrumerAgent(agent.BaseAgent):
         with open(configFile, 'r') as fd:
             config = fd.readlines()
         config[8] = 'ON\n'  # автопродолжение
+        config[9] = 'ON\n' if settings1 == 'register-only' else 'OFF\n'  # только регистрация
         with open(configFile, 'w') as fd:
             fd.writelines(config)
         
         '''Файл xuser.ini'''
-        settingsDict = {'AggressiveMode': '0', 
+        settingsDict = {'OnlyRegistering': ('1' if settings1 == 'register-only' else '0'),
+            'RegisteringPlusPosting': '0', 
+            'FromRegistered': ('1' if settings1 == 'from-registered' else '0'), 
+            'AggressiveMode': '0', 
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': ('1' if settings2 == 'edit-profile' else '0'), 
             'UploadAvatars': ('1' if settings2 == 'edit-profile' else '0'), 
@@ -74,51 +78,44 @@ class XrumerAgent(agent.BaseAgent):
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>6</JobNum>
-    <JobParameter>''' + ('0' if settings1 == 'register-only' else '2') + '''</JobParameter>
+    <JobNum>5</JobNum>
+    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
   </Schedule2>
   <Schedule3>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>5</JobNum>
-    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
+    <JobNum>10</JobNum>
+    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
   </Schedule3>
   <Schedule4>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>10</JobNum>
-    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
+    <JobNum>8</JobNum>
+    <JobParameter>''' + str(threadsCount) + '''</JobParameter>
   </Schedule4>
   <Schedule5>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>8</JobNum>
-    <JobParameter>''' + str(threadsCount) + '''</JobParameter>
-  </Schedule5>
-  <Schedule6>
-    <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
     <JobNum>1</JobNum>
     <JobParameter></JobParameter>
-  </Schedule6>
-  <Schedule7>
+  </Schedule5>
+  <Schedule6>
     <PerformedTime></PerformedTime>
     <EventNum>4</EventNum>
     <EventParameter>''' + str(baseLinksCount) + '''</EventParameter>
     <JobNum>0</JobNum>
     <JobParameter></JobParameter>
-  </Schedule7>
-  <Schedule8>
+  </Schedule6>
+  <Schedule7>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
     <JobNum>13</JobNum>
     <JobParameter>''' + escape(self.doneScript) + '''</JobParameter>
-  </Schedule8>
+  </Schedule7>
 </body>
 ''')
             

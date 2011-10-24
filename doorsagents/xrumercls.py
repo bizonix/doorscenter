@@ -82,9 +82,9 @@ class XrumerHelperBaseSpam(XrumerHelper):
         threadsCount = 110
         controlTimeRange = 180
         if self.creationType == 'post':
-            self.agent._CreateSettings('', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reply':
-            self.agent._CreateSettings('', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reg + post' and self.registerRun:
             self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reg + post' and not self.registerRun:
@@ -144,9 +144,9 @@ class XrumerHelperBaseDoors(XrumerHelper):
             threadsCount = 110
             controlTimeRange = 120
             if self.creationType == 'post':
-                self.agent._CreateSettings('', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
             elif self.creationType == 'reply':
-                self.agent._CreateSettings('', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
             elif self.creationType == 'reg + post' and self.registerRun:
                 self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
             elif self.creationType == 'reg + post' and not self.registerRun:
