@@ -24,20 +24,22 @@ class XrumerAgent(agent.BaseAgent):
         settingsControl1File = os.path.join(self.appFolderControl1, 'control.ini')
         settingsControl2File = os.path.join(self.appFolderControl2, 'control.ini')
         
+        '''Считаем число ссылок в базе'''
+        baseLinksCount = 0
+        try:
+            baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else self.baseMainRFile).Count() - 1, 0)
+        except Exception as error:
+            print('Cannot count %s links: %s' % error)
+        
         '''Файл config.ini'''
         with open(configFile, 'r') as fd:
             config = fd.readlines()
-        config[3] = '%d\n' % threadsCount
         config[8] = 'ON\n'  # автопродолжение
-        config[9] = 'ON\n' if settings1 == 'register-only' else 'OFF\n'  # только регистрация
         with open(configFile, 'w') as fd:
             fd.writelines(config)
         
         '''Файл xuser.ini'''
-        settingsDict = {'OnlyRegistering': ('1' if settings1 == 'register-only' else '0'),
-            'RegisteringPlusPosting': '0', 
-            'FromRegistered': ('1' if settings1 == 'from-registered' else '0'), 
-            'AggressiveMode': '0', 
+        settingsDict = {'AggressiveMode': '0', 
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': ('1' if settings2 == 'edit-profile' else '0'), 
             'UploadAvatars': ('1' if settings2 == 'edit-profile' else '0'), 
@@ -72,37 +74,51 @@ class XrumerAgent(agent.BaseAgent):
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>5</JobNum>
-    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
+    <JobNum>6</JobNum>
+    <JobParameter>''' + ('0' if settings1 == 'register-only' else '2') + '''</JobParameter>
   </Schedule2>
   <Schedule3>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>10</JobNum>
-    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
+    <JobNum>5</JobNum>
+    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
   </Schedule3>
   <Schedule4>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>1</JobNum>
-    <JobParameter></JobParameter>
+    <JobNum>10</JobNum>
+    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
   </Schedule4>
   <Schedule5>
     <PerformedTime></PerformedTime>
-    <EventNum>0</EventNum>
+    <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>0</JobNum>
-    <JobParameter></JobParameter>
+    <JobNum>8</JobNum>
+    <JobParameter>''' + str(threadsCount) + '''</JobParameter>
   </Schedule5>
   <Schedule6>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
+    <JobNum>1</JobNum>
+    <JobParameter></JobParameter>
+  </Schedule6>
+  <Schedule7>
+    <PerformedTime></PerformedTime>
+    <EventNum>4</EventNum>
+    <EventParameter>''' + str(baseLinksCount) + '''</EventParameter>
+    <JobNum>0</JobNum>
+    <JobParameter></JobParameter>
+  </Schedule7>
+  <Schedule8>
+    <PerformedTime></PerformedTime>
+    <EventNum>6</EventNum>
+    <EventParameter></EventParameter>
     <JobNum>13</JobNum>
     <JobParameter>''' + escape(self.doneScript) + '''</JobParameter>
-  </Schedule6>
+  </Schedule8>
 </body>
 ''')
             
