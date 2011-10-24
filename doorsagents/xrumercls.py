@@ -74,9 +74,13 @@ class XrumerHelperBaseSpam(XrumerHelper):
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
+        self._WriteKeywords()
+        self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
+        self._DeleteBase(self.agent.baseMainRFile) 
         '''Создаем настройки'''
         threadsCount = 110
-        controlTimeRange = 120
+        controlTimeRange = 180
         if self.creationType == 'post':
             self.agent._CreateSettings('', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reply':
@@ -89,10 +93,6 @@ class XrumerHelperBaseSpam(XrumerHelper):
             self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
         elif self.creationType == 'reg + reply' and not self.registerRun:
             self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
-        '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
-        self._WriteKeywords()
-        self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
-        self._DeleteBase(self.agent.baseMainRFile) 
     
     def ActionOff(self):
         '''Копируем анкоры и удаляем базу, которую копировали ранее'''
@@ -111,12 +111,12 @@ class XrumerHelperSpamTask(XrumerHelper):
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        '''Пишем кейворды'''
+        self._WriteKeywords()
         '''Создаем настройки'''
         threadsCount = 160
         controlTimeRange = 60
         self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
-        '''Пишем кейворды'''
-        self._WriteKeywords()
     
     def ActionOff(self):
         '''Копируем анкоры и фильтруем базу R от неуспешных'''
@@ -136,6 +136,10 @@ class XrumerHelperBaseDoors(XrumerHelper):
         projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, self.keywordsFileEsc, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Если первый проход'''
         if not os.path.isfile(self.agent.baseMainRFile):
+            '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
+            self._WriteKeywords()
+            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
+            self._DeleteBase(self.agent.baseMainRFile) 
             '''Создаем настройки'''
             threadsCount = 110
             controlTimeRange = 120
@@ -151,17 +155,13 @@ class XrumerHelperBaseDoors(XrumerHelper):
                 self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
             elif self.creationType == 'reg + reply' and not self.registerRun:
                 self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
-            '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
-            self._WriteKeywords()
-            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
-            self._DeleteBase(self.agent.baseMainRFile) 
         else:
+            '''Пишем кейворды'''
+            self._WriteKeywords()
             '''Создаем настройки'''
             threadsCount = 160
             controlTimeRange = 60
             self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
-            '''Пишем кейворды'''
-            self._WriteKeywords()
             
     def ActionOff(self):
         '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''
@@ -176,18 +176,18 @@ class XrumerHelperBaseProfiles(XrumerHelper):
         return 'ProjectP%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
-        '''Создаем настройки'''
         if self.registerRun:
+            '''Копируем исходную базу в целевую'''
+            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
+            '''Создаем настройки'''
             threadsCount = 50
             controlTimeRange = 240
             self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', 'none', '', '')
         else:
+            '''Создаем настройки'''
             threadsCount = 50
             controlTimeRange = 60
             self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
-        '''Копируем исходную базу в целевую'''
-        if self.registerRun:
-            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
     
     def ActionOff(self):
         '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''

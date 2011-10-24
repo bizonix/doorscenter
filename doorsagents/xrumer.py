@@ -29,7 +29,7 @@ class XrumerAgent(agent.BaseAgent):
         try:
             baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else self.baseMainRFile).Count() - 1, 0)
         except Exception as error:
-            print('Cannot count %s links: %s' % error)
+            print('Cannot count links: %s' % error)
         
         '''Файл config.ini'''
         with open(configFile, 'r') as fd:
