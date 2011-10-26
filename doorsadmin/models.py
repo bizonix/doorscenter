@@ -184,7 +184,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     class Meta:
         abstract = True
     def ResetNames(self):
-        '''...'''
+        '''Сбрасываем имена'''
         self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
         self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
         self.password = GenerateRandomWord(12)
@@ -744,18 +744,21 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         '''Свободен ли корень домена?'''
         return self.IsFolderFree('/')
     def GetNetLinksList(self, doorwayToExclude):
-        '''Получение ссылок для перелинковки'''
+        '''Ссылки для перелинковки'''
         linksList = []
-        for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
-            for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
-                linksList.extend(doorway.GetSpamLinksList().split('\n'))
-        ''', включая другие доры с этого домена'''
+        '''Ссылки с других доров этого домена'''
         for doorway in self.doorway_set.filter(stateManaged='done').order_by('pk').all():
             if doorway != doorwayToExclude:
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
+        '''Корень не линкуем с другими доменами'''
+        if doorwayToExclude.domainFolder not in ['', r'/']:
+            '''Ссылки с других доменов'''
+            for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
+                for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
+                    linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
-        '''...'''
+        '''Ссылка для проверки индекса по гуглу'''
         if self.indexCount:
             return '<a href="%s">%d</a>' % (google.GetIndexLink(self.name), self.indexCount)
         else:
@@ -768,7 +771,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         self.indexCountDate = datetime.datetime.now()
         self.save()
     def GetBackLinksCount(self):
-        '''...'''
+        '''Ссылка для проверки YBL'''
         if self.backLinksCount:
             return '<a href="%s">%d</a>' % (yahoo.GetBackLinksLink(self.name), self.backLinksCount)
         else:
@@ -776,7 +779,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     GetBackLinksCount.short_description = 'YBL'
     GetBackLinksCount.allow_tags = True
     def UpdateBackLinksCount(self):
-        '''Проверяем индекс в гугле'''
+        '''Проверяем YBL'''
         self.backLinksCount = yahoo.GetBackLinks(self.name)
         self.backLinksCountDate = datetime.datetime.now()
         self.save()

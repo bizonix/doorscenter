@@ -310,7 +310,7 @@ class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames']
     def ResetNames(self, request, queryset):
-        '''...'''
+        '''Сбрасываем имена'''
         processed = 0
         for base in queryset:
             base.ResetNames()
@@ -342,7 +342,7 @@ class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames']
     def ResetNames(self, request, queryset):
-        '''...'''
+        '''Сбрасываем имена'''
         processed = 0
         for base in queryset:
             base.ResetNames()
@@ -362,7 +362,7 @@ class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames']
     def ResetNames(self, request, queryset):
-        '''...'''
+        '''Сбрасываем имена'''
         processed = 0
         for base in queryset:
             base.ResetNames()
