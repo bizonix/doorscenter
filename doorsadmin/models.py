@@ -737,14 +737,15 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
         return self.IsFolderFree('/')
-    def GetNetLinksList(self, exclude):
+    def GetNetLinksList(self, doorwayToExclude):
         '''Получение ссылок для перелинковки'''
         linksList = []
         for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
             for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
+        ''', включая другие доры с этого домена'''
         for doorway in self.doorway_set.filter(stateManaged='done').order_by('pk').all():
-            if doorway != exclude:
+            if doorway != doorwayToExclude:
                 linksList.extend(doorway.GetSpamLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
