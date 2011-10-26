@@ -14,7 +14,7 @@ class XrumerAgent(agent.BaseAgent):
     emailLogin, emailPopServer, subject, spamLinksList, creationType, registerRun.
     Выходные: successCount, halfSuccessCount, failsCount, profilesCount, registeredAccountsCount, baseLinksCount.'''
     
-    def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount, controlTimeRange, 
+    def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount,  
                        projSubject, projBody, projHomePage = '', projSignature = ''):
         '''Создаем настройки'''
         configFile = os.path.join(self.appFolder, 'config.ini')
@@ -34,8 +34,12 @@ class XrumerAgent(agent.BaseAgent):
         '''Файл config.ini'''
         with open(configFile, 'r') as fd:
             config = fd.readlines()
+        config[0] = '%s\n' % self.projectName
+        config[2] = '%d\n' % self.currentTask['baseNumberMain']
+        config[3] = '%d\n' % threadsCount
         config[8] = 'ON\n'  # автопродолжение
-        config[9] = 'ON\n' if settings1 == 'register-only' else 'OFF\n'  # только регистрация
+        config[9] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')
+        config[11] = '%s\n' % ('0' if settings4 == 'LinksList' else '3')
         with open(configFile, 'w') as fd:
             fd.writelines(config)
         
@@ -47,7 +51,7 @@ class XrumerAgent(agent.BaseAgent):
             'CheckForActiveLink': '0', 
             'EditProfileAfterLogin': ('1' if settings2 == 'edit-profile' else '0'), 
             'UploadAvatars': ('1' if settings2 == 'edit-profile' else '0'), 
-            'LogInIfBusy': '1',
+            'LogInIfBusy': '0',
             'BBtoHTML': '1', 
             'EnableRefspam': '0', 
             'PostNewMode': ('1' if settings3 == 'post' else '3'),
@@ -64,58 +68,23 @@ class XrumerAgent(agent.BaseAgent):
     <PerformedTime></PerformedTime>
     <EventNum>2</EventNum>
     <EventParameter>''' + (datetime.datetime.now() + datetime.timedelta(0, 30)).strftime('%d.%m.%y %H:%M:%S') + '''</EventParameter>
-    <JobNum>4</JobNum>
-    <JobParameter>''' + escape(self.projectName) + '''</JobParameter>
+    <JobNum>1</JobNum>
+    <JobParameter></JobParameter>
   </Schedule0>
   <Schedule1>
     <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
-    <JobNum>12</JobNum>
+    <EventNum>4</EventNum>
+    <EventParameter>''' + str(baseLinksCount) + '''</EventParameter>
+    <JobNum>0</JobNum>
     <JobParameter></JobParameter>
   </Schedule1>
   <Schedule2>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
-    <JobNum>5</JobNum>
-    <JobParameter>''' + ('0' if settings4 == 'LinksList' else '3') + '''</JobParameter>
-  </Schedule2>
-  <Schedule3>
-    <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
-    <JobNum>10</JobNum>
-    <JobParameter>''' + str(self.currentTask['baseNumberMain']) + '''</JobParameter>
-  </Schedule3>
-  <Schedule4>
-    <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
-    <JobNum>8</JobNum>
-    <JobParameter>''' + str(threadsCount) + '''</JobParameter>
-  </Schedule4>
-  <Schedule5>
-    <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
-    <JobNum>1</JobNum>
-    <JobParameter></JobParameter>
-  </Schedule5>
-  <Schedule6>
-    <PerformedTime></PerformedTime>
-    <EventNum>4</EventNum>
-    <EventParameter>''' + str(baseLinksCount) + '''</EventParameter>
-    <JobNum>0</JobNum>
-    <JobParameter></JobParameter>
-  </Schedule6>
-  <Schedule7>
-    <PerformedTime></PerformedTime>
-    <EventNum>6</EventNum>
-    <EventParameter></EventParameter>
     <JobNum>13</JobNum>
     <JobParameter>''' + escape(self.doneScript) + '''</JobParameter>
-  </Schedule7>
+  </Schedule2>
 </body>
 ''')
             
@@ -163,18 +132,18 @@ class XrumerAgent(agent.BaseAgent):
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=0
-TimeRange=''' + str(controlTimeRange) + '''
+TimeRange=60
 ''')
         with open(settingsControl2File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=1
-TimeRange=''' + str(controlTimeRange) + '''
+TimeRange=60
 ''')
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'C:\\Work\\xrumer707'
+        self.appFolder = 'C:\\Work\\xrumer707a'
         self.appFolderControl1 = 'C:\\Work\\control1'
         self.appFolderControl2 = 'C:\\Work\\control2'
         self.appApplication = os.path.join(self.appFolder, 'xpymep.exe')

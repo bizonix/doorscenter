@@ -80,19 +80,18 @@ class XrumerHelperBaseSpam(XrumerHelper):
         self._DeleteBase(self.agent.baseMainRFile) 
         '''Создаем настройки'''
         threadsCount = 110
-        controlTimeRange = 180
         if self.creationType == 'post':
-            self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
         elif self.creationType == 'reply':
-            self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
         elif self.creationType == 'reg + post' and self.registerRun:
-            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
         elif self.creationType == 'reg + post' and not self.registerRun:
-            self.agent._CreateSettings('from-registered', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('from-registered', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
         elif self.creationType == 'reg + reply' and self.registerRun:
-            self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
         elif self.creationType == 'reg + reply' and not self.registerRun:
-            self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
     
     def ActionOff(self):
         '''Копируем анкоры и удаляем базу, которую копировали ранее'''
@@ -114,9 +113,7 @@ class XrumerHelperSpamTask(XrumerHelper):
         '''Пишем кейворды'''
         self._WriteKeywords()
         '''Создаем настройки'''
-        threadsCount = 160
-        controlTimeRange = 60
-        self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
+        self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
     
     def ActionOff(self):
         '''Копируем анкоры и фильтруем базу R от неуспешных'''
@@ -142,26 +139,23 @@ class XrumerHelperBaseDoors(XrumerHelper):
             self._DeleteBase(self.agent.baseMainRFile) 
             '''Создаем настройки'''
             threadsCount = 110
-            controlTimeRange = 120
             if self.creationType == 'post':
-                self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
             elif self.creationType == 'reply':
-                self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('none', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
             elif self.creationType == 'reg + post' and self.registerRun:
-                self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
             elif self.creationType == 'reg + post' and not self.registerRun:
-                self.agent._CreateSettings('from-registered', '', 'post', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('from-registered', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
             elif self.creationType == 'reg + reply' and self.registerRun:
-                self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('register-only', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
             elif self.creationType == 'reg + reply' and not self.registerRun:
-                self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, controlTimeRange, projSubject, projBody)
+                self.agent._CreateSettings('from-registered', '', 'reply', 'LinksList', threadsCount, projSubject, projBody)
         else:
             '''Пишем кейворды'''
             self._WriteKeywords()
             '''Создаем настройки'''
-            threadsCount = 160
-            controlTimeRange = 60
-            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', threadsCount, controlTimeRange, projSubject, projBody)
+            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
             
     def ActionOff(self):
         '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''
@@ -180,14 +174,10 @@ class XrumerHelperBaseProfiles(XrumerHelper):
             '''Копируем исходную базу в целевую'''
             self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
             '''Создаем настройки'''
-            threadsCount = 50
-            controlTimeRange = 240
-            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', 'none', '', '')
+            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', 50, 'none', 'none', '', '')
         else:
             '''Создаем настройки'''
-            threadsCount = 50
-            controlTimeRange = 60
-            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', threadsCount, controlTimeRange, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
+            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 50, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
     
     def ActionOff(self):
         '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
