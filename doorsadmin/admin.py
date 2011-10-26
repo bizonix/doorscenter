@@ -308,6 +308,15 @@ class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    actions = ['ResetNames']
+    def ResetNames(self, request, queryset):
+        '''...'''
+        processed = 0
+        for base in queryset:
+            base.ResetNames()
+            processed += 1
+        self.message_user(request, "%s reset." % GetMessageBit(processed))
+    ResetNames.short_description = "a. Reset names"
 
 class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseSpam', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
@@ -331,6 +340,15 @@ class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    actions = ['ResetNames']
+    def ResetNames(self, request, queryset):
+        '''...'''
+        processed = 0
+        for base in queryset:
+            base.ResetNames()
+            processed += 1
+        self.message_user(request, "%s reset." % GetMessageBit(processed))
+    ResetNames.short_description = "a. Reset names"
 
 class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'homePage', 'linksCount', 'xrumerBaseRaw', 'profilesCount', 'registeredAccountsCount', 'successCount', 'failsCount', 'registerRun', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
@@ -342,6 +360,15 @@ class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    actions = ['ResetNames']
+    def ResetNames(self, request, queryset):
+        '''...'''
+        processed = 0
+        for base in queryset:
+            base.ResetNames()
+            processed += 1
+        self.message_user(request, "%s reset." % GetMessageBit(processed))
+    ResetNames.short_description = "a. Reset names"
 
 class HostAdmin(BaseAdminSimple):
     list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')

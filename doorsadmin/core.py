@@ -53,6 +53,7 @@ def RenewBasesSpam():
     '''Перегенерируем изношенные базы'''
     for xrumerBaseSpam in XrumerBaseSpam.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
         if xrumerBaseSpam.linksCount < 2:  # в тысячах
+            xrumerBaseSpam.ResetNames()
             xrumerBaseSpam.stateManaged = 'new'
             xrumerBaseSpam.save()
 
