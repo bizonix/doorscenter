@@ -31,6 +31,13 @@ class XrumerAgent(agent.BaseAgent):
         except Exception as error:
             print('Cannot count links: %s' % error)
         
+        '''Удаляем старый LastURL'''
+        if os.path.isfile(self.logLastURL): 
+            try:
+                os.remove(self.logLastURL)
+            except Exception as error:
+                print('Cannot remove last url: %s' % error)
+
         '''Файл config.ini'''
         with open(configFile, 'r') as fd:
             config = fd.readlines()
@@ -66,25 +73,18 @@ class XrumerAgent(agent.BaseAgent):
 <body>
   <Schedule0>
     <PerformedTime></PerformedTime>
-    <EventNum>2</EventNum>
-    <EventParameter>''' + (datetime.datetime.now() + datetime.timedelta(0, 30)).strftime('%d.%m.%y %H:%M:%S') + '''</EventParameter>
-    <JobNum>1</JobNum>
-    <JobParameter></JobParameter>
-  </Schedule0>
-  <Schedule1>
-    <PerformedTime></PerformedTime>
     <EventNum>4</EventNum>
     <EventParameter>''' + str(baseLinksCount) + '''</EventParameter>
     <JobNum>0</JobNum>
     <JobParameter></JobParameter>
-  </Schedule1>
-  <Schedule2>
+  </Schedule0>
+  <Schedule1>
     <PerformedTime></PerformedTime>
     <EventNum>6</EventNum>
     <EventParameter></EventParameter>
     <JobNum>13</JobNum>
     <JobParameter>''' + escape(self.doneScript) + '''</JobParameter>
-  </Schedule2>
+  </Schedule1>
 </body>
 ''')
             
@@ -179,6 +179,7 @@ TimeRange=60
         self.logProfiles = self.logFileTemplate % 'Profiles'
         self.logRegisteredAccounts = os.path.join(self.appFolder, 'Logs', self.projectName, 'Registered Accounts.txt')
         self.logAnchors = self.logFileTemplate % 'Anchors'
+        self.logLastURL = self.logFileTemplate % 'LastURL'
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
