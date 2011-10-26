@@ -183,6 +183,12 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
     class Meta:
         abstract = True
+    def ResetNames(self):
+        '''...'''
+        self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+        self.password = GenerateRandomWord(12)
+        self.save()
     def GetTaskDetailsCommon(self):
         '''Подготовка данных для работы агента - общая часть для задания на спам'''
         return {'niche': self.niche.description,
