@@ -19,9 +19,9 @@ def CronDaily():
 
 def Helper():
     '''Запуск из командной строки'''
-    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-        niche.GenerateSpamTasksMultiple()
-    #Net.objects.get(pk=146).AddDomains()
+    #for niche in Niche.objects.filter(active=True).order_by('pk').all():
+    #    niche.GenerateSpamTasksMultiple()
+    Net.objects.get(pk=269).AddDomains()
     pass
 
 def ExpandNets():
@@ -66,7 +66,7 @@ def ResumeAfterReg():
 def _ResumeAfterRegEntity(entity):
     '''То же самое по заданному типу'''
     dt = datetime.datetime.now()
-    for item in entity.objects.filter(Q(active=True), Q(registerRun=True), Q(stateManaged='done')).order_by('pk').all():            
+    for item in entity.objects.filter(Q(active=True), Q(registerRun=True), Q(stateManaged='done')).order_by('pk').all():
         if (item.registerRunDate != None) and (item.registerRunDate + datetime.timedelta(0, item.registerRunTimeout * 60 * 60, 0) < dt):
             item.registerRun = False
             item.stateManaged = 'new'
