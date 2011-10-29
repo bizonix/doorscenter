@@ -363,10 +363,10 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 xrumerBaseSpam = xrumerBasesSpam[n]
                 domainsCounts.append(random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax))
             '''Цикл по доменам с заданиями на спам'''
-            domains = Domain.objects.filter(niche=self).order_by('pk').all()
+            domains = Domain.objects.filter(niche=self).order_by('?').all()
             for domain in domains:
                 '''Получаем список непроспамленных ссылок домена'''
-                spamLinks = self.GetSpamDomainLinks(domain).order_by('pk').all()
+                spamLinks = self.GetSpamDomainLinks(domain).order_by('?').all()
                 '''Распределяем их по базам'''
                 for n in range(xrumerBasesSpamCount):
                     if len(spamLinks) == 0:
@@ -1215,8 +1215,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            #return [XrumerBaseSpam, SpamTask, XrumerBaseProfiles, XrumerBaseDoors]
-            return [XrumerBaseProfiles]
+            return [XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:
@@ -1291,4 +1290,3 @@ class Report(models.Model):
         return str(results)
     GetReport.short_description = 'Report'
     GetReport.allow_tags = True
-    
