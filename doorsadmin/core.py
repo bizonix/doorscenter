@@ -13,7 +13,6 @@ def CronHourly():
 def CronDaily():
     '''Функция вызывается по расписанию'''
     ExpandNets()
-    #GenerateDoorways()  # дорвеи генерируются при добавлении домена в сеть
     #GenerateSpamTasks()  # вызывается по событию апдейта агента доргена
     ClearEventLog()
 
@@ -25,7 +24,7 @@ def Helper():
     pass
 
 def ExpandNets():
-    '''Плетем сети'''
+    '''Плетем сети: добавляем домены и генерим доры'''
     avgSpamTaskDuration = 15  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
     domainsLimitBase = 30  # настройка: лимит расхода доменов в сутки
@@ -36,6 +35,8 @@ def ExpandNets():
     for net in Net.objects.filter(active=True).order_by('?').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
+        if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
+            linksLimitActual = net.GenerateDoorways(None, linksLimitActual)
         if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
