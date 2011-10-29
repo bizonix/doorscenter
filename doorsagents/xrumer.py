@@ -14,6 +14,14 @@ class XrumerAgent(agent.BaseAgent):
     emailLogin, emailPopServer, subject, spamLinksList, creationType, registerRun.
     Выходные: successCount, halfSuccessCount, failsCount, profilesCount, registeredAccountsCount, baseLinksCount.'''
     
+    def _DeleteLog(self, logFileName):
+        '''Удаляем логи'''
+        if os.path.isfile(logFileName): 
+            try:
+                os.remove(logFileName)
+            except Exception as error:
+                print('Cannot remove log: %s' % error)
+    
     def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount,  
                        projSubject, projBody, projHomePage = '', projSignature = ''):
         '''Создаем настройки'''
@@ -180,6 +188,11 @@ TimeRange=60
         self.logRegisteredAccounts = os.path.join(self.appFolder, 'Logs', self.projectName, 'Registered Accounts.txt')
         self.logAnchors = self.logFileTemplate % 'Anchors'
         self.logLastURL = self.logFileTemplate % 'LastURL'
+        
+        '''Удаляем старые логи'''
+        self._DeleteLog(self.logSuccess)
+        self._DeleteLog(self.logHalfSuccess)
+        self._DeleteLog(self.logFails)
         
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''

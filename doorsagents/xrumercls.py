@@ -174,10 +174,10 @@ class XrumerHelperBaseProfiles(XrumerHelper):
             '''Копируем исходную базу в целевую'''
             self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
             '''Создаем настройки'''
-            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', 50, 'none', 'none', '', '')
+            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', 100, 'none', 'none', '', '')
         else:
             '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 50, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
+            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
     
     def ActionOff(self):
         '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''

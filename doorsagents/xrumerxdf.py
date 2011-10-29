@@ -43,8 +43,17 @@ class XrumerTopicLinker(object):
         self._AddAnchorsFile(self.agent.logAnchors, self.anchorsDoorsFolder)
     
     def AddProfilesFile(self):
-        '''Копируем новые анкоры в базу'''
-        self._AddAnchorsFile(self.agent.logProfiles, self.anchorsProfilesFolder)
+        '''Делаем из профилей анкоры'''
+        profileAnchors = self.agent.logProfiles + 'p'
+        urls = open(self.agent.logProfiles, 'r').readlines()
+        keys = open(self.helper.keywordsFile, 'r').readlines()
+        with open(profileAnchors, 'w') as fd:
+            for n in range(len(urls)):
+                fd.write('[url=%s]%s[/url]\n' % (urls[n].strip(), keys[n].strip()))
+        '''Копируем новые профили в базу'''
+        self._AddAnchorsFile(profileAnchors, self.anchorsProfilesFolder)
+        '''Удаляем временный файл'''
+        self.agent._DeleteBase(profileAnchors)
 
     def _AddAnchorsFile(self, fileName, anchorsFolder):
         '''Копируем файл в папку и объединяем имеющиеся файлы'''
