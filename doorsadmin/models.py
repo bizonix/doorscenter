@@ -170,9 +170,9 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
-    nickName = models.CharField('Nick Name', max_length=200, default='')
-    realName = models.CharField('Real Name', max_length=200, default='')
-    password = models.CharField('Password', max_length=200, default='')
+    nickName = models.CharField('Nick Name', max_length=200, default='', blank=True)
+    realName = models.CharField('Real Name', max_length=200, default='', blank=True)
+    password = models.CharField('Password', max_length=200, default='', blank=True)
     emailAddress = models.CharField('E.Address', max_length=200, default='niiokr2012@gmail.com')
     emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
@@ -1212,7 +1212,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseSpam, SpamTask, XrumerBaseProfiles, XrumerBaseDoors]
+            #return [XrumerBaseSpam, SpamTask, XrumerBaseProfiles, XrumerBaseDoors]
+            return [XrumerBaseProfiles]
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:
