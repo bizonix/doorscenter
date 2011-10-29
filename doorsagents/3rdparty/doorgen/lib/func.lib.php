@@ -63,6 +63,8 @@
 			$all_macros[] = $macros4;
 		}
 
+		$text = add_page_key($text);
+
 		if ($access_macros[2]) {
 			$macros = "/\[\[([^(\[\[)(\]\])]*)\]\]/U";
 			$text = preg_replace_callback($macros, "select", $text);

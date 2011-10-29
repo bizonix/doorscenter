@@ -211,9 +211,9 @@
 			$keyword = $dor_keys[$cur_page_num]; //кей страницы
 			$name_file = $a_key_filename[$dor_keys[$cur_page_num]]; //имя файла берем из массива: ключ => имя файла. сгенеренного вначале
 			if ($cur_page_num == 0) //если 0 кей - это главная страница
-				$out_page = replace_macros_page(add_page_key($templ_index), $access_macros_index); //если страница индексная обработать index.txt шаблон
+				$out_page = replace_macros_page($templ_index, $access_macros_index); //если страница индексная обработать index.txt шаблон
 			else
-				$out_page = replace_macros_page(add_page_key($templ_page), $access_macros_page); //если страница индексная обработать page.txt шаблон
+				$out_page = replace_macros_page($templ_page, $access_macros_page); //если страница индексная обработать page.txt шаблон
 			if ($compression_template) //если включена компрессия готовых страниц то сжимаем готовую страницу перед сохранением
 				$out_page = compression_text($out_page);
 			file_put_contents($path_local.$name_file, $out_page); //сохраняем страницу в папку дора
