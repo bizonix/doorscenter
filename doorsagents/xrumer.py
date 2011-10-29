@@ -52,6 +52,7 @@ class XrumerAgent(agent.BaseAgent):
         config[0] = '%s\n' % self.projectName
         config[2] = '%d\n' % self.currentTask['baseNumberMain']
         config[3] = '%d\n' % threadsCount
+        config[5] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')  # использовать прокси (socks)
         config[8] = 'ON\n'  # автопродолжение
         config[9] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')
         config[11] = '%s\n' % ('0' if settings4 == 'LinksList' else '3')
@@ -189,11 +190,6 @@ TimeRange=60
         self.logAnchors = self.logFileTemplate % 'Anchors'
         self.logLastURL = self.logFileTemplate % 'LastURL'
         
-        '''Удаляем старые логи'''
-        self._DeleteLog(self.logSuccess)
-        self._DeleteLog(self.logHalfSuccess)
-        self._DeleteLog(self.logFails)
-        
     def _CloseApp(self, appCaption):
         '''Закрытие приложения под Windows по заголовку окна'''
         p = win32gui.FindWindow(None, appCaption)
@@ -210,6 +206,10 @@ TimeRange=60
     
     def _ActionOn(self):
         self._Settings()
+        '''Удаляем старые логи'''
+        self._DeleteLog(self.logSuccess)
+        self._DeleteLog(self.logHalfSuccess)
+        self._DeleteLog(self.logFails)
         '''Вызываем хэлпер'''
         self.helper.ActionOn()
         '''Удаляем старый RegisteredAccounts.txt'''

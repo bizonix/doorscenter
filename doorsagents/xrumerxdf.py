@@ -53,7 +53,7 @@ class XrumerTopicLinker(object):
         '''Копируем новые профили в базу'''
         self._AddAnchorsFile(profileAnchors, self.anchorsProfilesFolder)
         '''Удаляем временный файл'''
-        self.agent._DeleteBase(profileAnchors)
+        self.helper._DeleteBase(profileAnchors)
 
     def _AddAnchorsFile(self, fileName, anchorsFolder):
         '''Копируем файл в папку и объединяем имеющиеся файлы'''
