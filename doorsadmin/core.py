@@ -61,7 +61,7 @@ def ResumeAfterReg():
     '''Заново создаем базы и профили после регистрации'''
     _ResumeAfterRegEntity(XrumerBaseSpam)
     _ResumeAfterRegEntity(XrumerBaseDoors)
-    #_ResumeAfterRegEntity(XrumerBaseProfiles)
+    _ResumeAfterRegEntity(XrumerBaseProfiles)
 
 def _ResumeAfterRegEntity(entity):
     '''То же самое по заданному типу'''

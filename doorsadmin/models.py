@@ -178,7 +178,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
     creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
-    registerRun = models.BooleanField('Reg.', default=True)
+    registerRun = models.BooleanField('Reg.', default=False)
     registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
     class Meta:
@@ -1116,6 +1116,9 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     def save(self, *args, **kwargs):
         if self.stateSimple == 'new':
             self.creationType = 'reg + post'
+        if self.stateManaged == 'new' and self.registerRun == False and self.homePage == '':
+            self.stateManaged = 'done'
+            self.registerRun = True
         super(XrumerBaseProfiles, self).save(*args, **kwargs)
 
 class Host(BaseDoorObject):
