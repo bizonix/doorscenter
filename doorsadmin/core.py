@@ -25,11 +25,13 @@ def Helper():
 
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
-    avgSpamTaskDuration = 15  # настройка: средняя продолжительность прогона по базе R, минут
+    avgSpamTaskDuration = 10  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
-    domainsLimitBase = 30  # настройка: лимит расхода доменов в сутки
+    domainsLimitBase = 0  # настройка: лимит расхода доменов в сутки
+    folderDoorsLimitBase = 15  # ...
     linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitActual = domainsLimitBase
+    folderDoorsLimitActual = folderDoorsLimitBase
     linksLimitActual = linksLimitBase
     dd = datetime.date.today()
     for net in Net.objects.filter(active=True).order_by('?').all():
@@ -37,9 +39,11 @@ def ExpandNets():
             domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
         if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             linksLimitActual = net.GenerateDoorways(None, None, linksLimitActual)
-        if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
+            folderDoorsLimitActual -= 1  # remark: ...
+        if ((domainsLimitActual <= 0) and (domainsLimitBase > 0)) or ((folderDoorsLimitActual <= 0) and (folderDoorsLimitBase > 0)) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
+    EventLog('info', 'Folder doors limit: %d/%d' % (folderDoorsLimitBase - folderDoorsLimitActual, folderDoorsLimitBase))
     EventLog('info', 'Links limit: %d/%d' % (linksLimitBase - linksLimitActual, linksLimitBase))
 
 def RenewSnippets():
