@@ -27,7 +27,7 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'Asia/Dubai'
 DATE_FORMAT = 'd.m.Y'
 DATETIME_FORMAT = 'd.m.Y H:i'
 

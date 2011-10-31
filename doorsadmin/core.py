@@ -36,7 +36,7 @@ def ExpandNets():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
         if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            linksLimitActual = net.GenerateDoorways(None, linksLimitActual)
+            linksLimitActual = net.GenerateDoorways(None, None, linksLimitActual)
         if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
