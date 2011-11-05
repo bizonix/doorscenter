@@ -20,7 +20,7 @@ hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispman
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
-xrumerBaseTypes = (('LinksList', 'LinksList'), ('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
+spamBaseTypes = (('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
 
 '''Helper functions'''
 
@@ -1012,7 +1012,7 @@ class SpamLink(models.Model):
 
 class XrumerBaseSpam(BaseXrumerBaseAdv):
     '''База R для спама по топикам'''
-    baseType = models.CharField('Base Type', max_length=50, choices=xrumerBaseTypes, default='RLinksList')
+    baseType = models.CharField('Base Type', max_length=50, choices=spamBaseTypes, default='RLinksList')
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
     spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
     spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
@@ -1035,6 +1035,7 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
         result = self.GetTaskDetailsCommon()
         result['snippetsFile'] = self.niche.GetRandomSnippetsSet().localFile
         result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
+        result['baseType'] = self.baseType
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
