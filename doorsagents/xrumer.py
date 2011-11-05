@@ -6,12 +6,12 @@ from xml.sax.saxutils import escape
 xrumerSettingsGroup1 = ('none', 'register-only', 'from-registered')
 xrumerSettingsGroup2 = ('edit-profile')
 xrumerSettingsGroup3 = ('post', 'reply')
-xrumerSettingsGroup4 = ('LinksList', 'RLinksList')
+xrumerSettingsGroup4 = ('LinksList', 'RLinksList', 'ZLinksList')
 
 class XrumerAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: niche, baseNumberMain, baseNumberSource, snippetsFile, nickName, realName, password, emailAddress, emailPassword, 
-    emailLogin, emailPopServer, subject, spamLinksList, creationType, registerRun.
+    emailLogin, emailPopServer, subject, spamLinksList, creationType, registerRun, baseType.
     Выходные: successCount, halfSuccessCount, failsCount, profilesCount, registeredAccountsCount, baseLinksCount.'''
     
     def _DeleteLog(self, logFileName):
@@ -35,7 +35,7 @@ class XrumerAgent(agent.BaseAgent):
         '''Считаем число ссылок в базе'''
         baseLinksCount = 0
         try:
-            baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else self.baseMainRFile).Count() - 1, 0)
+            baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else (self.baseRMainFile if settings4 == 'RLinksList' else (self.baseMainZFile))).Count() - 1, 0)
         except Exception as error:
             print('Cannot count links: %s' % error)
         
@@ -55,7 +55,7 @@ class XrumerAgent(agent.BaseAgent):
         config[5] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')  # использовать прокси (socks)
         config[8] = 'ON\n'  # автопродолжение
         config[9] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')
-        config[11] = '%s\n' % ('0' if settings4 == 'LinksList' else '3')
+        config[11] = '%s\n' % ('0' if settings4 == 'LinksList' else ('3' if settings4 == 'RLinksList' else ('1')))
         with open(configFile, 'w') as fd:
             fd.writelines(config)
         
@@ -166,8 +166,10 @@ TimeRange=60
         self.appLinksFolder = os.path.join(self.appFolder, 'Links')
         self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
         self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberSource'])
         
         '''Создание классов-хелперов'''
         if self.currentTask['type'] == 'XrumerBaseSpam':
@@ -217,7 +219,7 @@ TimeRange=60
             try:
                 os.remove(self.logRegisteredAccounts)
             except Exception as error:
-                print('Cannot remove old base R: %s' % error)
+                print('Cannot remove log: %s' % error)
         '''Запуск приложений'''
         self._RunApp(self.appApplication)
         self._RunApp(self.appApplicationControl1)

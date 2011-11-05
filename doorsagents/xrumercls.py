@@ -64,7 +64,7 @@ class XrumerHelper():
         pass
     
 class XrumerHelperBaseSpam(XrumerHelper):
-    '''База R для спама по топикам'''
+    '''Базы R и Z для спама по топикам'''
     
     def GetProjectName(self):
         return 'ProjectR%d' % self.agent.currentTask['id']
@@ -74,10 +74,13 @@ class XrumerHelperBaseSpam(XrumerHelper):
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
-        '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R'''
+        '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R или Z'''
         self._WriteKeywords()
         self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
-        self._DeleteBase(self.agent.baseMainRFile) 
+        if self.agent.currentTask['baseType'] == 'RLinksList':
+            self._DeleteBase(self.agent.baseMainRFile)
+        else: 
+            self._DeleteBase(self.agent.baseMainZFile) 
         '''Создаем настройки'''
         threadsCount = 110
         if self.creationType == 'post':
@@ -96,7 +99,10 @@ class XrumerHelperBaseSpam(XrumerHelper):
     def ActionOff(self):
         '''Копируем анкоры и удаляем базу, которую копировали ранее'''
         self.linker.AddSpamAnchorsFile()
-        self._FilterBase(self.agent.baseMainRFile)
+        if self.agent.currentTask['baseType'] == 'RLinksList':
+            self._FilterBase(self.agent.baseMainRFile)
+        else:
+            self._FilterBase(self.agent.baseMainZFile)
         self._DeleteBase(self.agent.baseMainFile) 
 
 class XrumerHelperSpamTask(XrumerHelper):
@@ -113,12 +119,18 @@ class XrumerHelperSpamTask(XrumerHelper):
         '''Пишем кейворды'''
         self._WriteKeywords()
         '''Создаем настройки'''
-        self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
+        if self.agent.currentTask['baseType'] == 'RLinksList':
+            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
+        else:
+            self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody)
     
     def ActionOff(self):
-        '''Копируем анкоры и фильтруем базу R от неуспешных'''
+        '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
         self.linker.AddSpamAnchorsFile()
-        self._FilterBase(self.agent.baseMainRFile)
+        if self.agent.currentTask['baseType'] == 'RLinksList':
+            self._FilterBase(self.agent.baseMainRFile)
+        else:
+            self._FilterBase(self.agent.baseMainZFile)
 
 class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
@@ -170,6 +182,8 @@ class XrumerHelperBaseProfiles(XrumerHelper):
         return 'ProjectP%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
+        self.agent._DeleteLog(self.agent.logAnchors)
+        self.agent._DeleteLog(self.agent.logProfiles)
         if self.registerRun:
             '''Копируем исходную базу в целевую'''
             self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
