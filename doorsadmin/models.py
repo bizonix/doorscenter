@@ -703,7 +703,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
-    maxDoorsCount = models.IntegerField('Max Doors', default=1, blank=True)
+    maxDoorsCount = models.IntegerField('Max Doors', default=10, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
