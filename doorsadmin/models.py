@@ -20,6 +20,7 @@ hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispman
 templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
+xrumerBaseTypes = (('LinksList', 'LinksList'), ('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
 
 '''Helper functions'''
 
@@ -177,7 +178,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
     emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
     emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
-    creationType = models.CharField('Creation Type', max_length=50, choices = baseCreationTypes, default='post')
+    creationType = models.CharField('Creation Type', max_length=50, choices=baseCreationTypes, default='post')
     registerRun = models.BooleanField('Reg.', default=False)
     registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
@@ -1011,6 +1012,7 @@ class SpamLink(models.Model):
 
 class XrumerBaseSpam(BaseXrumerBaseAdv):
     '''База R для спама по топикам'''
+    baseType = models.CharField('Base Type', max_length=50, choices=xrumerBaseTypes, default='RLinksList')
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
     spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
     spamTaskDomainLinksMin = models.IntegerField('Spam Task Domain Links Min', default = 3)
