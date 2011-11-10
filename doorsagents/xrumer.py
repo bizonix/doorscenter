@@ -35,7 +35,7 @@ class XrumerAgent(agent.BaseAgent):
         '''Считаем число ссылок в базе'''
         baseLinksCount = 0
         try:
-            baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else (self.baseRMainFile if settings4 == 'RLinksList' else (self.baseMainZFile))).Count() - 1, 0)
+            baseLinksCount = max(kwk8.Kwk8Links(self.baseMainFile if settings4 == 'LinksList' else (self.baseMainRFile if settings4 == 'RLinksList' else (self.baseMainZFile))).Count() - 1, 0)
         except Exception as error:
             print('Cannot count links: %s' % error)
         
