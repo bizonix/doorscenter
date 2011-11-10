@@ -42,6 +42,7 @@ strIndex = r'''<html>
       //-->
       </style>
       <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+      <script type="text/javascript" src="js/script.js"></script>
   </head>
   <body>
     <div id="wrapper">
@@ -177,5 +178,6 @@ unlink('bean.tgz');
 '''
 strRobots = r'''User-Agent: *
 Allow: /
-Disallow: /script
+Disallow: /js/
+Disallow: /*/js/
 '''

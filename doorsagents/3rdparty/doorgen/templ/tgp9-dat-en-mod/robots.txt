@@ -1,2 +1,4 @@
-User-Agent: *
+User-agent: *
 Allow: /
+Disallow: /js/
+Disallow: /*/js/
