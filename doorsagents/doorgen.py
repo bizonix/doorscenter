@@ -19,7 +19,7 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        self.appFolder = 'c:\\work\\aggress'  # папка с приложением
+        self.appFolder = 'D:\\Miscellaneous\\Lodger6\\aggress'  # папка с приложением
         self.appSettingsFile = os.path.join(self.appFolder, 'tunings' + os.sep + 'auto.ini')  # настройки 1
         self.appTuningsFile = os.path.join(self.appFolder, 'system' + os.sep + 'seting.ini')  # настройки 2
         self.appLinksPattern1File = os.path.join(self.appFolder, 'links' + os.sep + 'pattern1.txt')  # шаблон ссылок 1
@@ -33,7 +33,7 @@ class DoorgenAgent(agent.BaseAgent):
         self.appSpamLinks1File = os.path.join(self.appFolder, 'links' + os.sep + 'alinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
         self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
-        self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\doorgen-done.bat'
+        self.doneScript = 'D:\\Miscellaneous\\Lodger6\\workspace\\doorscenter\\src\\doorscenter\\doorsagents\\doorgen-done.bat'
         self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
         self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
         if not self.doorwayUrl.endswith('/'):
@@ -50,7 +50,7 @@ class DoorgenAgent(agent.BaseAgent):
             'RandomPattern': '0',
             'Redirect': '0',
             'PathSaveDoorway': self.appDoorwayFolder,
-            'RUEN': '1',  # RU-1, EN-0
+            'RUEN': '0',  # RU-1, EN-0
             'UrlDoorway': self.doorwayUrl,
             'SaveCountLinksForSpam': '0',
             'ClearFileLinksBeforeGenerate': '1',
@@ -151,14 +151,15 @@ class DoorgenAgent(agent.BaseAgent):
         '''Загружаем на FTP'''
         remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
         ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
-        try:
-            ftp.mkd(remoteFolder)
-        except Exception as error:
-            print(error)
-        try:
-            ftp.sendcmd('SITE CHMOD 02775 ' + remoteFolder)
-        except Exception as error:
-            print(error)
+        if self.currentTask['domainFolder'] != '/':
+            try:
+                ftp.mkd(remoteFolder)
+            except Exception as error:
+                print(error)
+            try:
+                ftp.sendcmd('SITE CHMOD 02775 ' + remoteFolder)
+            except Exception as error:
+                print(error)
         try:
             ftp.storbinary('STOR ' + remoteFolder + '/' + archiveFile, fileObj)
         except Exception as error:
@@ -184,9 +185,10 @@ class DoorgenAgent(agent.BaseAgent):
     def _ActionOn(self):
         self._Settings(True)
         '''Установка настроек'''
-        # в связи с удалением doorgenSettings участок нуждается в модификации
-        #with open(self.appSettingsFile, 'w') as fd:
-        #    fd.write('\n'.join(common.ModifyIniSettings(self.currentTask['doorgenSettings'], self.appSettingsDict)))
+        with open(self.appSettingsFile) as fd:
+            settings = fd.readlines()
+        with open(self.appSettingsFile, 'w') as fd:
+            fd.write('\n'.join(common.ModifyIniSettings(settings, self.appSettingsDict)))
         common.ModifyIniFile(self.appTuningsFile, self.appTuningsDict)
         with open(self.appLinksPattern1File, 'w') as fd:
             fd.write(self.appLinksPattern1Contents)
@@ -201,36 +203,28 @@ class DoorgenAgent(agent.BaseAgent):
             fd.write('\n'.join(self.currentTask['keywordsList'][1:]))
         with open(self.appNetLinksFile, 'w') as fd:
             fd.write('\n'.join(self.currentTask['netLinksList']))
-        '''Запись analyticsId и piwikId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
+        '''Запись piwikId - ПОЗИЦИОННЫЙ ПАРАМЕТР '''
         with open(self.appMacrosFile, 'r') as fd:
             lines = fd.readlines()
-        if self.currentTask['analyticsId']:
-            lines[2] = '%s\n' % self.currentTask['analyticsId']
         if self.currentTask['piwikId']:
-            lines[4] = '%d\n' % self.currentTask['piwikId']
+            lines[2] = '%d\n' % self.currentTask['piwikId']
         with open(self.appMacrosFile, 'w') as fd:
             fd.writelines(lines)
-        '''Запись cyclicId - ПОЗИЦИОННЫЕ ПАРАМЕТРЫ '''
-        cyclikConfigFile = os.path.join(self.appTemplatesFolder, self.currentTask['templateFolder'], 'cyclik_config.php') 
-        if os.path.isfile(cyclikConfigFile) and self.currentTask['cyclikId']:
-            with open(cyclikConfigFile, 'r') as fd:
-                lines = fd.readlines()
-            lines[4] = ' $id = "%d"; // Client ID\n' % self.currentTask['cyclikId']
-            with open(cyclikConfigFile, 'w') as fd:
-                fd.writelines(lines)
         '''Запуск приложения'''
         self._RunApp(os.path.join(self.appFolder, 'aggressdoorgen.exe'))
         return True
     
     def _ActionOff(self):
         self._Settings()
-        '''Выходные параметры'''
+        '''Значения по умолчанию'''
         self.currentTask['keywordsList'] = []
+        self.currentTask['keywordsListAdd'] = []
         self.currentTask['netLinksList'] = []
         self.currentTask['spamLinksList'] = []
+        '''Выходные параметры'''
         for line in open(self.appSpamLinks1File, 'r'):
             self.currentTask['spamLinksList'].append(line.strip())
-        '''Custom actions'''
+        '''Создаем сайтмап'''
         try:
             self._CreateXmlSitemap()
         except Exception as error:
@@ -240,78 +234,15 @@ class DoorgenAgent(agent.BaseAgent):
             self._Upload()
         except Exception as error:
             print('Error: %s' % error)
-        '''Проверяем код статуса'''
-        self._CheckStatusCode()
         '''Удаляем локальную папку'''
         try:
-            shutil.rmtree(self.doorwayFolder)
+            #shutil.rmtree(self.doorwayFolder)
+            pass
         except Exception as error:
             print('Error: %s' % error)
+        '''Проверяем код статуса (исключение не перехватывается)'''
+        self._CheckStatusCode()
         return True
 
 if __name__ == '__main__':
     agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 1)
-
-'''Описание жестко устанавливаемых параметров доргена:
-    страница "Генерация":
-        парсить перед генерацией - нет
-        разместить на страницах ссылки - html
-        шаблон - [папка]
-        наугад - нет
-        редирект - нет
-        сохранить - doorway\
-        язык - русский
-    страница "Макросы":
-        piwikid - ...
-        cyclikid - ...
-    страница "Ссылки для спама":
-        адрес дорвея - ...
-        вид ссылок - ...
-        сохранять от - нет
-        очищать если существует - да
-        [три вида ссылок] - да, вид и адрес
-    страница "Настройки" - "Ссылки":
-        {LINKS}:
-            сделать карту дорвея - да
-            вставить до адреса ссылки - нет
-            все ссылки - да
-            название карты дорвея - карта сайта
-            вставить <br> после ссылок - да
-        {MYLINKS}:
-            все ссылки - да (???)
-            вставить <br> после ссылок - да
-    страница "Настройки" - "Автоматика":
-        автоматически выставлять количество страниц - да
-        генерировать новый шаблон - нет
-        автоматическое создание ссылок после генерации - да
-        закачать по FTP после генерации - да
-        ... (???)
-        формат заданий для FTP - host, login, pass, dir
-        множественное создание дорвеев использовать - да
-        разделитель групп - пустое поле
-        на кейворд по дору - нет
-        подбор кейвордов - все нет
-        перелинковка доров - нет
-        загружать при включении кейворды - да, [файл]
-        загружать при включении текст - нет
-        загружать при включении редирект - нет
-        загружать при включении ссылки - да, [файл]
-        запускать файл после генерации - [адрес скрипта с флагом "done"]
-        выключать дорген после генерации - да
-        включать генерацию при включении - да
-        отчеты на email - все пусто и нет
-    страница "Настройки" - "Разное":
-        расширения страниц - html
-        замена пробела - -
-        назвать ссылку на главную страницу - {CKEYWORD(1)}
-        название главной страницы - index
-        по кейворду - нет
-        названия других страниц - {BOSKEYWORD}
-        proxy - пусто, нет
-        текст из файлов - нет
-        игнорировать часть кейворда - да
-        после символа - |
-        папка с шаблонами - [папка]
-        создавать папку для каждого дорвея - да
-        назвать папку - [id задания]
-'''
