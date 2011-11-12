@@ -175,15 +175,6 @@ TimeRange=60
         self.appCaptionControl = 'Control of permanent running'
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         
-        '''Базы'''
-        self.appLinksFolder = os.path.join(self.appFolder, 'Links')
-        self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
-        self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
-        self.baseMainZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberMain'])
-        self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
-        self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
-        self.baseSourceZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberSource'])
-        
         '''Создание классов-хелперов'''
         if self.currentTask['type'] == 'XrumerBaseSpam':
             self.helper = XrumerHelperBaseSpam(self)
@@ -193,6 +184,15 @@ TimeRange=60
             self.helper = XrumerHelperBaseDoors(self)
         elif self.currentTask['type'] == 'XrumerBaseProfiles':
             self.helper = XrumerHelperBaseProfiles(self)
+        
+        '''Базы'''
+        self.appLinksFolder = os.path.join(self.appFolder, 'Links')
+        self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberSource'])
         
         '''Логи'''
         self.projectName = self.helper.GetProjectName()

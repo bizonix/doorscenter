@@ -6,7 +6,7 @@ from xrumerxdf import *
 '''Классы XrumerHelperBaseSpam и XrumerHelperBaseDoors не протестированы на 
 работу с предварительной регистрацией.'''
 
-class XrumerHelper():
+class XrumerHelper(object):
     '''Абстрактный предок хэлперов'''
     
     def __init__(self, agent):
@@ -108,17 +108,17 @@ class XrumerHelperBaseSpam(XrumerHelper):
 class XrumerHelperSpamTask(XrumerHelper):
     '''Задание для спама по топикам'''
     
+    def __init__(self, agent):
+        '''Обработка параметров агента'''
+        if 'baseZ' in agent.currentTask:
+            agent.currentTask['baseType'] = 'ZLinksList'
+            agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseZ'])
+        super(XrumerHelperSpamTask, self).__init__(agent)
+        
     def GetProjectName(self):
         return 'ProjectS%d' % self.agent.currentTask['id']
     
-    def _Preprocess(self):
-        '''Обработка параметров агента'''
-        if 'baseZ' in self.agent.currentTask:
-            self.agent.currentTask['baseType'] = 'ZLinksList'
-            self.agent.currentTask['baseNumberMain'] = int(self.agent.currentTask['baseZ'])
-        
     def ActionOn(self):
-        self._Preprocess()
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
@@ -132,7 +132,6 @@ class XrumerHelperSpamTask(XrumerHelper):
             self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
     
     def ActionOff(self):
-        self._Preprocess()
         '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
         self.linker.AddSpamAnchorsFile()
         if self.agent.currentTask['baseType'] == 'RLinksList':
