@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, codecs, kwk8
+import os, shutil, codecs, random, kwk8
 from xml.sax.saxutils import escape
 from xrumerxdf import *
 
@@ -111,7 +111,14 @@ class XrumerHelperSpamTask(XrumerHelper):
     def GetProjectName(self):
         return 'ProjectS%d' % self.agent.currentTask['id']
     
+    def _Preprocess(self):
+        '''Обработка параметров агента'''
+        if 'baseZ' in self.agent.currentTask:
+            self.agent.currentTask['baseType'] = 'ZLinksList'
+            self.agent.currentTask['baseNumberMain'] = int(self.agent.currentTask['baseZ'])
+        
     def ActionOn(self):
+        self._Preprocess()
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
@@ -122,9 +129,10 @@ class XrumerHelperSpamTask(XrumerHelper):
         if self.agent.currentTask['baseType'] == 'RLinksList':
             self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
         else:
-            self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody)
+            self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
     
     def ActionOff(self):
+        self._Preprocess()
         '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
         self.linker.AddSpamAnchorsFile()
         if self.agent.currentTask['baseType'] == 'RLinksList':
@@ -167,7 +175,7 @@ class XrumerHelperBaseDoors(XrumerHelper):
             '''Пишем кейворды'''
             self._WriteKeywords()
             '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
+            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody, '', '', randon.randint(0, 19))
             
     def ActionOff(self):
         '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''
