@@ -640,10 +640,10 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
 
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
     '''Шаблон дора'''
-    type = models.CharField('Type', max_length=50, choices=templateTypes, default='classic', blank=True)
+    type = models.CharField('Type', max_length=50, choices=templateTypes, default='classic')
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True, blank=True)
     agent = models.ForeignKey('Agent', verbose_name='Agent', null=True, blank=True)
-    localFolder = models.CharField('Local Folder', max_length=200, default='', blank=True)
+    localFolder = models.CharField('Local Folder', max_length=200, default='')
     class Meta:
         verbose_name = 'Template'
         verbose_name_plural = 'I.5 Templates - [act]'
@@ -939,7 +939,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Проверяем дор на тошноту'''
         isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
         if not isGood:
-            send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
+            EventLog('warning', details)
+            #send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
         super(Doorway, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
