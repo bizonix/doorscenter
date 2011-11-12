@@ -18,7 +18,7 @@ def get(request, agentId):
         '''Ищем задание'''
         if agent.active:
             for queue in agent.GetQueues(): 
-                tasksList = queue.GetTasksList()
+                tasksList = queue.GetTasksList(agent)
                 if tasksList:
                     task = tasksList[0]
                     '''Обновляем задание'''
@@ -32,6 +32,7 @@ def get(request, agentId):
                     data['type'] = task.__class__.__name__
                     data['state'] = task.stateManaged
                     data['error'] = task.lastError
+                    agent.AppendParams(data)
                     '''Обновляем агента'''
                     agent.currentTask = '%s #%s' % (data['type'], data['id'])
                     agent.save()

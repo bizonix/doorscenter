@@ -17,7 +17,7 @@ encodings = (('cp1251', 'cp1251'), ('utf-8', 'utf-8'))
 agentTypes = (('snippets', 'snippets'), ('doorgen', 'doorgen'), ('xrumer', 'xrumer'))
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('dedicated', 'dedicated'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
-templateTypes = (('none', 'none'), ('ddl', 'ddl'), ('redirect', 'redirect'))
+templateTypes = (('classic', 'classic'), ('ddl', 'ddl'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
 spamBaseTypes = (('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
@@ -136,7 +136,7 @@ class BaseDoorObjectManaged(models.Model):
             return ''
     GetRunTime.short_description = 'Run Time'
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         pass
     def GetTaskDetails(self):
@@ -640,8 +640,9 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
 
 class Template(BaseDoorObject, BaseDoorObjectActivatable):
     '''Шаблон дора'''
-    type = models.CharField('Type', max_length=50, choices=templateTypes, default='none', blank=True)
+    type = models.CharField('Type', max_length=50, choices=templateTypes, default='classic', blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True, blank=True)
+    agent = models.ForeignKey('Agent', verbose_name='Agent', null=True, blank=True)
     localFolder = models.CharField('Local Folder', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Template'
@@ -672,7 +673,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
@@ -891,9 +892,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return Doorway.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
@@ -983,6 +984,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
             self.domain.active = False
             self.domain.save()
+        '''Если не указан желаемый агент, берем из шаблона'''
+        if (self.agent == None) and (self.template != None):
+            self.agent = self.template.agent
         super(Doorway, self).save(*args, **kwargs)
 
 class SpamLink(models.Model):
@@ -1027,7 +1031,7 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
@@ -1054,7 +1058,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
     def GetTaskDetails(self):
@@ -1080,7 +1084,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
         verbose_name = 'Xrumer Base Doors'
         verbose_name_plural = 'II.6 Xrumer Bases Doors - [act, managed]'
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')
     def GetTaskDetails(self):
@@ -1105,7 +1109,7 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
         verbose_name = 'Xrumer Base Profiles'
         verbose_name_plural = 'II.7 Xrumer Bases Profiles - [act, managed]'
     @classmethod
-    def GetTasksList(self):
+    def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
         return XrumerBaseProfiles.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
     def GetTaskDetails(self):
@@ -1209,6 +1213,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)
     dateLastPing = models.DateTimeField('Last Ping', null=True, blank=True)
     interval = models.IntegerField('Warning, h.', null=True, default=3)
+    params = models.TextField('Parameters', default='', blank=True)
     class Meta:
         verbose_name = 'Agent'
         verbose_name_plural = 'IV.1 # Agents - [act]'
@@ -1220,6 +1225,12 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             return [Doorway]
         elif self.type == 'xrumer':
             return [XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
+    def AppendParams(self, data):
+        '''Добавляем параметры агента в задание'''
+        for param in self.params.split('\n'):
+            name, _, value = param.strip().partition('=')
+            if name != '':
+                data[name] = value
     def OnUpdate(self):
         '''Событие апдейта задачи'''
         try:
@@ -1242,7 +1253,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         countDone = 0
         countError = 0
         for queue in self.GetQueues():
-            countUndone += queue.GetTasksList().count()
+            countUndone += queue.GetTasksList(self).count()
             countDone += queue.objects.filter(stateManaged='done').count()
             countError += queue.objects.filter(stateManaged='error').count()
         return '%d - %d - %d' % (countUndone, countDone, countError)
