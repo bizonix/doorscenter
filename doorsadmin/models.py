@@ -1051,7 +1051,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
     class Meta:
         verbose_name = 'Spam Task'
-        verbose_name_plural = 'II.5 Spam Tasks - [large, managed]'
+        verbose_name_plural = 'II.4.1 Spam Tasks - [large, managed]'
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''
@@ -1083,7 +1083,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Doors'
-        verbose_name_plural = 'II.6 Xrumer Bases Doors - [act, managed]'
+        verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
@@ -1108,7 +1108,7 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     signature = models.CharField('Signature', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Profiles'
-        verbose_name_plural = 'II.7 Xrumer Bases Profiles - [act, managed]'
+        verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
