@@ -7,7 +7,7 @@ cookie_name = '.google-cookie'
 
 def GetPagesCount(html):
     '''Из текста страницы получаем количество найденных страниц'''
-    return int(re.findall(r'About ([0-9,]*) results', html)[0].replace(',', ''))
+    return int(re.findall(r'of about <b>([0-9,]*)</b>', html)[0].replace(',', ''))
 
 ###
 
