@@ -1250,14 +1250,16 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     GetDateLastPingAgo.allow_tags = True
     def GetTasksState(self):
         '''Состояние очередей агента'''
-        countUndone = 0
+        countNew = 0
+        countInproc = 0
         countDone = 0
         countError = 0
         for queue in self.GetQueues():
-            countUndone += queue.GetTasksList(self).count()
-            countDone += queue.objects.filter(stateManaged='done').count()
-            countError += queue.objects.filter(stateManaged='error').count()
-        return '%d - %d - %d' % (countUndone, countDone, countError)
+            countNew += queue.GetTasksList(self).count()
+            countInproc += queue.objects.filter(Q(stateManaged='inproc'), Q(agent=self)).count()
+            countDone += queue.objects.filter(Q(stateManaged='done'), Q(agent=self)).count()
+            countError += queue.objects.filter(Q(stateManaged='error'), Q(agent=self)).count()
+        return '%d - %d - %d - %d' % (countNew, countInproc, countDone, countError)
     GetTasksState.short_description = 'Tasks'
     GetTasksState.allow_tags = True
 
