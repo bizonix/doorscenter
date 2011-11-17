@@ -107,6 +107,7 @@ class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     tdsId = models.IntegerField('Tds', null=True, blank=True)
     piwikId = models.IntegerField('Pwk', null=True, blank=True)
+    redirect = models.BooleanField('Redir.', default=False)
     class Meta:
         abstract = True
 
