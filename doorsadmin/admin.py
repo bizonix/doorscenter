@@ -63,12 +63,12 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -83,7 +83,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -164,7 +164,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), ('minMaxSpamLinksCount', 'maxMaxSpamLinksCount', 'minSpamLinksPercent', 'maxSpamLinksPercent'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -280,7 +280,7 @@ class DoorwayAdmin(BaseAdminManaged):
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('trackers', 'tdsId', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -412,16 +412,6 @@ class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class TrackersAdmin(BaseAdminSimple):
-    list_display = ('pk', 'tdsUrl', 'piwikUrl', 'stateSimple', 'dateAdded')
-    list_filter = ['stateSimple']
-    fieldsets = [
-        (None, {'fields': [('tdsUrl'), ('piwikUrl')]}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'stateSimple']
@@ -466,7 +456,6 @@ admin.site.register(XrumerBaseProfiles, XrumerBaseProfilesAdmin)
 admin.site.register(Host, HostAdmin)
 admin.site.register(IPAddress, IPAddressAdmin)
 admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
-admin.site.register(Trackers, TrackersAdmin)
 
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)

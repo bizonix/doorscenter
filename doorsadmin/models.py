@@ -105,7 +105,6 @@ class BaseDoorObjectActivatable(models.Model):
 
 class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
-    trackers = models.ForeignKey('Trackers', verbose_name='Trackers', null=True, blank=True, on_delete=models.SET_NULL)
     tdsId = models.IntegerField('Tds', null=True, blank=True)
     piwikId = models.IntegerField('Pwk', null=True, blank=True)
     class Meta:
@@ -908,9 +907,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'domain': self.domain.name, 
                 'domainFolder': self.domainFolder, 
                 'netLinksList': EncodeListForAgent(self.netLinksList),
-                #'tdsUrl': self.trackers.tdsUrl,
                 'tdsId': self.tdsId,
-                #'piwikUrl': self.trackers.piwikUrl,
                 'piwikId': self.piwikId,
                 'documentRoot': self.domain.GetDocumentRoot(), 
                 'ftpHost': self.domain.ipAddress.address, 
@@ -958,10 +955,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         if self.netLinksList == '':
             self.netLinksList = self.domain.GetNetLinksList(self)
         '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
-        try:
-            self.trackers = GetFirstObject([self.trackers, self.domain.net.trackers, self.niche.trackers])
-        except Exception:
-            pass
         try:
             self.tdsId = GetFirstObject([self.tdsId, self.domain.net.tdsId, self.niche.tdsId])
         except Exception:
@@ -1198,16 +1191,6 @@ class XrumerBaseRaw(BaseXrumerBase):
         return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesSpamCount.short_description = 'Bases Spam'
     GetXrumerBasesSpamCount.allow_tags = True
-
-class Trackers(BaseDoorObject):
-    '''Связка TDS+Piwik'''
-    tdsUrl = models.CharField('TDS URL', max_length=50, default='')
-    piwikUrl = models.CharField('Piwik URL', max_length=50, default='')
-    class Meta:
-        verbose_name = 'Trackers'
-        verbose_name_plural = 'III.4 Trackers'
-    def __unicode__(self):
-        return '%s - %s' % (self.tdsUrl, self.piwikUrl)
 
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
