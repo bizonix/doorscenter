@@ -28,7 +28,7 @@ def ExpandNets():
     avgSpamTaskDuration = 10  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
     domainsLimitBase = 0  # настройка: лимит расхода доменов в сутки
-    folderDoorsLimitBase = 15  # настройка: лимит доров в папки в сутки
+    folderDoorsLimitBase = 25  # настройка: лимит доров в папки в сутки
     linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitActual = domainsLimitBase
     folderDoorsLimitActual = folderDoorsLimitBase
