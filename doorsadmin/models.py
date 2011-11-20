@@ -712,9 +712,9 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     indexCountDate = models.DateField('Index Date', null=True, blank=True)
     backLinksCount = models.IntegerField('YBL', null=True, blank=True)
     backLinksCountDate = models.DateField('YBL Date', null=True, blank=True)
+    trafficLastDay = models.IntegerField('Traf/d', null=True, blank=True)
     trafficLastMonth = models.IntegerField('Traf/m', null=True, blank=True)
     trafficLastYear = models.IntegerField('Traf/y', null=True, blank=True)
-    trafficLastDate = models.DateField('Traf date', null=True, blank=True)
     class Meta:
         verbose_name = 'Domain'
         verbose_name_plural = 'II.1 # Domains - [act, large]'
