@@ -213,7 +213,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'host', 'GetDoorsMaxCount', 'GetPagesCount', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsMaxCount', 'GetPagesCount', 'trafficLastMonth', 'trafficLastYear', 'trafficLastDate', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
@@ -244,7 +244,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "b. Check Google index"
+    UpdateIndexCount.short_description = "b. Check GI only"
     def UpdateBackLinksCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -253,7 +253,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateBackLinksCount.short_description = "c. Check Yahoo backlinks"
+    UpdateBackLinksCount.short_description = "c. Check YBL only"
     def CheckOwnership(self, request, queryset):
         '''Проверка на то, что домен не отобрали'''
         processed = 0
