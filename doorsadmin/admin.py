@@ -63,7 +63,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetSpamLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -76,7 +76,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetIndexCount', 'GetBackLinksCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     search_fields = ['description']

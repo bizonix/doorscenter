@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetPagesCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -252,7 +252,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
+        return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetTemplatesCount(self):
@@ -289,6 +289,18 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return '%s/%s' % (s1, s2)
     GetSpamLinksCount.short_description = 'Spam'
     GetSpamLinksCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
         try:
@@ -491,6 +503,18 @@ class Net(BaseNet):
         return ReplaceZero(self.domain_set.aggregate(x = Sum('backLinksCount'))['x'])
     GetBackLinksCount.short_description = 'YBL'
     GetBackLinksCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -620,7 +644,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
+        return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GenerateKeywordsList(self, count):
@@ -654,7 +678,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
+        return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
 
@@ -733,7 +757,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     GetDoorsCount.short_description = 'Doors'
     GetDoorsCount.allow_tags = True
     def GetPagesCount(self):
-        return GetPagesCounter(self.doorway_set)
+        return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetDocumentRoot(self):

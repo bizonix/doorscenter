@@ -219,10 +219,10 @@ def GetCounter(objects, filterCondition, warningCondition = None):
     else:
         return '%s/%s' % (s1, s2)
 
-def GetPagesCounter(objects):
+def GetFieldCounter(objects, fieldName):
     '''То же самое, но для страниц доров'''
     try:
-        n = '%s' % objects.aggregate(x = Sum('pagesCount'))['x']
+        n = '%s' % objects.aggregate(x = Sum(fieldName))['x']
         if n == '0' or n == 'None':
             n = '-'
         return n
