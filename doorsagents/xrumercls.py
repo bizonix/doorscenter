@@ -52,7 +52,7 @@ class XrumerHelper(object):
         self.agent._CountLinks('baseLinksCount', baseFileName, 'base')
     
     def GetProjectName(self):
-        '''Имя проекта'''
+        '''�?мя проекта'''
         return 'ProjectX%d' % self.agent.currentTask['id']
     
     def ActionOn(self):
@@ -147,9 +147,9 @@ class XrumerHelperSpamTask(XrumerHelper):
         if self.agent.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
         elif self.agent.currentTask['baseType'] == 'ZLinksList':
-            self._FilterBase(self.agent.baseMainZFile)
+            self.agent._CountLinks('baseLinksCount', self.agent.baseMainZFile, 'base')
         else:
-            pass
+            self.agent._CountLinks('baseLinksCount', self.agent.baseMainFile, 'base')
 
 class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''

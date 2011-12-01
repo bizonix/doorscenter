@@ -154,13 +154,13 @@ class XrumerAgent(agent.BaseAgent):
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=0
-TimeRange=60
+TimeRange=30
 ''')
         with open(settingsControl2File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=1
-TimeRange=60
+TimeRange=30
 ''')
     
     def _Settings(self):
