@@ -20,7 +20,12 @@ hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispman
 templateTypes = (('classic', 'classic'), ('ddl', 'ddl'))
 taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
-spamBaseTypes = (('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
+spamBaseTypes = (('LinksList', 'LinksList'), ('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
+
+emailDomains = ['shotarou.com', 'monctonlife.com', 'pnpbiz.com', 'gothentai.com', 'theexitgroup.com', 'shophall.net', 'zonedating.info']
+emailCommonLogin = 'catch@gothentai.com'
+emailCommonPassword = 'kernel32'
+emailCommonPopServer = 'mail.gothentai.com'
 
 '''Helper functions'''
 
@@ -174,10 +179,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     nickName = models.CharField('Nick Name', max_length=200, default='', blank=True)
     realName = models.CharField('Real Name', max_length=200, default='', blank=True)
     password = models.CharField('Password', max_length=200, default='', blank=True)
-    emailAddress = models.CharField('E.Address', max_length=200, default='niiokr2012@gmail.com')
-    emailLogin = models.CharField('E.Login', max_length=200, default='niiokr2012@gmail.com')
-    emailPassword = models.CharField('E.Password', max_length=200, default='kernel32')
-    emailPopServer = models.CharField('E.Pop Server', max_length=200, default='pop.gmail.com')
+    emailAddress = models.CharField('E.Address', max_length=200, default='', blank=True)
     creationType = models.CharField('Creation Type', max_length=50, choices=baseCreationTypes, default='post')
     registerRun = models.BooleanField('Reg.', default=False)
     registerRunDate = models.DateTimeField('Register Date', null=True, blank=True)
@@ -186,9 +188,10 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
         abstract = True
     def ResetNames(self):
         '''Сбрасываем имена'''
-        self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
-        self.password = GenerateRandomWord(12)
+        self.nickName = ''
+        self.realName = ''
+        self.password = ''
+        self.emailAddress = ''
         self.save()
     def GetTaskDetailsCommon(self):
         '''Подготовка данных для работы агента - общая часть для задания на спам'''
@@ -199,10 +202,11 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
                 'nickName': self.nickName, 
                 'realName': self.realName, 
                 'password': self.password, 
-                'emailAddress': self.emailAddress.replace('@gmail.com', '+%s@gmail.com' % self.nickName), 
-                'emailPassword': self.emailPassword, 
-                'emailLogin': self.emailLogin, 
-                'emailPopServer': self.emailPopServer, 
+                'emailAddressRandom': '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains)), 
+                'emailAddress': self.emailAddress, 
+                'emailPassword': emailCommonPassword, 
+                'emailLogin': emailCommonLogin, 
+                'emailPopServer': emailCommonPopServer, 
                 'spamLinksList': [],
                 'keywordsList': [],
                 'creationType': self.creationType,
@@ -224,6 +228,8 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
             self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
         if self.password == '':
             self.password = GenerateRandomWord(12)
+        if self.emailAddress == '':
+            self.emailAddress = '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains))
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
