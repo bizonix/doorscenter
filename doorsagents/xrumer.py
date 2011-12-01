@@ -5,7 +5,7 @@ from xml.sax.saxutils import escape
 
 xrumerSettingsGroup1 = ('none', 'register-only', 'from-registered')
 xrumerSettingsGroup2 = ('edit-profile')
-xrumerSettingsGroup3 = ('post', 'reply')
+xrumerSettingsGroup3 = ('post', 'post-reply', 'reply')
 xrumerSettingsGroup4 = ('LinksList', 'RLinksList', 'ZLinksList')
 
 class XrumerAgent(agent.BaseAgent):
@@ -83,7 +83,7 @@ class XrumerAgent(agent.BaseAgent):
             'LogInIfBusy': '0',
             'BBtoHTML': '1', 
             'EnableRefspam': '0', 
-            'PostNewMode': ('1' if settings3 == 'post' else '3'),
+            'PostNewMode': ('1' if settings3 == 'post' else ('3' if settings3 == 'reply' else '2')),
             'SchedulerEnabled': '1',
             'CurrentJob': '0',
             'EnableSleepMode': '0'}

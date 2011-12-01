@@ -236,8 +236,7 @@ class DoorgenAgent(agent.BaseAgent):
             print('Error: %s' % error)
         '''Удаляем локальную папку'''
         try:
-            #shutil.rmtree(self.doorwayFolder)
-            pass
+            shutil.rmtree(self.doorwayFolder)
         except Exception as error:
             print('Error: %s' % error)
         '''Проверяем код статуса (исключение не перехватывается)'''
