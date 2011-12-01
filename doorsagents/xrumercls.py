@@ -137,7 +137,8 @@ class XrumerHelperSpamTask(XrumerHelper):
         if self.agent.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
         else:
-            self._FilterBase(self.agent.baseMainZFile)
+            #self._FilterBase(self.agent.baseMainZFile)
+            self.agent._CountLinks('baseLinksCount', self.agent.baseMainZFile, 'base')
 
 class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
