@@ -52,7 +52,7 @@ class XrumerHelper(object):
         self.agent._CountLinks('baseLinksCount', baseFileName, 'base')
     
     def GetProjectName(self):
-        '''�?мя проекта'''
+        '''Имя проекта'''
         return 'ProjectX%d' % self.agent.currentTask['id']
     
     def ActionOn(self):

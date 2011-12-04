@@ -150,28 +150,31 @@ class XrumerAgent(agent.BaseAgent):
 ''')
     
         '''Настройки control.exe'''
+        timeout = '30'
+        if 'timeout' in self.currentTask:
+            timeout = self.currentTask['timeout']
         with open(settingsControl1File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=0
-TimeRange=30
+TimeRange=''' + timeout + '''
 ''')
         with open(settingsControl2File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=1
-TimeRange=30
+TimeRange=''' + timeout + '''
 ''')
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'C:\\Work\\xrumer707a'
+        self.appFolder = 'C:\\Work\\xrumer708'
         self.appFolderControl1 = 'C:\\Work\\control1'
         self.appFolderControl2 = 'C:\\Work\\control2'
         self.appApplication = os.path.join(self.appFolder, 'xpymep.exe')
         self.appApplicationControl1 = os.path.join(self.appFolderControl1, 'control.exe')
         self.appApplicationControl2 = os.path.join(self.appFolderControl2, 'control.exe')
-        self.appCaption = 'XRumer 7.07 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
+        self.appCaption = 'XRumer 7.08 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
         self.appCaptionControl = 'Control of permanent running'
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         
