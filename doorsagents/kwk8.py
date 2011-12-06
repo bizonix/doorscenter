@@ -29,7 +29,7 @@ class Kwk8:
         '''Чтение файла'''
         self._Print('Loading file %s...' % path)
         self._TimeStart()
-        with codecs.open(path, 'r', encoding) as fd:
+        with codecs.open(path, 'r', encoding, 'ignore') as fd:
             self.lines = fd.readlines()
         self.countOriginal = self.Count()
         self._Print("- %d lines loaded %s" % (self.Count(), self._TimeFinish()))
@@ -41,7 +41,7 @@ class Kwk8:
             path = self.pathOriginal
         self._Print('Saving to file %s...' % path)
         self._TimeStart()
-        with codecs.open(path, 'w', encoding) as fd:
+        with codecs.open(path, 'w', encoding, 'ignore') as fd:
             fd.writelines(self.lines)
         self._Print("- {0} lines saved {1}".format(self.Count(), self._TimeFinish()))
         return self
@@ -171,7 +171,7 @@ class Kwk8:
         '''Выборка по кеям из файла'''
         if keysFile:
             keysList = []
-            for line in codecs.open(keysFile, 'r', encoding):
+            for line in codecs.open(keysFile, 'r', encoding, 'ignore'):
                 keysList.append(self._ProcessLine(line))
             return self.SelectByList(keysList)
         else:
@@ -181,7 +181,7 @@ class Kwk8:
         '''Чистка по кеям из файла'''
         if keysFile:
             keysList = []
-            for line in codecs.open(keysFile, 'r', encoding):
+            for line in codecs.open(keysFile, 'r', encoding, 'ignore'):
                 keysList.append(self._ProcessLine(line))
             return self.DeleteByList(keysList)
         else:
@@ -202,6 +202,50 @@ class Kwk8Links(Kwk8):
         line, _, _ = line.partition('/')
         return line + '/'
 
+    def _PostProcessLine(self, line):
+        '''Пост-обработка ссылки'''
+        while line.find('/./') >= 0:
+            line = line.replace('/./', '/')
+        ''' index.php '''
+        featuresList = '''/action=profile;u=
+/index.php?action=
+/index.php?do=
+/index.php?showforum=
+/index.php?showtopic=
+/index.php?showuser=
+/index.php?topic=
+/member.php
+/memberlist.php
+/newreply.php
+/posting.php
+/profile.php
+/showthread.php
+/topic.php
+/viewthread.php
+/viewtopic.php'''.split('\n')
+        for feature in featuresList:
+            if line.find(feature) >= 0:
+                return line[:line.find(feature)] + '/index.php\n'
+        ''' forum.php '''
+        featuresList = '''/forum.php'''.split('\n')
+        for feature in featuresList:
+            if line.find(feature) >= 0:
+                return line[:line.find(feature)] + '/forum.php\n'
+        ''' yabb.pl '''
+        featuresList = '''/yabb.pl'''.split('\n')
+        for feature in featuresList:
+            if line.find(feature) >= 0:
+                return line[:line.find(feature)] + '/yabb.pl\n'
+        return line
+    
+    def PostProcessing(self):
+        '''Пост-обработка ссылок'''
+        self._Print('Post processing...')
+        self._TimeStart()
+        self.lines = [self._PostProcessLine(line) for line in self.lines]
+        self._Print('- done %s' % self._TimeFinish())
+        return self
+    
 def ProcessKeys(inPathKeywords, outPathKeywords, pathStopwords = None):
     '''Стандартная обработка кеев'''
     return Kwk8Keys(inPathKeywords, False).Basic(True).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
@@ -218,7 +262,8 @@ def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None):
 def Test():
     #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
     #ProcessLinks('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out2.txt')
-    ProcessSnippets('/home/sasch/temp/list/text.txt', '/home/sasch/temp/list/text-out.txt', '/home/sasch/temp/list/stopwords.txt')
+    #ProcessSnippets('/home/sasch/temp/list/text.txt', '/home/sasch/temp/list/text-out.txt', '/home/sasch/temp/list/stopwords.txt')
+    Kwk8Links(r'D:\Miscellaneous\Lodger6\tmp\LinksList id995_before.txt', True).PostProcessing().Save(r'D:\Miscellaneous\Lodger6\tmp\LinksList id995_after2.txt')
 
 if __name__ == '__main__':
     Test()
