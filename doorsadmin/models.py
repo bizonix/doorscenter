@@ -873,8 +873,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey('Domain', verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
-    doorLinksCount = models.IntegerField('Lnks1', null=True)  # число ссылок для спама и перелинковки
-    spamLinksCount = models.IntegerField('Lnks2', null=True)  # число ссылок для спама (<= doorLinksCount)
+    doorLinksCount = models.IntegerField('Door Links', null=True)  # число ссылок для спама и перелинковки
+    spamLinksCount = models.IntegerField('Spam Links', null=True)  # число ссылок для спама (<= doorLinksCount)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     makeSpam = models.BooleanField('Sp.', default=True)
