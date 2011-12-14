@@ -868,7 +868,8 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
                                               group=self.group)
                         domain.save()
                     except Exception as error:
-                        EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
+                        #EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)
+                        pass
         '''Всегда очищаем поле группового добавления доменов'''
         self.bulkAddDomains = ''
         super(Domain, self).save(*args, **kwargs)
@@ -879,10 +880,11 @@ def DomainOnDelete(sender, **kwargs):
     try:
         if domain.name != '#':
             error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
-            if error != '':
-                EventLog('error', 'Cannot delete domain from control panel', domain, error)
+            #if error != '':
+            #    EventLog('error', 'Cannot delete domain from control panel', domain, error)
     except Exception as error:
-        EventLog('error', 'Cannot delete domain from control panel', domain, error)
+        #EventLog('error', 'Cannot delete domain from control panel', domain, error)
+        pass
 pre_delete.connect(DomainOnDelete, sender=Domain, weak=False)
 
 class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):

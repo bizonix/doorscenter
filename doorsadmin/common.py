@@ -15,7 +15,7 @@ def SelectKeywords(path, encoding='utf-8', count=10):
         percent = int(x)
         percentsTotal += percent
         tempkeys = []
-        for line in codecs.open(file, 'r', encoding):
+        for line in codecs.open(file, 'r', encoding, 'ignore'):
             tempkeys.append(line.strip())
         inKeysList.append((tempkeys, percent))
     '''Генерируем список'''

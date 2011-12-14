@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Q
-from doorsadmin.models import Niche, Net, Domain, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
 import datetime
 
 def CronHourly():
@@ -20,7 +20,15 @@ def Helper():
     '''Запуск из командной строки'''
     #for niche in Niche.objects.filter(active=True).order_by('pk').all():
     #    niche.GenerateSpamTasksMultiple()
-    Net.objects.get(pk=269).AddDomains()
+    #Net.objects.get(pk=269).AddDomains()
+    with open('/home/admin/tmp/domains.txt') as fd:
+        addDomains = ''.join(fd.readlines())
+    domain = Domain.objects.create(name='#', 
+                                   host=Host.objects.get(pk=1), 
+                                   ipAddress=IPAddress.objects.get(pk=3), 
+                                   group='co.cc', 
+                                   bulkAddDomains=addDomains)
+    domain.save()
     pass
 
 def ExpandNets():
