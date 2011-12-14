@@ -404,10 +404,6 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
     minPagesCount = models.IntegerField('Pgs1', null=True, default=500)
     maxPagesCount = models.IntegerField('Pgs2', null=True, default=900)
-    minSpamLinksPercent = models.FloatField('Min Lnk, %', default=4)
-    maxSpamLinksPercent = models.FloatField('Max Lnk, %', default=5)
-    minMaxSpamLinksCount = models.IntegerField('Min Max Lnk', null=True, default=10)
-    maxMaxSpamLinksCount = models.IntegerField('Max Max Lnk', null=True, default=15)
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
@@ -447,10 +443,6 @@ class NetPlan(BaseNet):
                                      keywordsSet=self.keywordsSet,
                                      minPagesCount=self.minPagesCount,
                                      maxPagesCount=self.maxPagesCount,
-                                     minSpamLinksPercent=self.minSpamLinksPercent,
-                                     maxSpamLinksPercent=self.maxSpamLinksPercent,
-                                     minMaxSpamLinksCount=self.minMaxSpamLinksCount,
-                                     maxMaxSpamLinksCount=self.maxMaxSpamLinksCount,
                                      settings=self.settings,
                                      makeSpam=self.makeSpam,
                                      domainGroup=self.domainGroup,
@@ -575,12 +567,12 @@ class Net(BaseNet):
                                            pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
                                            domainFolder='')
-                p.doorLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
-                p.doorLinksCount = max(p.doorLinksCount, 3)  # минимум три,
-                #p.doorLinksCount = min(p.doorLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
-                p.doorLinksCount = min(p.doorLinksCount, p.pagesCount)  # максимум число страниц дора.
+                p.doorLinksCount = int(p.pagesCount * random.uniform(10, 15) / 100.0)  # число ссылок для перелинковки: берем в процентах от количества страниц дора, 
+                p.doorLinksCount = min(max(p.doorLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
+                p.spamLinksCount = int(p.pagesCount * random.uniform(1.0, 1.5) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
+                p.spamLinksCount = min(max(p.spamLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
                 p.save()
-                linksLimit -= (p.doorLinksCount + 1)  # + карта сайта
+                linksLimit -= (p.spamLinksCount + 1)  # + карта сайта
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return linksLimit
@@ -881,7 +873,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey('Domain', verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
-    doorLinksCount = models.IntegerField('Lnks', null=True)
+    doorLinksCount = models.IntegerField('Lnks1', null=True)  # число ссылок для спама и перелинковки
+    spamLinksCount = models.IntegerField('Lnks2', null=True)  # число ссылок для спама (<= doorLinksCount)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     makeSpam = models.BooleanField('Sp.', default=True)
@@ -900,15 +893,15 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return '<a href="http://%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
-    def GetDoorLinksCount(self):
+    def GetLinksCount(self):
         n1 = DoorLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count()
         if n1 != 0:
             s1 = '%d' % n1
         else:
             s1 = '-'
-        return '%s/%d' % (s1, self.doorLinksCount + 1)  # дополнительная ссылка - карта сайта
-    GetDoorLinksCount.short_description = 'Lnks'
-    GetDoorLinksCount.allow_tags = True
+        return '%s/%d/%d' % (s1, self.spamLinksCount + 1, self.doorLinksCount + 1)  # дополнительная ссылка - карта сайта
+    GetLinksCount.short_description = 'Links'
+    GetLinksCount.allow_tags = True
     def GetDoorLinksList(self):
         '''Получаем список ссылок дорвея'''
         s = ''
@@ -943,6 +936,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Обработка данных агента'''
         rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
         DoorLink.objects.filter(doorway=self).delete()
+        n = 0
         for link in DecodeListFromAgent(data['doorLinksList'][:self.doorLinksCount]).split('\n'):
             '''Парсим'''
             link = link.strip()
@@ -954,10 +948,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             url = x.groups()[0]
             anchor = x.groups()[1]
             '''Создаем ссылки'''
-            DoorLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+            DoorLink.objects.create(url=url, anchor=anchor, doorway=self, makeSpam=(n < self.spamLinksCount)).save()
             if url.endswith('/index.html'):
-                url = url.replace('/index.html', '/sitemap.html')
-                DoorLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+                DoorLink.objects.create(url=url.replace('/index.html', '/sitemap.html'), anchor=anchor, doorway=self, makeSpam=True).save()
+            n += 1
         '''Проверяем дор на тошноту'''
         isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
         if not isGood:
