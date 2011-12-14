@@ -274,24 +274,24 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     Reset.short_description = "e. Reset domains"
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetSpamLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetDoorLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['niche', 'domain__net', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainFolder'), ('pagesCount', 'spamLinksCount', 'makeSpam')]}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainFolder'), ('pagesCount', 'doorLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
         ('Trackers', {'fields': [('tdsId', 'redirect', 'piwikId')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    #inlines = [SpamLinkInline]
+    #inlines = [DoorLinkInline]
 
-class SpamLinkInline(admin.TabularInline):
-    model = SpamLink
+class DoorLinkInline(admin.TabularInline):
+    model = DoorLink
     extra = 1
 
-class SpamLinkAdmin(BaseAdmin):
+class DoorLinkAdmin(BaseAdmin):
     list_display = ('pk', 'url', 'anchor', 'makeSpam', 'spamTask', 'GetSpamTaskState')
     search_fields = ['url', 'anchor']
     fieldsets = [
@@ -337,7 +337,7 @@ class SpamTaskAdmin(BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
-    #inlines = [SpamLinkInline]
+    #inlines = [DoorLinkInline]
 
 class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'niche', 'linksCount', 'xrumerBaseRaw', 'successCount', 'halfSuccessCount', 'failsCount', 'runCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
@@ -447,7 +447,7 @@ admin.site.register(SnippetsSet, SnippetsSetAdmin)
 
 admin.site.register(Domain, DomainAdmin)
 admin.site.register(Doorway, DoorwayAdmin)
-admin.site.register(SpamLink, SpamLinkAdmin)
+admin.site.register(DoorLink, DoorLinkAdmin)
 admin.site.register(XrumerBaseSpam, XrumerBaseSpamAdmin)
 admin.site.register(SpamTask, SpamTaskAdmin)
 admin.site.register(XrumerBaseDoors, XrumerBaseDoorsAdmin)

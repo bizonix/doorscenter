@@ -6,7 +6,7 @@ class DoorgenAgent(agent.BaseAgent):
     Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainFolder, 
     netLinksList, tdsUrl tdsId, piwikUrl, piwikId, documentRoot, 
     ftpLogin, ftpPassword, ftpPort.
-    Выходные: spamLinksList.
+    Выходные: doorLinksList.
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
     
@@ -23,12 +23,12 @@ class DoorgenAgent(agent.BaseAgent):
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
         self.appKeywordsFile = os.path.join(self.appFolder, 'keys' + os.sep + 'keywords.txt')  # файл с кеями 
         self.appNetLinksFile = os.path.join(self.appFolder, 'text' + os.sep + 'netlinks.txt')  # файл со ссылками для перелинковки 
-        self.appSpamLinksFile = os.path.join(self.appFolder, 'out' + os.sep + 'jobs_ancor_log.txt')  # файл со сгенерированными ссылками для спама 
+        self.appDoorLinksFile = os.path.join(self.appFolder, 'out' + os.sep + 'jobs_ancor_log.txt')  # файл со сгенерированными ссылками дорвея 
         self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
         if self.doorwayUrl.endswith('/'):
             self.doorwayUrl = self.doorwayUrl[0:-1]
         self.doorwayFolder = self.appFolder + os.sep + 'out' + os.sep + 'jobs' + os.sep + 'door%d' % self._GetCurrentTaskId()
-        self.currentTask['spamLinksList'] = []
+        self.currentTask['doorLinksList'] = []
         '''Генерация шаблона'''
         if generateTemplate:
             if self.currentTask['templateFolder'].startswith('xgen'):
@@ -114,10 +114,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.currentTask['keywordsList'] = []
         self.currentTask['keywordsListAdd'] = []
         self.currentTask['netLinksList'] = []
-        self.currentTask['spamLinksList'] = []
+        self.currentTask['doorLinksList'] = []
         '''Выходные параметры'''
-        for line in open(self.appSpamLinksFile, 'r'):
-            self.currentTask['spamLinksList'].append(line.strip())
+        for line in open(self.appDoorLinksFile, 'r'):
+            self.currentTask['doorLinksList'].append(line.strip())
         '''Загружаем на FTP'''
         try:
             self._Upload()
@@ -130,7 +130,7 @@ class DoorgenAgent(agent.BaseAgent):
             print('Error: %s' % error)
         '''Удаляем файл со ссылками'''
         try:
-            os.unlink(self.appSpamLinksFile)
+            os.unlink(self.appDoorLinksFile)
         except Exception as error:
             print('Error: %s' % error)
         '''Проверяем код статуса (исключение не перехватывается)'''

@@ -284,20 +284,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetCounter(self.snippetsset_set, {'active': True}, lambda x: x <= 0 and self.active)
     GetSnippetsSetsCount.short_description = 'Snip.'
     GetSnippetsSetsCount.allow_tags = True
-    def GetSpamLinksCount(self):
-        n1 = SpamLink.objects.filter(~Q(spamTask=None), Q(doorway__niche=self)).count()
-        n2 = SpamLink.objects.filter(Q(doorway__niche=self)).count()
-        if n1 != 0:
-            s1 = '%d' % n1
-        else:
-            s1 = '-'
-        if n2 != 0:
-            s2 = '%d' % n2
-        else:
-            s2 = '-'
-        return '%s/%s' % (s1, s2)
-    GetSpamLinksCount.short_description = 'Spam'
-    GetSpamLinksCount.allow_tags = True
     def GetTrafficLastDay(self):
         return GetFieldCounter(self.domain_set, 'trafficLastDay')
     GetTrafficLastDay.short_description = 'Traf/d'
@@ -355,10 +341,10 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             EventLog('error', 'Cannot generate keywords list', self, error)
     def GetSpamLinks(self):
         '''Ссылки по этой нише, которые надо спамить'''
-        return SpamLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
     def GetSpamDomainLinks(self, domain):
         '''Ссылки по домену, которые надо спамить'''
-        return SpamLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
     def _CreateSpamTask(self, xrumerBaseSpam, linksList):
         '''Создаем задание на спам'''
         if len(linksList) == 0:
@@ -367,10 +353,10 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         spamTask.save()
         #print("spam task pk: %d" % spamTask.pk)
         for pk in linksList:
-            spamLink = SpamLink.objects.get(pk=pk)
-            spamLink.spamTask = spamTask
-            spamLink.save()
-            #print("- (%d) %s" % (pk, spamLink.url))
+            doorLink = DoorLink.objects.get(pk=pk)
+            doorLink.spamTask = spamTask
+            doorLink.save()
+            #print("- (%d) %s" % (pk, doorLink.url))
     def GenerateSpamTasksMultiple(self):
         '''Генерация заданий сразу в несколько баз'''
         try:
@@ -589,12 +575,12 @@ class Net(BaseNet):
                                            pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
                                            domainFolder='')
-                p.spamLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
-                p.spamLinksCount = max(p.spamLinksCount, 3)  # минимум три,
-                #p.spamLinksCount = min(p.spamLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
-                p.spamLinksCount = min(p.spamLinksCount, p.pagesCount)  # максимум число страниц дора.
+                p.doorLinksCount = int(p.pagesCount * random.uniform(self.minSpamLinksPercent, self.maxSpamLinksPercent) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
+                p.doorLinksCount = max(p.doorLinksCount, 3)  # минимум три,
+                #p.doorLinksCount = min(p.doorLinksCount, random.randint(self.minMaxSpamLinksCount, self.maxMaxSpamLinksCount))  # максимум из настроек сети,
+                p.doorLinksCount = min(p.doorLinksCount, p.pagesCount)  # максимум число страниц дора.
                 p.save()
-                linksLimit -= (p.spamLinksCount + 1)  # + карта сайта
+                linksLimit -= (p.doorLinksCount + 1)  # + карта сайта
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return linksLimit
@@ -787,13 +773,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
         '''Ссылки с других доров этого домена'''
         for doorway in self.doorway_set.filter(stateManaged='done').order_by('pk').all():
             if doorway != doorwayToExclude:
-                linksList.extend(doorway.GetSpamLinksList().split('\n'))
+                linksList.extend(doorway.GetDoorLinksList().split('\n'))
         '''Корень не линкуем с другими доменами'''
         if doorwayToExclude.domainFolder not in ['', r'/']:
             '''Ссылки с других доменов'''
             for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
                 for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
-                    linksList.extend(doorway.GetSpamLinksList().split('\n'))
+                    linksList.extend(doorway.GetDoorLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
         '''Ссылка для проверки индекса по гуглу'''
@@ -895,7 +881,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey('Domain', verbose_name='Domain', null=True, blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
-    spamLinksCount = models.IntegerField('Lnks', null=True)
+    doorLinksCount = models.IntegerField('Lnks', null=True)
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     makeSpam = models.BooleanField('Sp.', default=True)
@@ -914,20 +900,20 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return '<a href="http://%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
-    def GetSpamLinksCount(self):
-        n1 = SpamLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count()
+    def GetDoorLinksCount(self):
+        n1 = DoorLink.objects.filter(Q(doorway=self), ~Q(spamTask=None)).count()
         if n1 != 0:
             s1 = '%d' % n1
         else:
             s1 = '-'
-        return '%s/%d' % (s1, self.spamLinksCount + 1)  # дополнительная ссылка - карта сайта
-    GetSpamLinksCount.short_description = 'Lnks'
-    GetSpamLinksCount.allow_tags = True
-    def GetSpamLinksList(self):
-        '''Получаем список ссылок для спама'''
+        return '%s/%d' % (s1, self.doorLinksCount + 1)  # дополнительная ссылка - карта сайта
+    GetDoorLinksCount.short_description = 'Lnks'
+    GetDoorLinksCount.allow_tags = True
+    def GetDoorLinksList(self):
+        '''Получаем список ссылок дорвея'''
         s = ''
-        for spamLink in SpamLink.objects.filter(doorway=self):
-            s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
+        for doorLink in DoorLink.objects.filter(doorway=self):
+            s += '<a href="%s">%s</a>\n' % (doorLink.url, doorLink.anchor)
         return s
     @classmethod
     def GetTasksList(self, agent):
@@ -956,8 +942,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         rxHtml = re.compile(r'<a href="(.*)">(.*)</a>')
-        SpamLink.objects.filter(doorway=self).delete()
-        for link in DecodeListFromAgent(data['spamLinksList'][:self.spamLinksCount]).split('\n'):
+        DoorLink.objects.filter(doorway=self).delete()
+        for link in DecodeListFromAgent(data['doorLinksList'][:self.doorLinksCount]).split('\n'):
             '''Парсим'''
             link = link.strip()
             x = rxHtml.match(link)
@@ -968,10 +954,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             url = x.groups()[0]
             anchor = x.groups()[1]
             '''Создаем ссылки'''
-            SpamLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+            DoorLink.objects.create(url=url, anchor=anchor, doorway=self).save()
             if url.endswith('/index.html'):
                 url = url.replace('/index.html', '/sitemap.html')
-                SpamLink.objects.create(url=url, anchor=anchor, doorway=self).save()
+                DoorLink.objects.create(url=url, anchor=anchor, doorway=self).save()
         '''Проверяем дор на тошноту'''
         isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
         if not isGood:
@@ -1022,16 +1008,16 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.agent = self.template.agent
         super(Doorway, self).save(*args, **kwargs)
 
-class SpamLink(models.Model):
-    '''Ссылки для спама'''
+class DoorLink(models.Model):
+    '''Ссылки дорвея для перелинковки и спама'''
     url = models.CharField('URL', max_length=1000, default='')
     anchor = models.CharField('Anchor', max_length=1000, default='')
     doorway = models.ForeignKey('Doorway', verbose_name='Doorway')
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True, on_delete=models.SET_NULL)
     makeSpam = models.BooleanField('Sp.', default=True)
     class Meta:
-        verbose_name = 'Spam Link'
-        verbose_name_plural = 'II.3 Spam Links - [large]'
+        verbose_name = 'Door Link'
+        verbose_name_plural = 'II.2.1 Door Links - [large]'
     def __unicode__(self):
         return self.url
     def IsAssigned(self):
@@ -1056,7 +1042,7 @@ class XrumerBaseSpam(BaseXrumerBaseAdv):
     spamTaskDomainLinksMax = models.IntegerField('Spam Task Domain Links Max', default = 5)
     class Meta:
         verbose_name = 'Xrumer Base Spam'
-        verbose_name_plural = 'II.4 Xrumer Bases Spam - [act, managed]'
+        verbose_name_plural = 'II.3 Xrumer Bases Spam - [act, managed]'
     def GetSpamTasksCount(self):
         return GetCounter(self.spamtask_set, {'stateManaged': 'done'})
     GetSpamTasksCount.short_description = 'Spam'
@@ -1083,11 +1069,11 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
     class Meta:
         verbose_name = 'Spam Task'
-        verbose_name_plural = 'II.4.1 Spam Tasks - [large, managed]'
+        verbose_name_plural = 'II.3.1 Spam Tasks - [large, managed]'
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''
-        for spamLink in SpamLink.objects.filter(spamTask=self):
+        for spamLink in DoorLink.objects.filter(spamTask=self):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
     @classmethod
@@ -1115,7 +1101,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Doors'
-        verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
+        verbose_name_plural = 'II.4 Xrumer Bases Doors - [act, managed]'
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
@@ -1140,7 +1126,7 @@ class XrumerBaseProfiles(BaseXrumerBaseAdv):
     signature = models.CharField('Signature', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Profiles'
-        verbose_name_plural = 'II.6 Xrumer Bases Profiles - [act, managed]'
+        verbose_name_plural = 'II.5 Xrumer Bases Profiles - [act, managed]'
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''

@@ -5,7 +5,7 @@ class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, templateFolder, domain, domainFolder, 
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
-    Выходные: spamLinksList.
+    Выходные: doorLinksList.
     
     В настройках доргена принудительно устанавливаем параметры, см. ниже. Кейворды 
     пишем в файл так:
@@ -30,9 +30,9 @@ class DoorgenAgent(agent.BaseAgent):
         self.appTemplatesFolder = os.path.join(self.appFolder, 'pattern')  # папка с шаблонами 
         self.appKeywordsFile = os.path.join(self.appFolder, 'keys' + os.sep + 'keywords.txt')  # файл с кеями 
         self.appNetLinksFile = os.path.join(self.appFolder, 'links' + os.sep + 'netlinks.txt')  # файл со ссылками для перелинковки 
-        self.appSpamLinks1File = os.path.join(self.appFolder, 'links' + os.sep + 'alinks.txt')  # файл со сгенерированными ссылками для спама 
-        self.appSpamLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками для спама 
-        self.appSpamLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками для спама 
+        self.appDoorLinks1File = os.path.join(self.appFolder, 'links' + os.sep + 'alinks.txt')  # файл со сгенерированными ссылками дорвея 
+        self.appDoorLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками дорвея 
+        self.appDoorLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками дорвея 
         self.doneScript = 'D:\\Miscellaneous\\Lodger6\\workspace\\doorscenter\\src\\doorscenter\\doorsagents\\doorgen-done.bat'
         self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
         self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
@@ -57,9 +57,9 @@ class DoorgenAgent(agent.BaseAgent):
             'LinksForSpam1': '1',
             'LinksForSpam2': '1',
             'LinksForSpam3': '1',
-            'SaveLinksForSpam1': self.appSpamLinks1File,
-            'SaveLinksForSpam2': self.appSpamLinks2File,
-            'SaveLinksForSpam3': self.appSpamLinks3File,
+            'SaveLinksForSpam1': self.appDoorLinks1File,
+            'SaveLinksForSpam2': self.appDoorLinks2File,
+            'SaveLinksForSpam3': self.appDoorLinks3File,
             'TextURL1': '{ADDRESS}{BOSKEYWORD}.html',
             'TextURL2': 'http://{BOSKEYWORD}.{ADDRESS}/',
             'TextURL3': 'http://{ADDRESS}/{BOSKEYWORD}.html',
@@ -125,7 +125,7 @@ class DoorgenAgent(agent.BaseAgent):
             fd.write('''<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ''')
-            for link in open(self.appSpamLinks3File, 'r'):
+            for link in open(self.appDoorLinks3File, 'r'):
                 fd.write('''   <url>
       <loc>%s</loc>
       <lastmod>%s</lastmod>
@@ -220,10 +220,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.currentTask['keywordsList'] = []
         self.currentTask['keywordsListAdd'] = []
         self.currentTask['netLinksList'] = []
-        self.currentTask['spamLinksList'] = []
+        self.currentTask['doorLinksList'] = []
         '''Выходные параметры'''
-        for line in open(self.appSpamLinks1File, 'r'):
-            self.currentTask['spamLinksList'].append(line.strip())
+        for line in open(self.appDoorLinks1File, 'r'):
+            self.currentTask['doorLinksList'].append(line.strip())
         '''Создаем сайтмап'''
         try:
             self._CreateXmlSitemap()
