@@ -407,7 +407,7 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
-    domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # сколько доменов добавлять в день. при добавлении домена на нем сразу генерится дор
+    domainsPerDay = models.IntegerField('Dmn', default=-1, null=True, blank=True)  # сколько доменов добавлять в день. при добавлении домена на нем сразу генерится дор
     doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # сколько дополнительных доров в папках на существующих доменах делать в день
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
@@ -767,11 +767,11 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             if doorway != doorwayToExclude:
                 linksList.extend(doorway.GetDoorLinksList().split('\n'))
         '''Корень не линкуем с другими доменами'''
-        if doorwayToExclude.domainFolder not in ['', r'/']:
-            '''Ссылки с других доменов'''
-            for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
-                for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
-                    linksList.extend(doorway.GetDoorLinksList().split('\n'))
+        #if doorwayToExclude.domainFolder not in ['', r'/']:
+        #    '''Ссылки с других доменов'''
+        for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
+            for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
+                linksList.extend(doorway.GetDoorLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
         '''Ссылка для проверки индекса по гуглу'''
