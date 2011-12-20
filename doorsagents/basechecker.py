@@ -1,8 +1,9 @@
 # coding=utf8
-import os, urllib, time, threading, Queue, kwk8
+import os, urllib2, time, threading, Queue, kwk8
 from xml.etree.ElementTree import ElementTree
 
-threadsCount = 100
+'''Настройки'''
+urlOpenTimeout = 15
 
 class Checker(threading.Thread):
     def __init__(self, queue, found, featuredText):
@@ -19,7 +20,7 @@ class Checker(threading.Thread):
             url = self.queue.get() 
             try:
                 print('- getting %s' % url)
-                fd = urllib.urlopen(url)
+                fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 if html.find(self.featuredText) >= 0:
                     self.found.put(url)
@@ -46,7 +47,7 @@ class CheckerMonitor(threading.Thread):
                 lastActionTime = time.time()
             time.sleep(1)
 
-def CheckBase(projectName, baseNumber):
+def CheckBase(projectName, baseNumber, threadsCount):
     '''Параметры'''
     appFolder = r'D:\Miscellaneous\Lodger6\tmp\xr'
     projectFile = os.path.join(appFolder, 'Projects', projectName + '.xml')
@@ -111,4 +112,4 @@ def CheckBase(projectName, baseNumber):
         pass
     print('Done.')
     
-CheckBase('ProjectS8132', 994)
+CheckBase('ProjectS8132', 994, 100)

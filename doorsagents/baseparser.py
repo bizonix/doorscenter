@@ -1,12 +1,8 @@
 # coding=utf8
-import urllib, re, time, threading, Queue
+import urllib2, re, time, threading, Queue, kwk8
 
-'''Параметры'''
-threadsCount = 100
-baseFileName = 'LinksList id1.txt'
-startTopicsList = '''http://studentcafeonline.com/viewtopic.php?f=3&t=81331
-http://studentcafeonline.com/viewtopic.php?f=3&t=108702
-http://studentcafeonline.com/viewtopic.php?f=3&t=108701'''.split('\n')
+'''Настройки'''
+urlOpenTimeout = 15
 featuresList = '''/action=profile;u=
 /forum.php?
 /guest/index.php
@@ -27,22 +23,26 @@ featuresList = '''/action=profile;u=
 /viewtopic.php?
 /yabb.pl?'''.split('\n')
 
-class BaseSpider(threading.Thread):
-    def __init__(self, queue):
+class Spider(threading.Thread):
+    def __init__(self, queue, processedUrls, selectedDomains, selectedUrls):
         '''Инициализация'''
         threading.Thread.__init__(self)
+        self.daemon = True
         self.queue = queue
-    
+        self.processedUrls = processedUrls
+        self.selectedDomains = selectedDomains
+        self.selectedUrls = selectedUrls
+
     def run(self):
-        global processedUrls, selectedDomains, selectedUrls
-        while True:
+        global parseCancelled
+        while not parseCancelled:
             '''Получаем ссылку из очереди'''
             url = self.queue.get() 
             '''Читаем страницу и извлекаем из нее ссылки'''
             urlsList = []
             try:
                 print('- getting %s' % url)
-                fd = urllib.urlopen(url)
+                fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 urlsList = re.findall(r'href=[\'"](http[^\'"]*)[\'"]', html)
                 fd.close()
@@ -57,50 +57,74 @@ class BaseSpider(threading.Thread):
                         break
             '''Обрабатываем полученные ссылки'''
             for url in urlsListFeatured:
-                if url in processedUrls:
+                if url in self.processedUrls:
                     continue
-                self.queue.put(url)
+                if not parseCancelled:
+                    self.queue.put(url)
                 domain = url.replace('http://', '').replace('www.', '')
                 domain = domain[:domain.find('/')]
-                if domain not in selectedDomains:
-                    selectedUrls.append(url)
-                    selectedDomains.append(domain)
-                processedUrls.append(url)
+                if domain not in self.selectedDomains:
+                    self.selectedUrls.append(url)
+                    self.selectedDomains.append(domain)
+                self.processedUrls.append(url)
             '''Завершение обработки ссылки'''
             self.queue.task_done()
 
-class BaseMonitor(threading.Thread):
-    def __init__(self, queue):
+class SpiderMonitor(threading.Thread):
+    def __init__(self, queue, processedUrls, selectedDomains, selectedUrls, baseFileName, parseTimeout):
         '''Инициализация'''
         threading.Thread.__init__(self)
+        self.daemon = True
         self.queue = queue
-    
+        self.processedUrls = processedUrls
+        self.selectedDomains = selectedDomains
+        self.selectedUrls = selectedUrls
+        self.baseFileName = baseFileName
+        self.parseTimeout = parseTimeout
+
     def run(self):
-        '''Каждые 10 секунд сохраняем базу в файл и выводим текущую информацию'''
-        lastActionTime = time.time()
-        while True:
-            if time.time() - lastActionTime > 5:
-                open(baseFileName, 'w').write('\n'.join(selectedUrls))
+        '''Каждые 5 секунд сохраняем базу в файл и выводим текущую информацию.
+        По истечении тайматута завершаем выполнение потоков'''
+        global parseCancelled
+        startTime = time.time()
+        lastActionTime = startTime 
+        while not parseCancelled:
+            '''Истек таймаут'''
+            if time.time() - startTime > self.parseTimeout:
+                parseCancelled = True
+                while not self.queue.empty():
+                    self.queue.get()
+                    self.queue.task_done()
+                print('Timed out')
+            '''Пора сохранять базу'''
+            if (time.time() - lastActionTime > 5) or parseCancelled:
+                open(self.baseFileName, 'w').write('\n'.join(self.selectedUrls))
                 lastActionTime = time.time()
-                print('Base size: %d. Queue size: %d.' % (len(selectedDomains), self.queue.qsize()))
+                print('Base size: %d. Queue size: %d.' % (len(self.selectedDomains), self.queue.qsize()))
             time.sleep(1)
 
-'''Инициализация'''
-processedUrls = []
-selectedDomains = []
-selectedUrls = []
-queue = Queue.Queue()
-for startTopic in startTopicsList:
-    queue.put(startTopic)
+def Parse(startTopics, threadsCount, parseTimeout, baseFileName):
+    '''Инициализация'''
+    global parseCancelled
+    processedUrls = []
+    selectedDomains = []
+    selectedUrls = []
+    parseCancelled = False
+    queue = Queue.Queue()
+    for startTopic in startTopics.split('\n'):
+        queue.put(startTopic)
+    
+    '''Запускаем потоки'''
+    for _ in range(threadsCount):
+        Spider(queue, processedUrls, selectedDomains, selectedUrls).start()
+    SpiderMonitor(queue, processedUrls, selectedDomains, selectedUrls, baseFileName, parseTimeout).start()
+    
+    '''Ждем окончания работы'''
+    queue.join()
+    
+    '''Приводим базу к индексу'''
+    kwk8.Kwk8Links(baseFileName).PostProcessing().Save(baseFileName)
+    print('Done')
 
-'''Запускаем потоки'''
-for _ in range(threadsCount):
-    thread = BaseSpider(queue)
-    thread.daemon = True
-    thread.start()
-thread = BaseMonitor(queue)
-thread.daemon = True
-thread.start()
-
-'''Ждем окончания работы'''
-queue.join()
+startTopics = '''http://dlr-rus.ru/forum/viewtopic.php?t=92164'''
+Parse(startTopics, 100, 60, 'LinksList id1.txt')
