@@ -47,18 +47,17 @@ class CheckerMonitor(threading.Thread):
                 lastActionTime = time.time()
             time.sleep(1)
 
-def CheckBase(projectName, baseNumber, threadsCount):
+def CheckBase(xrumerFolder, projectName, baseNumber, threadsCount):
     '''Параметры'''
-    appFolder = r'D:\Miscellaneous\Lodger6\tmp\xr'
-    projectFile = os.path.join(appFolder, 'Projects', projectName + '.xml')
-    logFileTemplate = os.path.join(appFolder, 'Logs', projectName, '%s id%d.txt' % ('%s', baseNumber))
+    projectFile = os.path.join(xrumerFolder, 'Projects', projectName + '.xml')
+    logFileTemplate = os.path.join(xrumerFolder, 'Logs', projectName, '%s id%d.txt' % ('%s', baseNumber))
     logSuccess = logFileTemplate % 'Success'
     logHalfSuccess = logFileTemplate % 'Halfsuccess'
     logFails = logFileTemplate % 'Others'
-    appLinksFolder = os.path.join(appFolder, 'Links')
-    baseFile = os.path.join(appLinksFolder, 'LinksList id%d.txt' % baseNumber)
-    baseRFile = os.path.join(appLinksFolder, 'RLinksList id%d.txt' % baseNumber)
-    baseZFile = os.path.join(appLinksFolder, 'ZLinksList id%d.txt' % baseNumber)
+    xrumerLinksFolder = os.path.join(xrumerFolder, 'Links')
+    baseFileName = os.path.join(xrumerLinksFolder, 'LinksList id%d.txt' % baseNumber)
+    baseRFileName = os.path.join(xrumerLinksFolder, 'RLinksList id%d.txt' % baseNumber)
+    baseZFileName = os.path.join(xrumerLinksFolder, 'ZLinksList id%d.txt' % baseNumber)
 
     '''Получаем фразу из проекта'''
     tree = ElementTree()
@@ -90,7 +89,7 @@ def CheckBase(projectName, baseNumber, threadsCount):
     
     '''Записываем найденные домены во временный файл'''
     print('Saving links found ...')
-    tempFileName = os.path.join(appLinksFolder, 'TLinksList id%d.txt' % baseNumber)
+    tempFileName = os.path.join(xrumerLinksFolder, 'TLinksList id%d.txt' % baseNumber)
     with open(tempFileName, 'w') as fd:
         try:
             while True:
@@ -101,7 +100,7 @@ def CheckBase(projectName, baseNumber, threadsCount):
     
     '''Фильтруем базы по файлу с найденными доменами'''
     print('Filtering bases ...')
-    for fileName in [baseFile, baseRFile, baseZFile]:
+    for fileName in [baseFileName, baseRFileName, baseZFileName]:
         if os.path.exists(fileName):
             kwk8.Kwk8Links(fileName).SelectByFile(tempFileName).Save(fileName)
     
@@ -112,4 +111,6 @@ def CheckBase(projectName, baseNumber, threadsCount):
         pass
     print('Done.')
     
-CheckBase('ProjectS8132', 994, 100)
+if __name__ == '__main__':
+    xrumerFolder = r'c:\Work\xrumer708'
+    CheckBase(xrumerFolder, 'ProjectS8530', 995, 100)

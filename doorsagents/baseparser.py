@@ -1,5 +1,5 @@
 # coding=utf8
-import urllib2, re, time, threading, Queue, kwk8
+import os, urllib2, re, time, threading, Queue, kwk8
 
 '''Настройки'''
 urlOpenTimeout = 15
@@ -103,9 +103,12 @@ class SpiderMonitor(threading.Thread):
                 print('Base size: %d. Queue size: %d.' % (len(self.selectedDomains), self.queue.qsize()))
             time.sleep(1)
 
-def Parse(startTopics, threadsCount, parseTimeout, baseFileName):
+def Parse(xrumerFolder, startTopics, threadsCount, parseTimeout, baseNumber):
     '''Инициализация'''
     global parseCancelled
+    xrumerLinksFolder = os.path.join(xrumerFolder, 'Links')
+    baseFileName = os.path.join(xrumerLinksFolder, 'LinksList id%d.txt' % baseNumber)
+
     processedUrls = []
     selectedDomains = []
     selectedUrls = []
@@ -126,5 +129,7 @@ def Parse(startTopics, threadsCount, parseTimeout, baseFileName):
     kwk8.Kwk8Links(baseFileName).PostProcessing().Save(baseFileName)
     print('Done')
 
-startTopics = '''http://dlr-rus.ru/forum/viewtopic.php?t=92164'''
-Parse(startTopics, 100, 60, 'LinksList id1.txt')
+if __name__ == '__main__':
+    startTopics = '''http://dlr-rus.ru/forum/viewtopic.php?t=92164'''
+    xrumerFolder = r'c:\Work\xrumer708'
+    Parse(xrumerFolder, startTopics, 100, 60, 1001)
