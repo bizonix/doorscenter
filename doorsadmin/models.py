@@ -116,16 +116,6 @@ class BaseDoorObjectTrackable(models.Model):
     class Meta:
         abstract = True
 
-class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
-    '''База Хрумера'''
-    baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
-    linksCount = models.FloatField('Count, k.', null=True, blank=True)
-    language = models.CharField('Language', max_length=50, choices=languages, blank=True)
-    class Meta:
-        abstract = True
-    def __unicode__(self):
-        return "#%d" % self.baseNumber
-
 class BaseDoorObjectManaged(models.Model):
     priority = models.CharField('Prt.', max_length=20, choices = taskPriorities, default='std')
     agent = models.ForeignKey('Agent', verbose_name='Agent', null=True, blank=True, on_delete=models.SET_NULL)
@@ -171,8 +161,11 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
             EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
         super(BaseDoorObjectSpammable, self).SetTaskDetails(data)
 
-class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
+class BaseXrumerBaseAdv(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSpammable):
     '''Предок баз профилей, доров на форумах и спама по топикам'''
+    baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
+    linksCount = models.FloatField('Count, k.', null=True, blank=True)
+    language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -186,6 +179,8 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
     class Meta:
         abstract = True
+    def __unicode__(self):
+        return "#%d" % self.baseNumber
     def ResetNames(self):
         '''Сбрасываем имена'''
         self.nickName = ''
@@ -1201,7 +1196,7 @@ class IPAddress(BaseDoorObject):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
 
-class XrumerBaseRaw(BaseXrumerBase):
+class XrumerBaseRaw(BaseXrumerBaseAdv):
     '''Сырая база Хрумера'''
     class Meta:
         verbose_name = 'Xrumer Base Raw'

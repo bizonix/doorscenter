@@ -402,15 +402,15 @@ class IPAddressAdmin(BaseAdminSimple):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesSpamCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
+class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('baseNumber', 'linksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'GetXrumerBasesSpamCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_filter = ['active', 'stateManaged', 'priority']
     fieldsets = [
         (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
