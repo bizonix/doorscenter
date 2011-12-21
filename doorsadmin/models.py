@@ -161,11 +161,10 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
             EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
         super(BaseDoorObjectSpammable, self).SetTaskDetails(data)
 
-class BaseXrumerBaseAdv(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSpammable):
+class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSpammable):
     '''Предок баз профилей, доров на форумах и спама по топикам'''
     baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
     linksCount = models.FloatField('Count, k.', null=True, blank=True)
-    language = models.CharField('Language', max_length=50, choices=languages, blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -214,7 +213,7 @@ class BaseXrumerBaseAdv(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjec
             self.registerRunDate = datetime.datetime.now()
         if data['baseLinksCount'] != 0:
             self.linksCount = data['baseLinksCount'] / 1000.0
-        super(BaseXrumerBaseAdv, self).SetTaskDetails(data)
+        super(BaseXrumerBase, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -231,7 +230,7 @@ class BaseXrumerBaseAdv(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjec
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
-        super(BaseXrumerBaseAdv, self).save(*args, **kwargs)
+        super(BaseXrumerBase, self).save(*args, **kwargs)
 
 '''Real models'''
 
@@ -1022,7 +1021,7 @@ class DoorLink(models.Model):
     GetSpamTaskState.short_description = 'Spam State'
     GetSpamTaskState.allow_tags = True
 
-class XrumerBaseSpam(BaseXrumerBaseAdv):
+class XrumerBaseSpam(BaseXrumerBase):
     '''База R для спама по топикам'''
     baseType = models.CharField('Base Type', max_length=50, choices=spamBaseTypes, default='RLinksList')
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
@@ -1084,7 +1083,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
 
-class XrumerBaseDoors(BaseXrumerBaseAdv):
+class XrumerBaseDoors(BaseXrumerBase):
     '''База R для доров на форумах'''
     body = models.TextField('Body', default='', blank=True)
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
@@ -1109,7 +1108,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
             data['state'] = 'new'
         super(XrumerBaseDoors, self).SetTaskDetails(data)
 
-class XrumerBaseProfiles(BaseXrumerBaseAdv):
+class XrumerBaseProfiles(BaseXrumerBase):
     '''База профилей'''
     homePage = models.CharField('Home page', max_length=200, default='', blank=True)
     signature = models.CharField('Signature', max_length=200, default='', blank=True)
@@ -1196,11 +1195,11 @@ class IPAddress(BaseDoorObject):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
 
-class XrumerBaseRaw(BaseXrumerBaseAdv):
+class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера'''
     class Meta:
         verbose_name = 'Xrumer Base Raw'
-        verbose_name_plural = 'III.3 Xrumer Bases Raw - [act]'
+        verbose_name_plural = 'III.3 Xrumer Bases Raw - [act, managed]'
     def GetXrumerBasesSpamCount(self):
         return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesSpamCount.short_description = 'Bases Spam'

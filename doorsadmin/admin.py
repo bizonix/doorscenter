@@ -406,7 +406,7 @@ class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'linksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'GetXrumerBasesSpamCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['active', 'stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
+        (None, {'fields': ['description', ('baseNumber', 'linksCount'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
