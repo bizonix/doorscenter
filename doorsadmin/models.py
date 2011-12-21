@@ -60,6 +60,8 @@ def GetObjectByTaskType(taskType):
         return SnippetsSet
     elif taskType == 'Doorway':
         return Doorway
+    elif taskType == 'XrumerBaseRaw':
+        return XrumerBaseRaw
     elif taskType == 'XrumerBaseSpam':
         return XrumerBaseSpam
     elif taskType == 'SpamTask':
@@ -1197,6 +1199,7 @@ class IPAddress(BaseDoorObject):
 
 class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера'''
+    parseParams = models.TextField('Parse Params', default='', blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Raw'
         verbose_name_plural = 'III.3 Xrumer Bases Raw - [act, managed]'
@@ -1204,6 +1207,20 @@ class XrumerBaseRaw(BaseXrumerBase):
         return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesSpamCount.short_description = 'Bases Spam'
     GetXrumerBasesSpamCount.allow_tags = True
+    @classmethod
+    def GetTasksList(self, agent):
+        '''Получение списка задач для агента'''
+        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        result['parseParams'] = self.parseParams
+        result['snippetsFile'] = self.niche.GetRandomSnippetsSet().localFile
+        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(XrumerBaseRaw, self).SetTaskDetails(data)
 
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
@@ -1221,7 +1238,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
+            return [XrumerBaseRaw, XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
     def AppendParams(self, data):
         '''Добавляем параметры агента в задание'''
         for param in self.params.split('\n'):
