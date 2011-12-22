@@ -41,7 +41,7 @@ class Spider(threading.Thread):
             '''Читаем страницу и извлекаем из нее ссылки'''
             urlsList = []
             try:
-                print('- getting %s' % url)
+                #print('- getting %s' % url)
                 fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 urlsList = re.findall(r'href=[\'"](http[^\'"]*)[\'"]', html)

@@ -19,7 +19,7 @@ class Checker(threading.Thread):
         while True:
             url = self.queue.get() 
             try:
-                print('- getting %s' % url)
+                #print('- getting %s' % url)
                 fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 if html.find(self.featuredText) >= 0:
@@ -39,7 +39,7 @@ class CheckerMonitor(threading.Thread):
         self.initialSize = self.queue.qsize()
         
     def run(self):
-        '''Каждые 10 секунд выводим текущую информацию'''
+        '''Каждые 5 секунд выводим текущую информацию'''
         lastActionTime = time.time()
         while True:
             if time.time() - lastActionTime > 5:
