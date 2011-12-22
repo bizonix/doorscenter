@@ -412,6 +412,24 @@ class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
+    actions = ['ResetNames', 'ResetNamesAndNew']
+    def ResetNames(self, request, queryset):
+        '''Сбрасываем имена'''
+        processed = 0
+        for base in queryset:
+            base.ResetNames()
+            processed += 1
+        self.message_user(request, "%s reset." % GetMessageBit(processed))
+    ResetNames.short_description = "a. Reset names"
+    def ResetNamesAndNew(self, request, queryset):
+        '''Сбрасываем имена и помечаем как новые'''
+        processed = 0
+        for base in queryset:
+            base.stateManaged = 'new'
+            base.ResetNames()
+            processed += 1
+        self.message_user(request, "%s reset and marked as new." % GetMessageBit(processed))
+    ResetNamesAndNew.short_description = "b. Reset names and mark as new"
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')

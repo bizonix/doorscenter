@@ -3,6 +3,7 @@ import os, urllib2, time, threading, Queue, kwk8
 from xml.etree.ElementTree import ElementTree
 
 '''Настройки'''
+threadsCount = 100
 urlOpenTimeout = 15
 
 class Checker(threading.Thread):
@@ -47,7 +48,7 @@ class CheckerMonitor(threading.Thread):
                 lastActionTime = time.time()
             time.sleep(1)
 
-def CheckBase(xrumerFolder, projectName, baseNumber, threadsCount):
+def Check(xrumerFolder, projectName, baseNumber):
     '''Параметры'''
     projectFile = os.path.join(xrumerFolder, 'Projects', projectName + '.xml')
     logFileTemplate = os.path.join(xrumerFolder, 'Logs', projectName, '%s id%d.txt' % ('%s', baseNumber))
@@ -113,4 +114,4 @@ def CheckBase(xrumerFolder, projectName, baseNumber, threadsCount):
     
 if __name__ == '__main__':
     xrumerFolder = r'c:\Work\xrumer708'
-    CheckBase(xrumerFolder, 'ProjectS8530', 995, 100)
+    Check(xrumerFolder, 'ProjectS8530', 995)

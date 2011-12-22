@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, codecs, random, kwk8, baseparser, basechecker
+import os, shutil, codecs, random, string, kwk8, baseparser, basechecker
 from xml.sax.saxutils import escape
 from xrumerxdf import *
 
@@ -11,21 +11,22 @@ class XrumerHelper(object):
     
     def __init__(self, agent):
         self.agent = agent
+        self.currentTask = self.agent.currentTask
         self.linker = XrumerTopicLinker(self)
-        self.creationType = self.agent.currentTask['creationType']
-        self.registerRun = self.agent.currentTask['registerRun']
+        self.creationType = self.currentTask['creationType']
+        self.registerRun = self.currentTask['registerRun']
         snippetsFolder = 'C:\\Work\\snippets'
         keywordsFolder = os.path.join(self.agent.appFolder, 'Keywords')
-        self.keywordsFile = os.path.join(keywordsFolder, '%s.txt' % self.agent.currentTask['niche'])
+        self.keywordsFile = os.path.join(keywordsFolder, '%s.txt' % self.currentTask['niche'])
         self.keywordsFileEsc = escape(self.keywordsFile)
-        self.snippetsFileEsc = escape(os.path.join(snippetsFolder, self.agent.currentTask['snippetsFile']))
+        self.snippetsFileEsc = escape(os.path.join(snippetsFolder, self.currentTask['snippetsFile']))
         self.anchorsFileEsc = escape(self.linker.GetSpamAnchorsFile())
         self.profilesFileEsc = escape(self.linker.GetProfilesFile())
     
     def _WriteKeywords(self):
         '''Пишем кейворды'''
         with codecs.open(self.keywordsFile, 'w', 'cp1251') as fd:
-            fd.write('\n'.join(self.agent.currentTask['keywordsList']))
+            fd.write('\n'.join(self.currentTask['keywordsList']))
     
     def _CopyBase(self, sourceFileName, destFileName):
         '''Копируем базу'''
@@ -53,7 +54,7 @@ class XrumerHelper(object):
     
     def GetProjectName(self):
         '''Имя проекта'''
-        return 'ProjectX%d' % self.agent.currentTask['id']
+        return 'ProjectX%d' % self.currentTask['id']
     
     def ActionOn(self):
         '''Действия при старте'''
@@ -67,31 +68,46 @@ class XrumerHelperBaseRaw(XrumerHelper):
     '''Парсим и чекаем новую базу'''
     
     def GetProjectName(self):
-        return 'ProjectN%d' % self.agent.currentTask['id']
+        return 'ProjectN%d' % self.currentTask['id']
     
     def ActionOn(self):
-        pass
+        '''Парсим базу'''
+        parseTimeout = 90
+        startTopics = self.currentTask['parseParams']
+        baseparser.Parse(self.agent.appFolder, startTopics, parseTimeout, self.currentTask['baseNumberMain'])
+        '''Содержимое проекта'''
+        randomToken = ''.join(random.choice(string.letters) for _ in xrange(10))
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
+        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, randomToken, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        '''Пишем кейворды'''
+        self._WriteKeywords()
+        '''Создаем настройки'''
+        threadsCount = 110
+        self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, projSubject, projBody)
     
     def ActionOff(self):
-        pass
+        '''Проверяем базу'''
+        basechecker.Check(self.agent.appFolder, self.agent.projectName, self.currentTask['baseNumberMain'])
+        '''Считаем число ссылок'''
+        self.agent._CountLinks('baseLinksCount', self.agent.baseMainFile, 'base')
         
 class XrumerHelperBaseSpam(XrumerHelper):
     '''Базы L, R и Z для спама по топикам'''
     
     def GetProjectName(self):
-        return 'ProjectR%d' % self.agent.currentTask['id']
+        return 'ProjectR%d' % self.currentTask['id']
     
     def ActionOn(self):
         '''Содержимое проекта'''
-        spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
+        spamLinksList = escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R или Z'''
         self._WriteKeywords()
         self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
-        if self.agent.currentTask['baseType'] == 'RLinksList':
+        if self.currentTask['baseType'] == 'RLinksList':
             self._DeleteBase(self.agent.baseMainRFile)
-        elif self.agent.currentTask['baseType'] == 'ZLinksList': 
+        elif self.currentTask['baseType'] == 'ZLinksList': 
             self._DeleteBase(self.agent.baseMainZFile)
         else:
             pass 
@@ -113,10 +129,10 @@ class XrumerHelperBaseSpam(XrumerHelper):
     def ActionOff(self):
         '''Копируем анкоры и удаляем базу, которую копировали ранее'''
         self.linker.AddSpamAnchorsFile()
-        if self.agent.currentTask['baseType'] == 'RLinksList':
+        if self.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
             self._DeleteBase(self.agent.baseMainFile) 
-        elif self.agent.currentTask['baseType'] == 'ZLinksList':
+        elif self.currentTask['baseType'] == 'ZLinksList':
             self._FilterBase(self.agent.baseMainZFile)
             self._DeleteBase(self.agent.baseMainFile) 
         else:
@@ -140,19 +156,19 @@ class XrumerHelperSpamTask(XrumerHelper):
         super(XrumerHelperSpamTask, self).__init__(agent)
         
     def GetProjectName(self):
-        return 'ProjectS%d' % self.agent.currentTask['id']
+        return 'ProjectS%d' % self.currentTask['id']
     
     def ActionOn(self):
         '''Содержимое проекта'''
-        spamLinksList = escape(codecs.decode(' '.join(self.agent.currentTask['spamLinksList']), 'cp1251'))
+        spamLinksList = escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Пишем кейворды'''
         self._WriteKeywords()
         '''Создаем настройки'''
-        if self.agent.currentTask['baseType'] == 'RLinksList':
+        if self.currentTask['baseType'] == 'RLinksList':
             self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
-        elif self.agent.currentTask['baseType'] == 'ZLinksList':
+        elif self.currentTask['baseType'] == 'ZLinksList':
             self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
         else:
             self.agent._CreateSettings('none', '', 'post-reply', 'LinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
@@ -160,9 +176,9 @@ class XrumerHelperSpamTask(XrumerHelper):
     def ActionOff(self):
         '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
         self.linker.AddSpamAnchorsFile()
-        if self.agent.currentTask['baseType'] == 'RLinksList':
+        if self.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
-        elif self.agent.currentTask['baseType'] == 'ZLinksList':
+        elif self.currentTask['baseType'] == 'ZLinksList':
             self.agent._CountLinks('baseLinksCount', self.agent.baseMainZFile, 'base')
         else:
             self.agent._CountLinks('baseLinksCount', self.agent.baseMainFile, 'base')
@@ -171,11 +187,11 @@ class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
     
     def GetProjectName(self):
-        return 'ProjectD%d' % self.agent.currentTask['id']
+        return 'ProjectD%d' % self.currentTask['id']
     
     def ActionOn(self):
         '''Содержимое проекта'''
-        body = escape(self.agent.currentTask['body'])
+        body = escape(self.currentTask['body'])
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '%s #file_links[%s,10,L] #file_links[%s,3,L] #file_links[%s,3,L] #file_links[%s,10,S]' % (body, self.keywordsFileEsc, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Если первый проход'''
@@ -214,7 +230,7 @@ class XrumerHelperBaseProfiles(XrumerHelper):
     '''Профили'''
     
     def GetProjectName(self):
-        return 'ProjectP%d' % self.agent.currentTask['id']
+        return 'ProjectP%d' % self.currentTask['id']
     
     def ActionOn(self):
         self.agent._DeleteLog(self.agent.logAnchors)
@@ -226,7 +242,7 @@ class XrumerHelperBaseProfiles(XrumerHelper):
             self.agent._CreateSettings('register-only', '', 'post', 'LinksList', 100, 'none', 'none', '', '')
         else:
             '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.agent.currentTask['homePage'], self.agent.currentTask['signature'])
+            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.currentTask['homePage'], self.currentTask['signature'])
     
     def ActionOff(self):
         '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
