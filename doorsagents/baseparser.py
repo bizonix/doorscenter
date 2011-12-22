@@ -2,6 +2,7 @@
 import os, urllib2, re, time, threading, Queue, kwk8
 
 '''Настройки'''
+threadsCount = 100
 urlOpenTimeout = 15
 featuresList = '''/action=profile;u=
 /forum.php?
@@ -41,7 +42,7 @@ class Spider(threading.Thread):
             '''Читаем страницу и извлекаем из нее ссылки'''
             urlsList = []
             try:
-                print('- getting %s' % url)
+                #print('- getting %s' % url)
                 fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 urlsList = re.findall(r'href=[\'"](http[^\'"]*)[\'"]', html)
@@ -103,7 +104,7 @@ class SpiderMonitor(threading.Thread):
                 print('Base size: %d. Queue size: %d.' % (len(self.selectedDomains), self.queue.qsize()))
             time.sleep(1)
 
-def Parse(xrumerFolder, startTopics, threadsCount, parseTimeout, baseNumber):
+def Parse(xrumerFolder, startTopics, parseTimeout, baseNumber):
     '''Инициализация'''
     global parseCancelled
     xrumerLinksFolder = os.path.join(xrumerFolder, 'Links')
@@ -132,4 +133,4 @@ def Parse(xrumerFolder, startTopics, threadsCount, parseTimeout, baseNumber):
 if __name__ == '__main__':
     startTopics = '''http://dlr-rus.ru/forum/viewtopic.php?t=92164'''
     xrumerFolder = r'c:\Work\xrumer708'
-    Parse(xrumerFolder, startTopics, 100, 60, 1001)
+    Parse(xrumerFolder, startTopics, 60, 1001)

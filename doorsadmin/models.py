@@ -1221,6 +1221,9 @@ class XrumerBaseRaw(BaseXrumerBase):
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
         super(XrumerBaseRaw, self).SetTaskDetails(data)
+    def save(self, *args, **kwargs):
+        self.xrumerBaseRaw = self
+        super(XrumerBaseRaw, self).save(*args, **kwargs)
 
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)

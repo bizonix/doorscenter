@@ -3,6 +3,7 @@ import os, urllib2, time, threading, Queue, kwk8
 from xml.etree.ElementTree import ElementTree
 
 '''Настройки'''
+threadsCount = 100
 urlOpenTimeout = 15
 
 class Checker(threading.Thread):
@@ -19,7 +20,7 @@ class Checker(threading.Thread):
         while True:
             url = self.queue.get() 
             try:
-                print('- getting %s' % url)
+                #print('- getting %s' % url)
                 fd = urllib2.urlopen(url, timeout=urlOpenTimeout)
                 html = fd.read()
                 if html.find(self.featuredText) >= 0:
@@ -39,7 +40,7 @@ class CheckerMonitor(threading.Thread):
         self.initialSize = self.queue.qsize()
         
     def run(self):
-        '''Каждые 10 секунд выводим текущую информацию'''
+        '''Каждые 5 секунд выводим текущую информацию'''
         lastActionTime = time.time()
         while True:
             if time.time() - lastActionTime > 5:
@@ -47,7 +48,7 @@ class CheckerMonitor(threading.Thread):
                 lastActionTime = time.time()
             time.sleep(1)
 
-def CheckBase(xrumerFolder, projectName, baseNumber, threadsCount):
+def Check(xrumerFolder, projectName, baseNumber):
     '''Параметры'''
     projectFile = os.path.join(xrumerFolder, 'Projects', projectName + '.xml')
     logFileTemplate = os.path.join(xrumerFolder, 'Logs', projectName, '%s id%d.txt' % ('%s', baseNumber))
@@ -113,4 +114,4 @@ def CheckBase(xrumerFolder, projectName, baseNumber, threadsCount):
     
 if __name__ == '__main__':
     xrumerFolder = r'c:\Work\xrumer708'
-    CheckBase(xrumerFolder, 'ProjectS8530', 995, 100)
+    Check(xrumerFolder, 'ProjectS8530', 995)
