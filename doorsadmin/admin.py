@@ -303,12 +303,12 @@ class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
-        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress'), ('baseType', 'creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress'), ('baseType', 'creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount'), 'active']}),
         ('Spam parameters', {'fields': [('spamTaskDomainsMin', 'spamTaskDomainsMax', 'spamTaskDomainLinksMin', 'spamTaskDomainLinksMax')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames', 'ResetNamesAndNew']
     def ResetNames(self, request, queryset):
         '''Сбрасываем имена'''
@@ -332,11 +332,11 @@ class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseSpam', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': [('xrumerBaseSpam'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount')]}),
+        (None, {'fields': [('xrumerBaseSpam'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
     #inlines = [DoorLinkInline]
 
 class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
@@ -344,12 +344,12 @@ class XrumerBaseDoorsAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_filter = ['niche', 'active', 'stateManaged', 'priority']
     ordering = ['niche__description']
     fieldsets = [
-        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress'), ('creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        (None, {'fields': [('niche', 'linksCount'), ('baseNumber', 'xrumerBaseRaw', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress'), ('creationType', 'registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount'), 'active']}),
         ('Doorway parameters', {'fields': [('body'), ('runCount')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames']
     def ResetNames(self, request, queryset):
         '''Сбрасываем имена'''
@@ -364,12 +364,12 @@ class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
     list_display = ('baseNumber', 'homePage', 'linksCount', 'xrumerBaseRaw', 'profilesCount', 'registeredAccountsCount', 'successCount', 'failsCount', 'registerRun', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['active', 'stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': [('niche'), ('baseNumber', 'xrumerBaseRaw', 'linksCount'), ('nickName', 'realName', 'password'), ('emailAddress'), ('registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount'), 'active']}),
+        (None, {'fields': [('niche'), ('baseNumber', 'xrumerBaseRaw', 'linksCount'), ('nickName', 'realName', 'password'), ('emailAddress'), ('registerRun', 'registerRunDate', 'registerRunTimeout'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount'), 'active']}),
         ('Profile parameters', {'fields': [('homePage', 'signature')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['ResetNames']
     def ResetNames(self, request, queryset):
         '''Сбрасываем имена'''
@@ -402,15 +402,16 @@ class IPAddressAdmin(BaseAdminSimple):
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
-class XrumerBaseRawAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('baseNumber', 'description', 'linksCount', 'language', 'GetXrumerBasesSpamCount', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
+class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
+    list_display = ('baseNumber', 'linksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'GetXrumerBasesSpamCount', 'active', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_filter = ['active', 'stateManaged', 'priority']
     fieldsets = [
-        (None, {'fields': ['description', ('baseNumber', 'linksCount', 'language'), 'active']}),
+        (None, {'fields': [('baseNumber', 'linksCount', 'snippetsSet'), ('nickName', 'realName', 'password'), ('emailAddress'), ('successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount'), 'active']}),
+        ('Parameters', {'fields': ['parseParams'], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['registerRun', 'registerRunDate', 'successCount', 'halfSuccessCount', 'failsCount', 'profilesCount', 'registeredAccountsCount', 'lastError', 'dateAdded', 'dateChanged']
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')

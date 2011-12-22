@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, codecs, random, kwk8
+import os, shutil, codecs, random, kwk8, baseparser, basechecker
 from xml.sax.saxutils import escape
 from xrumerxdf import *
 
@@ -62,9 +62,21 @@ class XrumerHelper(object):
     def ActionOff(self):
         '''Действия при финише'''
         pass
+
+class XrumerHelperBaseRaw(XrumerHelper):
+    '''Парсим и чекаем новую базу'''
     
+    def GetProjectName(self):
+        return 'ProjectN%d' % self.agent.currentTask['id']
+    
+    def ActionOn(self):
+        pass
+    
+    def ActionOff(self):
+        pass
+        
 class XrumerHelperBaseSpam(XrumerHelper):
-    '''Базы R и Z для спама по топикам'''
+    '''Базы L, R и Z для спама по топикам'''
     
     def GetProjectName(self):
         return 'ProjectR%d' % self.agent.currentTask['id']
@@ -111,7 +123,7 @@ class XrumerHelperBaseSpam(XrumerHelper):
             pass
 
 class XrumerHelperSpamTask(XrumerHelper):
-    '''Задание для спама по топикам'''
+    '''Задание для спама по базам L, R и Z'''
     
     def __init__(self, agent):
         '''Обработка параметров агента'''
@@ -190,7 +202,7 @@ class XrumerHelperBaseDoors(XrumerHelper):
             '''Пишем кейворды'''
             self._WriteKeywords()
             '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody, '', '', randon.randint(0, 19))
+            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody, '', '', random.randint(0, 19))
             
     def ActionOff(self):
         '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''

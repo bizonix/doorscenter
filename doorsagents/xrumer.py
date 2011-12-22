@@ -179,7 +179,9 @@ TimeRange=''' + timeout + '''
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         
         '''Создание классов-хелперов'''
-        if self.currentTask['type'] == 'XrumerBaseSpam':
+        if self.currentTask['type'] == 'XrumerBaseRaw':
+            self.helper = XrumerHelperBaseRaw(self)
+        elif self.currentTask['type'] == 'XrumerBaseSpam':
             self.helper = XrumerHelperBaseSpam(self)
         elif self.currentTask['type'] == 'SpamTask':
             self.helper = XrumerHelperSpamTask(self)

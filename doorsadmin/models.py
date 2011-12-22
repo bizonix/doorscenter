@@ -60,6 +60,8 @@ def GetObjectByTaskType(taskType):
         return SnippetsSet
     elif taskType == 'Doorway':
         return Doorway
+    elif taskType == 'XrumerBaseRaw':
+        return XrumerBaseRaw
     elif taskType == 'XrumerBaseSpam':
         return XrumerBaseSpam
     elif taskType == 'SpamTask':
@@ -116,16 +118,6 @@ class BaseDoorObjectTrackable(models.Model):
     class Meta:
         abstract = True
 
-class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable):
-    '''База Хрумера'''
-    baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
-    linksCount = models.FloatField('Count, k.', null=True, blank=True)
-    language = models.CharField('Language', max_length=50, choices=languages, blank=True)
-    class Meta:
-        abstract = True
-    def __unicode__(self):
-        return "#%d" % self.baseNumber
-
 class BaseDoorObjectManaged(models.Model):
     priority = models.CharField('Prt.', max_length=20, choices = taskPriorities, default='std')
     agent = models.ForeignKey('Agent', verbose_name='Agent', null=True, blank=True, on_delete=models.SET_NULL)
@@ -171,8 +163,10 @@ class BaseDoorObjectSpammable(BaseDoorObjectManaged):
             EventLog('error', 'Too few successful posts (%d)' % self.successCount, self)
         super(BaseDoorObjectSpammable, self).SetTaskDetails(data)
 
-class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
+class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSpammable):
     '''Предок баз профилей, доров на форумах и спама по топикам'''
+    baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
+    linksCount = models.FloatField('Count, k.', null=True, blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -186,6 +180,8 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
     registerRunTimeout = models.IntegerField('Register Timeout, h.', default=48, null=True, blank=True)
     class Meta:
         abstract = True
+    def __unicode__(self):
+        return "#%d" % self.baseNumber
     def ResetNames(self):
         '''Сбрасываем имена'''
         self.nickName = ''
@@ -219,7 +215,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
             self.registerRunDate = datetime.datetime.now()
         if data['baseLinksCount'] != 0:
             self.linksCount = data['baseLinksCount'] / 1000.0
-        super(BaseXrumerBaseAdv, self).SetTaskDetails(data)
+        super(BaseXrumerBase, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указан набор сниппетов - берем случайные по нише'''
         if self.snippetsSet == None:
@@ -236,7 +232,7 @@ class BaseXrumerBaseAdv(BaseXrumerBase, BaseDoorObjectSpammable):
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
-        super(BaseXrumerBaseAdv, self).save(*args, **kwargs)
+        super(BaseXrumerBase, self).save(*args, **kwargs)
 
 '''Real models'''
 
@@ -407,7 +403,7 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
-    domainsPerDay = models.IntegerField('Dmn', default=0, null=True, blank=True)  # сколько доменов добавлять в день. при добавлении домена на нем сразу генерится дор
+    domainsPerDay = models.IntegerField('Dmn', default=-1, null=True, blank=True)  # сколько доменов добавлять в день. при добавлении домена на нем сразу генерится дор
     doorsPerDay = models.IntegerField('Drs', default=0, null=True, blank=True)  # сколько дополнительных доров в папках на существующих доменах делать в день
     dateStart = models.DateField('Start Date', null=True, blank=True)
     dateEnd = models.DateField('End Date', null=True, blank=True)
@@ -767,11 +763,11 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             if doorway != doorwayToExclude:
                 linksList.extend(doorway.GetDoorLinksList().split('\n'))
         '''Корень не линкуем с другими доменами'''
-        if doorwayToExclude.domainFolder not in ['', r'/']:
-            '''Ссылки с других доменов'''
-            for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
-                for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
-                    linksList.extend(doorway.GetDoorLinksList().split('\n'))
+        #if doorwayToExclude.domainFolder not in ['', r'/']:
+        #    '''Ссылки с других доменов'''
+        for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
+            for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
+                linksList.extend(doorway.GetDoorLinksList().split('\n'))
         return '\n'.join(MakeListUnique(linksList))
     def GetIndexCount(self):
         '''Ссылка для проверки индекса по гуглу'''
@@ -1027,7 +1023,7 @@ class DoorLink(models.Model):
     GetSpamTaskState.short_description = 'Spam State'
     GetSpamTaskState.allow_tags = True
 
-class XrumerBaseSpam(BaseXrumerBaseAdv):
+class XrumerBaseSpam(BaseXrumerBase):
     '''База R для спама по топикам'''
     baseType = models.CharField('Base Type', max_length=50, choices=spamBaseTypes, default='RLinksList')
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
@@ -1089,7 +1085,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
 
-class XrumerBaseDoors(BaseXrumerBaseAdv):
+class XrumerBaseDoors(BaseXrumerBase):
     '''База R для доров на форумах'''
     body = models.TextField('Body', default='', blank=True)
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
@@ -1114,7 +1110,7 @@ class XrumerBaseDoors(BaseXrumerBaseAdv):
             data['state'] = 'new'
         super(XrumerBaseDoors, self).SetTaskDetails(data)
 
-class XrumerBaseProfiles(BaseXrumerBaseAdv):
+class XrumerBaseProfiles(BaseXrumerBase):
     '''База профилей'''
     homePage = models.CharField('Home page', max_length=200, default='', blank=True)
     signature = models.CharField('Signature', max_length=200, default='', blank=True)
@@ -1203,13 +1199,28 @@ class IPAddress(BaseDoorObject):
 
 class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера'''
+    parseParams = models.TextField('Parse Params', default='', blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Raw'
-        verbose_name_plural = 'III.3 Xrumer Bases Raw - [act]'
+        verbose_name_plural = 'III.3 Xrumer Bases Raw - [act, managed]'
     def GetXrumerBasesSpamCount(self):
         return GetCounter(self.xrumerbasespam_set, {'active': True, 'stateManaged': 'done'})
     GetXrumerBasesSpamCount.short_description = 'Bases Spam'
     GetXrumerBasesSpamCount.allow_tags = True
+    @classmethod
+    def GetTasksList(self, agent):
+        '''Получение списка задач для агента'''
+        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.GetTaskDetailsCommon()
+        result['parseParams'] = self.parseParams
+        result['snippetsFile'] = self.niche.GetRandomSnippetsSet().localFile
+        result['keywordsList'] = self.niche.GenerateKeywordsList(5000)
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(XrumerBaseRaw, self).SetTaskDetails(data)
 
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
@@ -1227,7 +1238,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
+            return [XrumerBaseRaw, XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
     def AppendParams(self, data):
         '''Добавляем параметры агента в задание'''
         for param in self.params.split('\n'):
