@@ -387,9 +387,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                         linksLists[n] = []
                         domainsCounts[n] = random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax)
             '''Сохраняем нераспределенные остатки'''
-            #for n in range(xrumerBasesSpamCount):
-            #    xrumerBaseSpam = xrumerBasesSpam[n]
-            #    self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
+            for n in range(xrumerBasesSpamCount):
+                xrumerBaseSpam = xrumerBasesSpam[n]
+                self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
         except Exception as error:
             EventLog('error', 'Error in GenerateSpamTasksMultiple', self, error)
 
