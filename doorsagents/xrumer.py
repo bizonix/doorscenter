@@ -150,20 +150,20 @@ class XrumerAgent(agent.BaseAgent):
 ''')
     
         '''Настройки control.exe'''
-        timeout = '30'
-        if 'timeout' in self.currentTask:
-            timeout = self.currentTask['timeout']
+        spamTimeout = '30'
+        if 'spamTimeout' in self.currentTask:
+            spamTimeout = self.currentTask['spamTimeout']
         with open(settingsControl1File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=0
-TimeRange=''' + timeout + '''
+TimeRange=''' + spamTimeout + '''
 ''')
         with open(settingsControl2File, 'w') as fd:
             fd.write('''[Settings]
 ApplicationName=''' + self.appApplication + '''
 Mode=1
-TimeRange=''' + timeout + '''
+TimeRange=''' + spamTimeout + '''
 ''')
     
     def _Settings(self):
