@@ -72,9 +72,9 @@ class XrumerHelperBaseRaw(XrumerHelper):
     
     def ActionOn(self):
         '''Парсим базу'''
-        parseTimeout = 90
+        parseTimeout = 90 * 60
         if 'parseTimeout' in self.currentTask:
-            parseTimeout = int(self.currentTask['parseTimeout'])
+            parseTimeout = int(self.currentTask['parseTimeout']) * 60
         startTopics = self.currentTask['parseParams']
         baseparser.Parse(self.agent.appFolder, startTopics, parseTimeout, self.currentTask['baseNumberMain'])
         '''Содержимое проекта'''
