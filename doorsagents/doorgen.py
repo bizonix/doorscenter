@@ -4,7 +4,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, templateFolder, domain, domainSub, domainFolder, 
-    netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
+    netLinksList, tdsId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: doorLinksList.
     
     В настройках доргена принудительно устанавливаем параметры, см. ниже. Кейворды 

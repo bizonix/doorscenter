@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, AddSiteToPiwik, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -113,7 +113,6 @@ class BaseDoorObjectActivatable(models.Model):
 class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     tdsId = models.IntegerField('Tds', null=True, blank=True)
-    piwikId = models.IntegerField('Pwk', null=True, blank=True)
     redirect = models.BooleanField('Redir.', default=False)
     class Meta:
         abstract = True
@@ -574,12 +573,6 @@ class Net(BaseNet):
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return linksLimit
     def save(self, *args, **kwargs):
-        '''Создаем сайт на Piwik'''
-        try:
-            if self.stateSimple == 'new' and self.piwikId == None:
-                self.piwikId = int(AddSiteToPiwik(self.description))
-        except Exception as error:
-            EventLog('error', 'Cannot add site to Piwik', None, error)
         '''Автогенерация сетки'''
         try:
             if self.stateSimple == 'new' and self.settings == '#gen':
@@ -926,7 +919,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'domainFolder': self.domainFolder,
                 'netLinksList': EncodeListForAgent(self.netLinksList),
                 'tdsId': self.tdsId,
-                'piwikId': self.piwikId,
+                'piwikId': 0,
                 'documentRoot': self.domain.GetDocumentRoot(), 
                 'ftpHost': self.domain.ipAddress.address, 
                 'ftpLogin': self.domain.host.ftpLogin, 
@@ -979,10 +972,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
         try:
             self.tdsId = GetFirstObject([self.tdsId, self.domain.net.tdsId, self.niche.tdsId])
-        except Exception:
-            pass
-        try:
-            self.piwikId = GetFirstObject([self.piwikId, self.domain.net.piwikId, self.niche.piwikId])
         except Exception:
             pass
         '''Если не указаны параметры домена, то пытаемся занять корень. Если не получается,

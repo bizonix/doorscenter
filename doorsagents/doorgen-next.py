@@ -4,8 +4,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainSub, domainFolder, 
-    netLinksList, tdsUrl tdsId, piwikUrl, piwikId, documentRoot, 
-    ftpLogin, ftpPassword, ftpPort.
+    netLinksList, tdsId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: doorLinksList.
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
