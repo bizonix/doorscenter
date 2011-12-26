@@ -3,7 +3,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainFolder, 
+    Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainSub, domainFolder, 
     netLinksList, tdsUrl tdsId, piwikUrl, piwikId, documentRoot, 
     ftpLogin, ftpPassword, ftpPort.
     Выходные: doorLinksList.
@@ -24,7 +24,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.appKeywordsFile = os.path.join(self.appFolder, 'keys' + os.sep + 'keywords.txt')  # файл с кеями 
         self.appNetLinksFile = os.path.join(self.appFolder, 'text' + os.sep + 'netlinks.txt')  # файл со ссылками для перелинковки 
         self.appDoorLinksFile = os.path.join(self.appFolder, 'out' + os.sep + 'jobs_ancor_log.txt')  # файл со сгенерированными ссылками дорвея 
-        self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        if self.currentTask['domainSub'] == '':
+            self.doorwayUrl = 'http://%s%s' % (self.currentTask['domain'], self.currentTask['domainFolder'])
+        else:
+            self.doorwayUrl = 'http://%s.%s%s' % (self.currentTask['domainSub'], self.currentTask['domain'], self.currentTask['domainFolder'])
         if self.doorwayUrl.endswith('/'):
             self.doorwayUrl = self.doorwayUrl[0:-1]
         self.doorwayFolder = self.appFolder + os.sep + 'out' + os.sep + 'jobs' + os.sep + 'door%d' % self._GetCurrentTaskId()
@@ -48,9 +51,12 @@ class DoorgenAgent(agent.BaseAgent):
         tar.close()
         fileObj.seek(0)
         '''Загружаем на FTP'''
-        remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
+        if self.currentTask['domainSub'] == '':
+            remoteFolder = '%s%s' % (self.currentTask['documentRoot'], self.currentTask['domainFolder'])
+        else:
+            remoteFolder = '%s/sub-%s%s' % (self.currentTask['documentRoot'], self.currentTask['domainSub'], self.currentTask['domainFolder'])
         ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
-        if self.currentTask['domainFolder'] != '/':
+        if (self.currentTask['domainSub'] != '') or (self.currentTask['domainFolder'] != '/'):
             try:
                 ftp.mkd(remoteFolder)
             except Exception as error:

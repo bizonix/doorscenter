@@ -3,7 +3,7 @@ import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
 class DoorgenAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
-    Входные: keywordsList, templateFolder, domain, domainFolder, 
+    Входные: keywordsList, templateFolder, domain, domainSub, domainFolder, 
     netLinksList, analyticsId, piwikId, cyclikId, documentRoot, ftpLogin, ftpPassword, ftpPort.
     Выходные: doorLinksList.
     
@@ -12,6 +12,8 @@ class DoorgenAgent(agent.BaseAgent):
     keyword1|[domain]|[ftpLogin]|[ftpPassword]|[documentRoot](os.path.join)[domainFolder]|
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
+    
+    Агент не протестирован на работу с субдоменами.
     
     Минимальное содержимое командного файла cmd.php (для загрузки по FTP в архиве):
     <?php system('tar -zxf bean.tgz'); unlink('bean.tgz'); ?>     
@@ -34,7 +36,10 @@ class DoorgenAgent(agent.BaseAgent):
         self.appDoorLinks2File = os.path.join(self.appFolder, 'links' + os.sep + 'blinks.txt')  # файл со сгенерированными ссылками дорвея 
         self.appDoorLinks3File = os.path.join(self.appFolder, 'links' + os.sep + 'clinks.txt')  # файл со сгенерированными ссылками дорвея 
         self.doneScript = 'D:\\Miscellaneous\\Lodger6\\workspace\\doorscenter\\src\\doorscenter\\doorsagents\\doorgen-done.bat'
-        self.doorwayUrl = 'http://' + self.currentTask['domain'] + self.currentTask['domainFolder']
+        if self.currentTask['domainSub'] == '':
+            self.doorwayUrl = 'http://%s%s' % (self.currentTask['domain'], self.currentTask['domainFolder'])
+        else:
+            self.doorwayUrl = 'http://%s.%s%s' % (self.currentTask['domainSub'], self.currentTask['domain'], self.currentTask['domainFolder'])
         self.doorwayFolder = self.appFolder + os.sep + self.appDoorwayFolder + 'door%d' % self._GetCurrentTaskId()
         if not self.doorwayUrl.endswith('/'):
             self.doorwayUrl += '/'
@@ -149,9 +154,12 @@ class DoorgenAgent(agent.BaseAgent):
         tar.close()
         fileObj.seek(0)
         '''Загружаем на FTP'''
-        remoteFolder = self.currentTask['documentRoot'] + self.currentTask['domainFolder']
+        if self.currentTask['domainSub'] == '':
+            remoteFolder = '%s%s' % (self.currentTask['documentRoot'], self.currentTask['domainFolder'])
+        else:
+            remoteFolder = '%s/sub-%s%s' % (self.currentTask['documentRoot'], self.currentTask['domainSub'], self.currentTask['domainFolder'])
         ftp = ftplib.FTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'])
-        if self.currentTask['domainFolder'] != '/':
+        if (self.currentTask['domainSub'] != '') or (self.currentTask['domainFolder'] != '/'):
             try:
                 ftp.mkd(remoteFolder)
             except Exception as error:
