@@ -562,6 +562,7 @@ class Net(BaseNet):
                                            keywordsSet=self.keywordsSet, 
                                            pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
+                                           domainSub='',
                                            domainFolder='')
                 p.doorLinksCount = int(p.pagesCount * random.uniform(10, 15) / 100.0)  # число ссылок для перелинковки: берем в процентах от количества страниц дора, 
                 p.doorLinksCount = min(max(p.doorLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
@@ -744,12 +745,12 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return self.host.rootDocumentTemplate % self.name
         except:
             return ''
-    def IsFolderFree(self, folderName):
+    def IsFolderFree(self, subName, folderName):
         '''Свободна ли указанная папка?'''
-        return self.doorway_set.filter(domainFolder=folderName).count() == 0
+        return self.doorway_set.filter(Q(domainSub=subName), Q(domainFolder=folderName)).count() == 0
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
-        return self.IsFolderFree('/')
+        return self.IsFolderFree('', '/')
     def GetNetLinksList(self, doorwayToExclude):
         '''Ссылки для перелинковки'''
         linksList = []
@@ -863,6 +864,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
     pagesCount = models.IntegerField('Pgs', null=True)
     domain = models.ForeignKey('Domain', verbose_name='Domain', null=True, blank=True)
+    domainSub = models.CharField('Domain Sub', max_length=200, default='', blank=True)
     domainFolder = models.CharField('Domain Folder', max_length=200, default='', blank=True)
     doorLinksCount = models.IntegerField('Door Links', null=True)  # число ссылок для спама и перелинковки
     spamLinksCount = models.IntegerField('Spam Links', null=True)  # число ссылок для спама (<= doorLinksCount)
@@ -873,7 +875,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         verbose_name = 'Doorway'
         verbose_name_plural = 'II.2 Doorways - [large, managed]'
     def __unicode__(self):
-        return 'http://%s%s' % (self.domain.name, self.domainFolder)
+        if self.domainSub == '':
+            return 'http://%s%s' % (self.domain.name, self.domainFolder)
+        else:
+            return 'http://%s.%s%s' % (self.domainSub, self.domain.name, self.domainFolder)
     def GetNet(self):
         return self.domain.net
     GetNet.short_description = 'Net'
@@ -881,7 +886,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
     def GetUrl(self):
-        return '<a href="http://%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name) 
+        if self.domainSub == '':
+            return '<a href="http://%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name)
+        else:
+            return '<a href="http://%s.%s%s">%s.%s</a>' % (self.domainSub, self.domain.name, self.domainFolder, self.domainSub, self.domain.name) 
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
     def GetLinksCount(self):
@@ -914,7 +922,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'templateFolder': self.template.localFolder, 
                 'doorgenSettings': EncodeListForAgent(''),  # deprecated 
                 'domain': self.domain.name, 
-                'domainFolder': self.domainFolder, 
+                'domainSub': self.domainSub, 
+                'domainFolder': self.domainFolder,
                 'netLinksList': EncodeListForAgent(self.netLinksList),
                 'tdsId': self.tdsId,
                 'piwikId': self.piwikId,
@@ -944,7 +953,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 DoorLink.objects.create(url=url.replace('/index.html', '/sitemap.html'), anchor=anchor, doorway=self, makeSpam=True).save()
             n += 1
         '''Проверяем дор на тошноту'''
-        isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
+        if self.domainSub == '':
+            isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
+        else:
+            isGood, details = nausea.Analyze('http://%s.%s%s' % (self.domainSub, self.domain.name, self.domainFolder), True)
         if not isGood:
             EventLog('warning', details)
             #send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
@@ -973,13 +985,20 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             self.piwikId = GetFirstObject([self.piwikId, self.domain.net.piwikId, self.niche.piwikId])
         except Exception:
             pass
-        '''Если не указана папка домена, то пытаемся занять корень. Если не получается,
+        '''Если не указаны параметры домена, то пытаемся занять корень. Если не получается,
         то придумываем новую папку по названию первого кея из списка'''
-        if self.domainFolder == '':
+        if (self.domainSub == '') and (self.domainFolder == ''):
             if self.domain.IsRootFree():
+                self.domainSub = ''
                 self.domainFolder = r'/'
             else:
-                self.domainFolder = r'/' + KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+                '''генерация дора на субдомене'''
+                self.domainSub = KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+                self.domainFolder = r'/'
+            #else:
+            #    '''генерация дора в папке'''
+            #    self.domainSub = ''
+            #    self.domainFolder = r'/' + KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
         '''Если у домена не указана ниша, то устанавливаем ее'''
         if self.domain.niche == None:
             self.domain.niche = self.niche
