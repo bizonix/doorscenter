@@ -864,6 +864,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     keywordsList = models.TextField('Keywords List', default='', blank=True)
     netLinksList = models.TextField('Net Links', default='', blank=True)  # ссылки сетки для линковки этого дорвея
     makeSpam = models.BooleanField('Sp.', default=True)
+    trafficLastDay = models.IntegerField('Traf/d', null=True, blank=True)
+    trafficLastMonth = models.IntegerField('Traf/m', null=True, blank=True)
+    trafficLastYear = models.IntegerField('Traf/y', null=True, blank=True)
     class Meta:
         verbose_name = 'Doorway'
         verbose_name_plural = 'II.2 Doorways - [large, managed]'
