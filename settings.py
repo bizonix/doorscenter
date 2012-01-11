@@ -78,7 +78,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.transaction.TransactionMiddleware',
 )
 
-ROOT_URLCONF = 'doorscenter.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -94,7 +94,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.admin',
     'doorsadmin',
-    'sapeadmin',
     'south'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

@@ -54,7 +54,6 @@ strIndex = r'''<html>
         &copy 2011 {STAT}{ARANDKEYWORD}{/STAT}. All rights reserved. {INDEXLINK} {SITEMAPLINK}.
       </div>
     </div>
-{PIWIK}
   </body>
 </html>
 '''
@@ -109,7 +108,6 @@ strSitemap = r'''<html>
       </div>
     </div>
   </body>
-{PIWIK}
 </html>
 '''
 

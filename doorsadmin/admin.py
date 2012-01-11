@@ -68,7 +68,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -76,14 +76,14 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'piwikId', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     search_fields = ['description']
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -164,7 +164,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -213,11 +213,11 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsMaxCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
-        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group', 'maxDoorsCount'), ('nameServer1', 'nameServer2', 'useOwnDNS'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
+        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
         ('Net properties', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
         ('Bulk add domains', {'fields': [('bulkAddDomains')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -274,13 +274,13 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     Reset.short_description = "e. Reset domains"
 
 class DoorwayAdmin(BaseAdminManaged):
-    list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetLinksCount', 'makeSpam', 'GetUrl', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetNet', 'template', 'pagesCount', 'GetLinksCount', 'makeSpam', 'GetUrl', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['niche', 'domain__net', 'template', 'stateManaged', 'priority']
     search_fields = ['domain__name']
     fieldsets = [
-        (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainFolder'), ('pagesCount', 'doorLinksCount', 'spamLinksCount', 'makeSpam')]}),
+        (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainSub', 'domainFolder'), ('pagesCount', 'doorLinksCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'piwikId')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

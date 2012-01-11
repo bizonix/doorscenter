@@ -79,16 +79,6 @@ def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
     else:
         return ''
 
-def AddSiteToPiwik(siteName):
-    '''Добавление сайта в Piwik'''
-    try:
-        fd = urllib.urlopen(r'http://searchpro.name/stat/?module=API&method=SitesManager.addSite&siteName=%s&urls=siteUrl.com&format=original&token_auth=6822e43c3b191ead08e76539ef23fa5f' % siteName)
-        reply = fd.read()
-        fd.close()
-        return reply
-    except Exception as error:
-        return str(error)
-
 validChars = "-%s%s" % (string.ascii_letters, string.digits)
 conversion = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
 u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',

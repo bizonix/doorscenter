@@ -1,1 +1,0 @@
-<center><img src="../images/progressbar.gif" border="0"></center>
