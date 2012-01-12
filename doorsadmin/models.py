@@ -114,6 +114,7 @@ class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     tdsId = models.IntegerField('Tds', null=True, blank=True)
     redirect = models.BooleanField('Redir.', default=False)
+    redirectDelay = models.IntegerField('Redir.delay', default=7)
     class Meta:
         abstract = True
 
@@ -706,6 +707,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
+    autoSubdomains = models.BooleanField('Auto subdomains', default=False, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
