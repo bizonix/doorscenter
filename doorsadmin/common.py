@@ -41,6 +41,38 @@ def CountKeywords(path):
             total += 1
     return total
 
+def FindShortKeyword(keywordsList, maxLength = 15):
+    '''Находим в списке кейворд с заданной максимальной длиной'''
+    if len(keywordsList) == 0:
+        return ''
+    random.shuffle(keywordsList)
+    for keyword in keywordsList:
+        keyword = keyword.strip()
+        if len(keyword) <= maxLength:
+            return keyword
+    keyword = keywordsList[0].strip()
+    return keyword[:maxLength]
+
+validChars = "-%s%s" % (string.ascii_letters, string.digits)
+conversion = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
+u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
+u'р':'r',u'с':'s',u'т':'t',u'у':'u',u'ф':'f',u'х':'h',u'ц':'c',u'ч':'ch',u'ш':'sh',
+u'щ':'sch',u'ь' : '',u'ы':'y',u'ь' : '',u'э':'e',u'ю':'ju',u'я':'ja',
+u'А':'a',u'Б':'b',u'В':'v',u'Г':'g',u'Д':'d',u'Е':'e',u'Ё':'e',u'Ж':'zh',u'З':'z',
+u'И':'i',u'Й':'j',u'К':'k',u'Л':'l',u'М':'m',u'Н':'n',u'О':'o',u'П':'p',u'Р':'r',
+u'С':'s',u'Т':'t',u'У':'u',u'Ф':'f',u'Х':'h',u'Ц':'c',u'Ч':'ch',u'Ш':'sh',u'Щ':'sch',
+u'Ъ' : '',u'Ы':'y',u'Ь' : '',u'Э':'e',u'Ю':'ju',u'Я':'ja'}
+
+def KeywordToUrl(keyword):
+    '''Преобразование кея в разрешенные символы URL'''
+    url = ''
+    for c in keyword:
+        if c in validChars:
+            url += c
+        elif c in conversion:
+            url += conversion[c]
+    return slugify(url)        
+
 def AddDomainToControlPanel(domainName, ipAddress, useDNS, controlPanelType, controlPanelUrl, controlPanelServerId):
     '''Добавить домен в панель управления'''
     if controlPanelType == 'ispconfig':
@@ -78,26 +110,6 @@ def DelDomainFromControlPanel(domainName, controlPanelType, controlPanelUrl):
             return str(error)
     else:
         return ''
-
-validChars = "-%s%s" % (string.ascii_letters, string.digits)
-conversion = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
-u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
-u'р':'r',u'с':'s',u'т':'t',u'у':'u',u'ф':'f',u'х':'h',u'ц':'c',u'ч':'ch',u'ш':'sh',
-u'щ':'sch',u'ь' : '',u'ы':'y',u'ь' : '',u'э':'e',u'ю':'ju',u'я':'ja',
-u'А':'a',u'Б':'b',u'В':'v',u'Г':'g',u'Д':'d',u'Е':'e',u'Ё':'e',u'Ж':'zh',u'З':'z',
-u'И':'i',u'Й':'j',u'К':'k',u'Л':'l',u'М':'m',u'Н':'n',u'О':'o',u'П':'p',u'Р':'r',
-u'С':'s',u'Т':'t',u'У':'u',u'Ф':'f',u'Х':'h',u'Ц':'c',u'Ч':'ch',u'Ш':'sh',u'Щ':'sch',
-u'Ъ' : '',u'Ы':'y',u'Ь' : '',u'Э':'e',u'Ю':'ju',u'Я':'ja'}
-
-def KeywordToUrl(key):
-    '''Преобразование кея в разрешенные символы URL'''
-    url = ''
-    for c in key:
-        if c in validChars:
-            url += c
-        elif c in conversion:
-            url += conversion[c]
-    return slugify(url)        
 
 def GetFirstObject(objects):
     '''Первый ненулевой объект из списка'''

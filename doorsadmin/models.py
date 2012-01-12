@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -114,7 +114,7 @@ class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     tdsId = models.IntegerField('Tds', null=True, blank=True)
     redirect = models.BooleanField('Redir.', default=False)
-    redirectDelay = models.IntegerField('Redir.delay', default=7)
+    redirectDelay = models.IntegerField('Redir.delay', default=7, blank=True)
     class Meta:
         abstract = True
 
@@ -562,7 +562,7 @@ class Net(BaseNet):
                                            keywordsSet=self.keywordsSet, 
                                            pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
-                                           domainSub='',
+                                           domainSub='',  # заполнение папки и субдомена вынесено в Doorway.save(), поскольку дорвеи могут создаваться и вручную
                                            domainFolder='')
                 p.doorLinksCount = int(p.pagesCount * random.uniform(10, 15) / 100.0)  # число ссылок для перелинковки: берем в процентах от количества страниц дора, 
                 p.doorLinksCount = min(max(p.doorLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
@@ -707,7 +707,7 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
-    autoSubdomains = models.BooleanField('Auto subdomains', default=False, blank=True)
+    autoSubdomains = models.BooleanField('Auto subdomains', default=True, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
@@ -740,12 +740,12 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return self.host.rootDocumentTemplate % self.name
         except:
             return ''
-    def IsFolderFree(self, subName, folderName):
-        '''Свободна ли указанная папка?'''
+    def IsPathAvailable(self, subName, folderName):
+        '''Свободен ли указанный путь?'''
         return self.doorway_set.filter(Q(domainSub=subName), Q(domainFolder=folderName)).count() == 0
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
-        return self.IsFolderFree('', '/')
+        return self.IsPathAvailable('', '/')
     def GetNetLinksList(self, doorwayToExclude):
         '''Ссылки для перелинковки'''
         linksList = []
@@ -985,14 +985,14 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             if self.domain.IsRootFree():
                 self.domainSub = ''
                 self.domainFolder = r'/'
-            else:
+            elif (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # процент генерации на субдоменах
                 '''генерация дора на субдомене'''
-                self.domainSub = KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+                self.domainSub = KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
                 self.domainFolder = r'/'
-            #else:
-            #    '''генерация дора в папке'''
-            #    self.domainSub = ''
-            #    self.domainFolder = r'/' + KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+            else:
+                '''генерация дора в папке'''
+                self.domainSub = ''
+                self.domainFolder = r'/' + KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
         '''Если у домена не указана ниша, то устанавливаем ее'''
         if self.domain.niche == None:
             self.domain.niche = self.niche
