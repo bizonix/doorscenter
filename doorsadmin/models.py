@@ -985,7 +985,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             if self.domain.IsRootFree():
                 self.domainSub = ''
                 self.domainFolder = r'/'
-            elif (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # процент генерации на субдоменах
+            elif (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # настройка: процент генерации на субдоменах
                 '''генерация дора на субдомене'''
                 self.domainSub = KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
                 self.domainFolder = r'/'
