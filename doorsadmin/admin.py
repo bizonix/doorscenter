@@ -125,7 +125,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateSECount.short_description = "d. Check both GI and YBL"
+    UpdateSECount.short_description = "d. Check index and back links"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -135,7 +135,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "e. Check Google index"
+    UpdateIndexCount.short_description = "e. Check index"
     def UpdateBackLinksCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -145,7 +145,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateBackLinksCount.short_description = "f. Check Yahoo backlinks"
+    UpdateBackLinksCount.short_description = "f. Check backlinks"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
@@ -213,7 +213,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
@@ -235,7 +235,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateSECount.short_description = "a. Check both GI and YBL"
+    UpdateSECount.short_description = "a. Check index and back links"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -244,7 +244,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "b. Check GI only"
+    UpdateIndexCount.short_description = "b. Check index only"
     def UpdateBackLinksCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -253,7 +253,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateBackLinksCount.short_description = "c. Check YBL only"
+    UpdateBackLinksCount.short_description = "c. Check back links only"
     def CheckOwnership(self, request, queryset):
         '''Проверка на то, что домен не отобрали'''
         processed = 0
