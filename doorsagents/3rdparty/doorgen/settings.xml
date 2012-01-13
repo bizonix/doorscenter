@@ -22,7 +22,7 @@
 		<insert_sitemaps_links_in_bbcode_log>FALSE</insert_sitemaps_links_in_bbcode_log>
 		<insert_sitemaps_links_in_bbcode_log_spam>FALSE</insert_sitemaps_links_in_bbcode_log_spam>
 		<generate_sitemap_xml>TRUE</generate_sitemap_xml>
-		<generate_robots_txt>TRUE</generate_robots_txt>
+		<generate_robots_txt>FALSE</generate_robots_txt>
 		<generate_filezilla_project>FALSE</generate_filezilla_project>
 		<enable_packing>FALSE</enable_packing>
 		<upload_ftp>FALSE</upload_ftp>
