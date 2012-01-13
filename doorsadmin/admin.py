@@ -68,7 +68,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -83,7 +83,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -125,7 +125,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateSECount.short_description = "d. Check both GI and YBL"
+    UpdateSECount.short_description = "d. Check index and back links"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -135,7 +135,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "e. Check Google index"
+    UpdateIndexCount.short_description = "e. Check index"
     def UpdateBackLinksCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -145,7 +145,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
                 domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateBackLinksCount.short_description = "f. Check Yahoo backlinks"
+    UpdateBackLinksCount.short_description = "f. Check backlinks"
 
 class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
@@ -164,7 +164,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -213,11 +213,11 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'indexCountDate', 'GetBackLinksCount', 'backLinksCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
-        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
+        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS', 'autoSubdomains'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
         ('Net properties', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
         ('Bulk add domains', {'fields': [('bulkAddDomains')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -235,7 +235,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateSECount.short_description = "a. Check both GI and YBL"
+    UpdateSECount.short_description = "a. Check index and back links"
     def UpdateIndexCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -244,7 +244,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateIndexCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateIndexCount.short_description = "b. Check GI only"
+    UpdateIndexCount.short_description = "b. Check index only"
     def UpdateBackLinksCount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -253,7 +253,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             domain.UpdateBackLinksCount()
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
-    UpdateBackLinksCount.short_description = "c. Check YBL only"
+    UpdateBackLinksCount.short_description = "c. Check back links only"
     def CheckOwnership(self, request, queryset):
         '''Проверка на то, что домен не отобрали'''
         processed = 0
@@ -280,7 +280,7 @@ class DoorwayAdmin(BaseAdminManaged):
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainSub', 'domainFolder'), ('pagesCount', 'doorLinksCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect')], 'classes': ['expanded']}),
+        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

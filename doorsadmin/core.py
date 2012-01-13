@@ -1,5 +1,5 @@
 # coding=utf8
-from django.db.models import Q
+from django.db.models import Max, Q
 from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
 import datetime
 
@@ -8,6 +8,7 @@ def CronHourly():
     RenewSnippets()
     RenewBasesSpam()
     ResumeAfterReg()
+    UpdateIndexCount()
     CheckAgentsActivity()
 
 def CronDaily():
@@ -18,17 +19,18 @@ def CronDaily():
 
 def Helper():
     '''Запуск из командной строки'''
-    #for niche in Niche.objects.filter(active=True).order_by('pk').all():
-    #    niche.GenerateSpamTasksMultiple()
-    #Net.objects.get(pk=269).AddDomains()
-    with open('/home/admin/tmp/domains.txt') as fd:
+    UpdateIndexCount()
+    '''for niche in Niche.objects.filter(active=True).order_by('pk').all():
+        niche.GenerateSpamTasksMultiple()'''
+    '''Net.objects.get(pk=269).AddDomains()'''
+    '''with open('/home/admin/tmp/domains.txt') as fd:
         addDomains = ''.join(fd.readlines())
     domain = Domain.objects.create(name='#', 
                                    host=Host.objects.get(pk=1), 
                                    ipAddress=IPAddress.objects.get(pk=3), 
                                    group='co.cc', 
                                    bulkAddDomains=addDomains)
-    domain.save()
+    domain.save()'''
     pass
 
 def ExpandNets():
@@ -85,15 +87,29 @@ def _ResumeAfterRegEntity(entity):
             item.stateManaged = 'new'
             item.save()
 
-def CheckAgentsActivity():
-    '''Проверяем активность агентов'''
-    dt = datetime.datetime.now()
-    for agent in Agent.objects.filter(active=True).order_by('pk').all():
-        if (agent.stateSimple == 'ok') and (agent.dateLastPing != None) and (agent.dateLastPing + datetime.timedelta(0, agent.interval * 60 * 60, 0) < dt):
-            EventLog('error', 'Agent long inactivity', agent)
-            agent.stateSimple = 'error'
-            agent.save()
-
+def UpdateIndexCount():
+    '''Чекаем индекс доменов в гугле'''
+    '''Проверяем последнюю дату'''
+    lastIndexCountDate = Domain.objects.filter(stateSimple='ok').all().aggregate(xx=Max('indexCountDate'))['xx']
+    delta = datetime.datetime.now() - lastIndexCountDate
+    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 90:  # настройка: интервал парсинга в минутах
+        return
+    '''Апдейтим индекс'''
+    bannedDomains = []
+    domains = Domain.objects.filter(stateSimple='ok').order_by('indexCountDate', 'pk').all()
+    for domain in domains[:100]:  # настройка: по сколько доменов проверять
+        indexCountOld = domain.indexCount
+        domain.UpdateIndexCount()
+        indexCountNew = domain.indexCount
+        if (indexCountNew == 0) and (indexCountOld > 0):
+            bannedDomains.appens(domain.name)
+            domain.active = False
+            domain.stateSimple = 'error'
+            domain.lastError = 'banned'
+            domain.save()
+    if len(bannedDomains) > 0:
+        EventLog('error', 'Domains banned: %s.' % ', '.join(bannedDomains))
+    
 def CheckOwnershipTk():
     '''Проверяем .tk на отбор'''
     processed = 0
@@ -104,6 +120,15 @@ def CheckOwnershipTk():
             print(domain)
         processed += 1
     print("%d checked, %d failed." % (processed, failed))
+
+def CheckAgentsActivity():
+    '''Проверяем активность агентов'''
+    dt = datetime.datetime.now()
+    for agent in Agent.objects.filter(active=True).order_by('pk').all():
+        if (agent.stateSimple == 'ok') and (agent.dateLastPing != None) and (agent.dateLastPing + datetime.timedelta(0, agent.interval * 60 * 60, 0) < dt):
+            EventLog('error', 'Agent long inactivity', agent)
+            agent.stateSimple = 'error'
+            agent.save()
 
 def ClearEventLog():
     '''Удаляем старые записи из лога событий'''

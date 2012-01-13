@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, AddDomainToControlPanel, DelDomainFromControlPanel, KeywordToUrl, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -114,6 +114,7 @@ class BaseDoorObjectTrackable(models.Model):
     '''Объекты, по которым нужно отслеживать статистику'''
     tdsId = models.IntegerField('Tds', null=True, blank=True)
     redirect = models.BooleanField('Redir.', default=False)
+    redirectDelay = models.IntegerField('Redir.delay', default=7, blank=True)
     class Meta:
         abstract = True
 
@@ -483,7 +484,7 @@ class Net(BaseNet):
     GetIndexCount.allow_tags = True
     def GetBackLinksCount(self):
         return ReplaceZero(self.domain_set.aggregate(x = Sum('backLinksCount'))['x'])
-    GetBackLinksCount.short_description = 'YBL'
+    GetBackLinksCount.short_description = 'Backs'
     GetBackLinksCount.allow_tags = True
     def GetTrafficLastDay(self):
         return GetFieldCounter(self.domain_set, 'trafficLastDay')
@@ -561,7 +562,7 @@ class Net(BaseNet):
                                            keywordsSet=self.keywordsSet, 
                                            pagesCount = random.randint(self.minPagesCount, self.maxPagesCount), 
                                            domain=domain, 
-                                           domainSub='',
+                                           domainSub='',  # заполнение папки и субдомена вынесено в Doorway.save(), поскольку дорвеи могут создаваться и вручную
                                            domainFolder='')
                 p.doorLinksCount = int(p.pagesCount * random.uniform(10, 15) / 100.0)  # число ссылок для перелинковки: берем в процентах от количества страниц дора, 
                 p.doorLinksCount = min(max(p.doorLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
@@ -706,12 +707,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
+    autoSubdomains = models.BooleanField('Auto subdomains', default=True, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
-    indexCountDate = models.DateField('Index Date', null=True, blank=True)
-    backLinksCount = models.IntegerField('YBL', null=True, blank=True)
-    backLinksCountDate = models.DateField('YBL Date', null=True, blank=True)
+    indexCountDate = models.DateTimeField('Index Date', null=True, blank=True)
+    backLinksCount = models.IntegerField('Backs', null=True, blank=True)
+    backLinksCountDate = models.DateTimeField('Backs Date', null=True, blank=True)
     trafficLastDay = models.IntegerField('Traf/d', null=True, blank=True)
     trafficLastMonth = models.IntegerField('Traf/m', null=True, blank=True)
     trafficLastYear = models.IntegerField('Traf/y', null=True, blank=True)
@@ -738,12 +740,12 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return self.host.rootDocumentTemplate % self.name
         except:
             return ''
-    def IsFolderFree(self, subName, folderName):
-        '''Свободна ли указанная папка?'''
+    def IsPathAvailable(self, subName, folderName):
+        '''Свободен ли указанный путь?'''
         return self.doorway_set.filter(Q(domainSub=subName), Q(domainFolder=folderName)).count() == 0
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
-        return self.IsFolderFree('', '/')
+        return self.IsPathAvailable('', '/')
     def GetNetLinksList(self, doorwayToExclude):
         '''Ссылки для перелинковки'''
         linksList = []
@@ -766,21 +768,31 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return '<a href="%s">-</a>' % (google.GetIndexLink(self.name))
     GetIndexCount.short_description = 'Index'
     GetIndexCount.allow_tags = True
+    def GetIndexCountDate(self):
+        '''Убираем время из даты'''
+        return self.indexCountDate.strftime('%d.%m.%Y')
+    GetIndexCountDate.short_description = 'Index Date'
+    GetIndexCountDate.allow_tags = True
     def UpdateIndexCount(self):
         '''Проверяем индекс в гугле'''
         self.indexCount = google.GetIndex(self.name)
         self.indexCountDate = datetime.datetime.now()
         self.save()
     def GetBackLinksCount(self):
-        '''Ссылка для проверки YBL'''
+        '''Ссылка для проверки back links'''
         if self.backLinksCount:
             return '<a href="%s">%d</a>' % (yahoo.GetBackLinksLink(self.name), self.backLinksCount)
         else:
             return '<a href="%s">-</a>' % (yahoo.GetBackLinksLink(self.name))
-    GetBackLinksCount.short_description = 'YBL'
+    GetBackLinksCount.short_description = 'Backs'
     GetBackLinksCount.allow_tags = True
+    def GetBackLinksCountDate(self):
+        '''Убираем время из даты'''
+        return self.backLinksCountDate.strftime('%d.%m.%Y')
+    GetBackLinksCountDate.short_description = 'Backs Date'
+    GetBackLinksCountDate.allow_tags = True
     def UpdateBackLinksCount(self):
-        '''Проверяем YBL'''
+        '''Проверяем back links'''
         self.backLinksCount = yahoo.GetBackLinks(self.name)
         self.backLinksCountDate = datetime.datetime.now()
         self.save()
@@ -983,14 +995,14 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             if self.domain.IsRootFree():
                 self.domainSub = ''
                 self.domainFolder = r'/'
-            else:
+            elif (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # настройка: процент генерации на субдоменах
                 '''генерация дора на субдомене'''
-                self.domainSub = KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+                self.domainSub = KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
                 self.domainFolder = r'/'
-            #else:
-            #    '''генерация дора в папке'''
-            #    self.domainSub = ''
-            #    self.domainFolder = r'/' + KeywordToUrl(self.keywordsList[:self.keywordsList.find('\n')])
+            else:
+                '''генерация дора в папке'''
+                self.domainSub = ''
+                self.domainFolder = r'/' + KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
         '''Если у домена не указана ниша, то устанавливаем ее'''
         if self.domain.niche == None:
             self.domain.niche = self.niche
