@@ -768,11 +768,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return '<a href="%s">-</a>' % (google.GetIndexLink(self.name))
     GetIndexCount.short_description = 'Index'
     GetIndexCount.allow_tags = True
+    GetIndexCount.admin_order_field = 'indexCount'
     def GetIndexCountDate(self):
         '''Убираем время из даты'''
         return self.indexCountDate.strftime('%d.%m.%Y')
     GetIndexCountDate.short_description = 'Index Date'
     GetIndexCountDate.allow_tags = True
+    GetIndexCountDate.admin_order_field = 'indexCountDate'
     def UpdateIndexCount(self):
         '''Проверяем индекс в гугле'''
         self.indexCount = google.GetIndex(self.name)
@@ -786,11 +788,13 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
             return '<a href="%s">-</a>' % (yahoo.GetBackLinksLink(self.name))
     GetBackLinksCount.short_description = 'Backs'
     GetBackLinksCount.allow_tags = True
+    GetBackLinksCount.admin_order_field = 'backLinksCount'
     def GetBackLinksCountDate(self):
         '''Убираем время из даты'''
         return self.backLinksCountDate.strftime('%d.%m.%Y')
     GetBackLinksCountDate.short_description = 'Backs Date'
     GetBackLinksCountDate.allow_tags = True
+    GetBackLinksCountDate.admin_order_field = 'backLinksCountDate'
     def UpdateBackLinksCount(self):
         '''Проверяем back links'''
         self.backLinksCount = yahoo.GetBackLinks(self.name)
