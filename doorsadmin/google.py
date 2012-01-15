@@ -1,5 +1,5 @@
 # coding=utf8
-import re, tempfile
+import re
 
 url_home = 'http://www.google.com/'
 url_search = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
@@ -13,7 +13,7 @@ def GetPagesCount(html):
 
 import os, cookielib, urllib, urllib2
 
-cookie_jar = cookielib.LWPCookieJar(os.path.join(tempfile.gettempdir(), cookie_name))
+cookie_jar = cookielib.LWPCookieJar(os.path.join('/home/admin', cookie_name))
 try:
     cookie_jar.load()
 except Exception:

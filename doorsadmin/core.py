@@ -92,17 +92,17 @@ def UpdateIndexCount():
     '''Проверяем последнюю дату'''
     lastIndexCountDate = Domain.objects.filter(stateSimple='ok').all().aggregate(xx=Max('indexCountDate'))['xx']
     delta = datetime.datetime.now() - lastIndexCountDate
-    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 90:  # настройка: интервал парсинга в минутах
+    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка: интервал парсинга в минутах
         return
     '''Апдейтим индекс'''
     bannedDomains = []
     domains = Domain.objects.filter(stateSimple='ok').order_by('indexCountDate', 'pk').all()
-    for domain in domains[:100]:  # настройка: по сколько доменов проверять
+    for domain in domains[:50]:  # настройка: по сколько доменов проверять
         indexCountOld = domain.indexCount
         domain.UpdateIndexCount()
         indexCountNew = domain.indexCount
         if (indexCountNew == 0) and (indexCountOld > 0):
-            bannedDomains.appens(domain.name)
+            bannedDomains.append(domain.name)
             domain.active = False
             domain.stateSimple = 'error'
             domain.lastError = 'banned'
