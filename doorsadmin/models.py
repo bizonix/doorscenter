@@ -7,6 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.locations import GetRandomLocation
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
@@ -999,14 +1000,18 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
             if self.domain.IsRootFree():
                 self.domainSub = ''
                 self.domainFolder = r'/'
-            elif (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # настройка: процент генерации на субдоменах
-                '''генерация дора на субдомене'''
-                self.domainSub = KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
-                self.domainFolder = r'/'
             else:
-                '''генерация дора в папке'''
-                self.domainSub = ''
-                self.domainFolder = r'/' + KeywordToUrl(FindShortKeyword(self.keywordsList.split('\n')))
+                subName = FindShortKeyword(self.keywordsList.split('\n'))
+                if random.randint(0, 100) < 90: # настройка: процент выбора из списка городов
+                    subName = GetRandomLocation()
+                if (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # настройка: процент генерации на субдоменах
+                    '''генерация дора на субдомене'''
+                    self.domainSub = KeywordToUrl(subName)
+                    self.domainFolder = r'/'
+                else:
+                    '''генерация дора в папке'''
+                    self.domainSub = ''
+                    self.domainFolder = r'/' + KeywordToUrl(subName)
         '''Если у домена не указана ниша, то устанавливаем ее'''
         if self.domain.niche == None:
             self.domain.niche = self.niche
