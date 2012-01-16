@@ -1,17 +1,18 @@
 <?php
 
-AddDomain($_POST['domainName'], $_POST['ipAddress'], $_POST['useDNS'], $_POST['controlPanelUrl'], $_POST['controlPanelServerId']);
-//AddDomain('test-xxx.com', '1.1.1.1', true, 'http://searchpro.name:15671', 2);
+if (isset($_POST['domainName']))
+  AddDomain($_POST['domainName'], $_POST['ipAddress'], $_POST['useDNS'], $_POST['controlPanelUrl'], $_POST['controlPanelServerId']);
+AddDomain('test-xxx.com', '1.1.1.1', false, 'http://searchpro.name:15671', 1);
 
 function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlPanelServerId) {
 	// common params
 	$client_id = 0;
 	$ns1_name = 'ns1.ralenc.net';
 	$ns2_name = 'ns2.ralenc.net';
-	$ns1_ip_address = '178.79.184.225';
+	$ns1_ip_address = '95.211.7.10';
 	//$ns2_ip_address = '';
-	$ns1_server_id = 2;
-	$ns2_server_id = 3;
+	$ns1_server_id = 4;
+	$ns2_server_id = 4;
 	
 	// domain params
 	$params['server_id'] = $controlPanelServerId;
@@ -38,6 +39,7 @@ function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlP
 	$params['system_group'] = '1';
 	$params['allow_override'] = 'All';
 	$params['document_root'] = '/home/admin';
+	$params['apache_directives'] = "ServerAlias *.{$domainName}\nRewriteEngine On\nRewriteCond %{HTTP_HOST} !^www.{$domainName}$\nRewriteCond %{HTTP_HOST} ^((.*)\.){$domainName}$\nRewriteRule ^/(.*) /sub-%2/$1";
 	$params['php_open_basedir'] = '/home/admin';
 	$params['stats_type'] = 'webalizer';
 	$params['backup_copies'] = 1;
@@ -106,6 +108,8 @@ function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlP
 			$client->dns_a_add($session_id, $client_id, $params2);
 			$params2['name'] = 'mail';
 			$client->dns_a_add($session_id, $client_id, $params2);
+			$params2['name'] = '*';
+			$client->dns_a_add($session_id, $client_id, $params2);
 			// ns record
 			$params2['type'] = 'NS';
 			$params2['name'] = $domainName.'.';
@@ -119,8 +123,8 @@ function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlP
 			$params2['data'] = 'mail.'.$domainName.'.';
 			$params2['aux'] = 10;
 			$client->dns_mx_add($session_id, $client_id, $params2);
-			// slave dns
-			$slave_id = $client->dns_zone_slave_add($session_id, $client_id, $params3);
+			// slave dns - commented because my master and slave dns servers are the same
+			// $slave_id = $client->dns_zone_slave_add($session_id, $client_id, $params3);
 		}
 		// logout
 		$client->logout($session_id);

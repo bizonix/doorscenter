@@ -16,32 +16,12 @@ def GenDomainNamesPast(zone, count, niche = None):
     domainNames3 = [name for name in domainNames2 if domainNames2[name]]
     return domainNames3
 
-def GenDomainNamesSape(zone, count):
-    '''Выбираем имена из списков tryname для sape по Хопкинсу'''
-    lines = []
-    for fileName in glob.glob('/home/sasch/temp/names-try/*.txt'):
-        for line in open(fileName, 'r'):
-            lines.append(line.strip())
-    random.shuffle(lines)
-    domainNames = ['%s%d%s' % (line, random.randint(10, 99), zone) for line in lines[:count]]
-    return domainNames
-
-names = GenDomainNamesPast('.info', 30)
+names = GenDomainNamesPast('.info', 20)
 print('*** past common (%d) ***' % len(names))
 print('\n'.join(names))
 print('')
 
-names = GenDomainNamesPast('.info', 30, 'dat')
+names = GenDomainNamesPast('.info', 20, 'dat')
 print('*** past dat (%d) ***' % len(names))
-print('\n'.join(names))
-print('')
-
-names = GenDomainNamesPast('.info', 30, 'gay')
-print('*** past gay (%d) ***' % len(names))
-print('\n'.join(names))
-print('')
-
-names = GenDomainNamesSape('.ru', 20)
-print('*** sape (%d) ***' % len(names))
 print('\n'.join(names))
 print('')
