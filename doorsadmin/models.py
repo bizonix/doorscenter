@@ -900,9 +900,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     GetTemplateType.short_description = 'Template Type'
     def GetUrl(self):
         if self.domainSub == '':
-            return '<a href="http://%s%s">%s</a>' % (self.domain.name, self.domainFolder, self.domain.name)
+            return '<a href="http://%s%s">%s%s</a>' % (self.domain.name, self.domainFolder, self.domain.name, self.domainFolder)
         else:
-            return '<a href="http://%s.%s%s">%s.%s</a>' % (self.domainSub, self.domain.name, self.domainFolder, self.domainSub, self.domain.name) 
+            return '<a href="http://%s.%s%s">%s.%s%s</a>' % (self.domainSub, self.domain.name, self.domainFolder, self.domainSub, self.domain.name, self.domainFolder)
     GetUrl.short_description = 'Link'
     GetUrl.allow_tags = True
     def GetLinksCount(self):
