@@ -7,23 +7,34 @@ from django.template.defaultfilters import slugify
 class Pagegen(threading.Thread):
     '''Генератор страницы дора'''
     
-    def __init__(self, doorgen, queue, contents):
+    def __init__(self, doorgen, queue, template):
         '''Инициализация'''
         threading.Thread.__init__(self)
         self.daemon = True
         self.doorgen = doorgen
         self.queue = queue
-        self.contents = contents
+        self.template = template
         self.validChars = "-%s%s" % (string.ascii_letters, string.digits)
-        self.conversion = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
-        u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
-        u'р':'r',u'с':'s',u'т':'t',u'у':'u',u'ф':'f',u'х':'h',u'ц':'c',u'ч':'ch',u'ш':'sh',
-        u'щ':'sch',u'ь':'',u'ы':'y',u'ь':'',u'э':'e',u'ю':'ju',u'я':'ja',
-        u'А':'a',u'Б':'b',u'В':'v',u'Г':'g',u'Д':'d',u'Е':'e',u'Ё':'e',u'Ж':'zh',u'З':'z',
-        u'И':'i',u'Й':'j',u'К':'k',u'Л':'l',u'М':'m',u'Н':'n',u'О':'o',u'П':'p',u'Р':'r',
-        u'С':'s',u'Т':'t',u'У':'u',u'Ф':'f',u'Х':'h',u'Ц':'c',u'Ч':'ch',u'Ш':'sh',u'Щ':'sch',
-        u'Ъ':'',u'Ы':'y',u'Ь':'',u'Э':'e',u'Ю':'ju',u'Я':'ja',
-        ' ':'-'}
+        self.conversionDict = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
+            u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
+            u'р':'r',u'с':'s',u'т':'t',u'у':'u',u'ф':'f',u'х':'h',u'ц':'c',u'ч':'ch',u'ш':'sh',
+            u'щ':'sch',u'ь':'',u'ы':'y',u'ь':'',u'э':'e',u'ю':'ju',u'я':'ja',
+            u'А':'a',u'Б':'b',u'В':'v',u'Г':'g',u'Д':'d',u'Е':'e',u'Ё':'e',u'Ж':'zh',u'З':'z',
+            u'И':'i',u'Й':'j',u'К':'k',u'Л':'l',u'М':'m',u'Н':'n',u'О':'o',u'П':'p',u'Р':'r',
+            u'С':'s',u'Т':'t',u'У':'u',u'Ф':'f',u'Х':'h',u'Ц':'c',u'Ч':'ch',u'Ш':'sh',u'Щ':'sch',
+            u'Ъ':'',u'Ы':'y',u'Ь':'',u'Э':'e',u'Ю':'ju',u'Я':'ja',
+            ' ':'-'}
+        self.macrosDict = {'BOSKEYWORD':self.GetPageKeyword, 'ABOSKEYWORD':self.GetPageKeyword, 'BBOSKEYWORD':self.GetPageKeyword, 'CBOSKEYWORD':self.GetPageKeyword, 
+            'KEYWORD':self.GetPageKeyword, 'BKEYWORD':self.GetPageKeyword, 'BBKEYWORD':self.GetPageKeyword, 
+            'RANDKEYWORD':self.GetRandomKeyword, 'ARANDKEYWORD':self.GetRandomKeyword, 'BRANDKEYWORD':self.GetRandomKeyword, 'CRANDKEYWORD':self.GetRandomKeyword, 
+            'RAND_KEY':self.GetRandomKeyword, 'BRAND_KEY':self.GetRandomKeyword, 'BBRAND_KEY':self.GetRandomKeyword, 
+            'RANDLINK':self.GetRandomIntLink, 'ARANDLINK':self.GetRandomIntLink, 'BRANDLINK':self.GetRandomIntLink, 'CRANDLINK':self.GetRandomIntLink, 
+            'RAND_ANCOR':self.GetRandomIntLink, 'BRAND_ANCOR':self.GetRandomIntLink, 'BBRAND_ANCOR':self.GetRandomIntLink, 
+            'RAND_URL':self.GetRandomIntLinkUrl, 'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 
+            'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 'RAND':self.GetRandomNumber, 'DOR_HOST':self.GetDorHost, 
+            'INDEX':self.GetIndexLink, 'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks,
+            'FOR':self.ProcessCycle, 'FORX':self.ProcessCycle, 
+            }
     
     def run(self):
         '''Получаем страницы из очереди на генерацию'''
@@ -39,8 +50,8 @@ class Pagegen(threading.Thread):
             for c in keyword:
                 if c in self.validChars:
                     url += c
-                elif c in self.conversion:
-                    url += self.conversion[c]
+                elif c in self.conversionDict:
+                    url += self.conversionDict[c]
         else:
             url = 'index'
         return slugify(url) + self.doorgen.pageExtension
@@ -60,125 +71,144 @@ class Pagegen(threading.Thread):
         
     '''Обработка макросов'''
     
-    def GetMainKeyword(self, macrosName, macrosArgsList, after):
+    def GetMainKeyword(self, macrosName, macrosArgsList):
         '''Главный кейворд'''
         keyword = self.doorgen.keywordMain
         kind = macrosName.replace('BOSKEYWORD', '').replace('KEYWORD', '')
-        return self._Capitalize(keyword, kind), after
+        return self._Capitalize(keyword, kind)
     
-    def GetPageKeyword(self, macrosName, macrosArgsList, after):
+    def GetPageKeyword(self, macrosName, macrosArgsList):
         '''Кейворд страницы'''
         keyword = self.keywordPage
         kind = macrosName.replace('BOSKEYWORD', '').replace('KEYWORD', '')
-        return self._Capitalize(keyword, kind), after
+        return self._Capitalize(keyword, kind)
     
-    def GetRandomKeyword(self, macrosName, macrosArgsList, after):
+    def GetRandomKeyword(self, macrosName, macrosArgsList):
         '''Случайный кейворд'''
         keyword = random.choice(self.doorgen.keywordsListFull)
         kind = macrosName.replace('RANDKEYWORD', '').replace('RAND_KEY', '')
-        return self._Capitalize(keyword, kind), after
+        return self._Capitalize(keyword, kind)
     
-    def GetRandomNumber(self, macrosName, macrosArgsList, after):
+    def GetRandomNumber(self, macrosName, macrosArgsList):
         '''Случайное число'''
-        return str(random.randint(int(macrosArgsList[0]), int(macrosArgsList[1]))), after
+        return str(random.randint(int(macrosArgsList[0]), int(macrosArgsList[1])))
     
-    def GetRandomIntLinkUrl(self, macrosName, macrosArgsList, after):
+    def GetRandomIntLinkUrl(self, macrosName, macrosArgsList):
         '''Случайный внутренний короткий урл'''
         keyword = random.choice(self.doorgen.keywordsListFull)
-        return self._KeywordToUrl(keyword), after
+        return self._KeywordToUrl(keyword)
     
-    def GetRandomIntLink(self, macrosName, macrosArgsList, after):
+    def GetRandomIntLink(self, macrosName, macrosArgsList):
         '''Случайный внутренний анкор'''
         keyword = random.choice(self.doorgen.keywordsListFull)
         kind = macrosName.replace('RANDLINK', '').replace('RAND_ANCOR', '')
-        return '<a href="%s">%s</a>' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, kind)), after
+        return '<a href="%s">%s</a>' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, kind))
     
-    def GetRandomNetLink(self, macrosName, macrosArgsList, after):
+    def GetRandomNetLink(self, macrosName, macrosArgsList):
         '''Случайная внешний анкор'''
-        return random.choice(self.doorgen.netLinksList), after
+        return random.choice(self.doorgen.netLinksList)
     
-    def GetRandomTextLine(self, macrosName, macrosArgsList, after):
+    def GetRandomTextLine(self, macrosName, macrosArgsList):
         '''Случайная строка из файла'''
         fileName = os.path.join(self.doorgen.textPath, macrosArgsList[0])
-        return random.choice(self.doorgen._GetFileLines(fileName)), after
+        return random.choice(self.doorgen._GetFileLines(fileName))
     
-    def GetRandomSnippet(self, macrosName, macrosArgsList, after):
+    def GetRandomSnippet(self, macrosName, macrosArgsList):
         '''Случайный сниппет'''
         fileName = os.path.join(self.doorgen.snippetsPath, macrosArgsList[0])
-        return random.choice(self.doorgen._GetFileLines(fileName)), after
+        return random.choice(self.doorgen._GetFileLines(fileName))
     
-    def GetIndexLink(self, macrosName, macrosArgsList, after):
+    def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
-        if self.keywordPage != self.doorgen.keywordMain:
-            return '<a href="index%s">%s</a>' % (self.doorgen.pageExtension, self.doorgen.keywordMain.title()), after
-        else:
-            return '', after
-        
-    def GetSitemapLink(self, macrosName, macrosArgsList, after):
-        '''Анкор на карту сайта'''
         if self.keywordPage == self.doorgen.keywordMain:
-            return '<a href="sitemap%s">Sitemap</a>' % self.doorgen.pageExtension, after
-        else:
-            return '', after
+            return ''
+        return '<a href="index%s">%s</a>' % (self.doorgen.pageExtension, self.doorgen.keywordMain.title())
+        
+    def GetSitemapLink(self, macrosName, macrosArgsList):
+        '''Анкор на карту сайта'''
+        if self.keywordPage != self.doorgen.keywordMain:
+            return ''
+        return '<a href="sitemap%s">Sitemap</a>' % self.doorgen.pageExtension
     
-    def GetSitemapLinks(self, macrosName, macrosArgsList, after):
+    def GetSitemapLinks(self, macrosName, macrosArgsList):
         '''Анкоры на все страницы дора для карты сайта'''
-        if self.keywordPage == 'sitemap':
-            s = ''
-            for keyword in self.doorgen.keywordsListShort:
-                s += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), keyword.title())
-            return s, after
-        else:
-            return '', after
+        if self.keywordPage != 'sitemap':
+            return ''
+        result = ''
+        for keyword in self.doorgen.keywordsListShort:
+            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), keyword.title())
+        return result
     
-    def GetDorHost(self, macrosName, macrosArgsList, after):
+    def GetDorHost(self, macrosName, macrosArgsList):
         '''Хост дора'''
-        return urlparse.urlparse(self.doorgen.url).hostname, after
-    
-    def ProcessCycle(self, macrosName, macrosArgsList, after):
-        '''Обрабатываем цикл'''
-        macrosEnd = '{' + macrosName.replace('FOR', 'ENDFOR') + '}'
-        macrosCounter = '{I' + macrosName.replace('FOR', '') + '}'
-        body, _, after = after.partition(macrosEnd)
-        contents = ''
-        for counter in range(int(macrosArgsList[0]), int(macrosArgsList[1]) + 1):
-            contents += self.ProcessContents(body.replace(macrosCounter, str(counter)))
-        return contents, after
+        return urlparse.urlparse(self.doorgen.url).hostname
     
 
     '''Обработка страницы'''
     
-    def ProcessContents(self, contents):
+    def ProcessMacrosRegex(self, m):
+        '''Обрабатываем макрос, найденный регекспом'''
+        macrosName =  m.groups()[0]
+        if macrosName in self.macrosDict:
+            macrosArgsList = m.groups()[1:]
+            macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
+            return self.macrosDict[macrosName](macrosName, macrosArgsList)
+        else:
+            self.doorgen.macrosUnknown.add(macrosName)
+            return ''
+    
+    def ProcessCycle(self, macrosName, macrosArgsList, source):
+        '''Обрабатываем цикл'''
+        macrosEnd = '{' + macrosName.replace('FOR', 'ENDFOR') + '}'
+        macrosCounter = '{I' + macrosName.replace('FOR', '') + '}'
+        body, _, source = source.partition(macrosEnd)
+        result = ''
+        for counter in range(int(macrosArgsList[0]), int(macrosArgsList[1]) + 1):
+            result += self.ProcessTemplate(body.replace(macrosCounter, str(counter)))
+        return result, source
+    
+    def ProcessTemplate(self, source):
         '''Заменяем макросы на странице'''
-        macrosDict = {'BOSKEYWORD':self.GetPageKeyword, 'ABOSKEYWORD':self.GetPageKeyword, 'BBOSKEYWORD':self.GetPageKeyword, 'CBOSKEYWORD':self.GetPageKeyword, 
-                      'KEYWORD':self.GetPageKeyword, 'BKEYWORD':self.GetPageKeyword, 'BBKEYWORD':self.GetPageKeyword, 
-                      'RANDKEYWORD':self.GetRandomKeyword, 'ARANDKEYWORD':self.GetRandomKeyword, 'BRANDKEYWORD':self.GetRandomKeyword, 'CRANDKEYWORD':self.GetRandomKeyword, 
-                      'RAND_KEY':self.GetRandomKeyword, 'BRAND_KEY':self.GetRandomKeyword, 'BBRAND_KEY':self.GetRandomKeyword, 
-                      'RANDLINK':self.GetRandomIntLink, 'ARANDLINK':self.GetRandomIntLink, 'BRANDLINK':self.GetRandomIntLink, 'CRANDLINK':self.GetRandomIntLink, 
-                      'RAND_ANCOR':self.GetRandomIntLink, 'BRAND_ANCOR':self.GetRandomIntLink, 'BBRAND_ANCOR':self.GetRandomIntLink, 
-                      'RAND_URL':self.GetRandomIntLinkUrl, 'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 
-                      'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 'RAND':self.GetRandomNumber, 'DOR_HOST':self.GetDorHost, 
-                      'INDEX':self.GetIndexLink, 'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks,
-                      'FOR':self.ProcessCycle, 'FORX':self.ProcessCycle, 
-                      }
-        while True:
-            before, macrosName, macrosArgsList, after = FindMacros(contents)
-            macrosArgsList = [self.ProcessContents(item) for item in macrosArgsList]
+        if source == '':
+            return ''
+        '''Процессинг циклов'''
+        for macrosToProcess in ['FORX', 'FOR']:
+            result = ''
+            while True:
+                sourceBefore, macrosName, macrosArgsList, source = FindMacros(source, macrosToProcess)
+                if macrosName == '':
+                    result += source
+                    break
+                macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
+                x, source = self.ProcessCycle(macrosName, macrosArgsList, source)
+                result += self.ProcessTemplate(sourceBefore) + self.ProcessTemplate(x)
+            source = result
+        result = source
+        '''Процессинг макросов без вложенности в аргументах'''
+        result = re.sub(r'{([A-Z]*?)}', self.ProcessMacrosRegex, result)
+        result = re.sub(r'{([A-Z]*?)\(([^{},\)]*)\)}', self.ProcessMacrosRegex, result)
+        result = re.sub(r'{([A-Z]*?)\(([^{},\)]*),([^{},\)]*)\)}', self.ProcessMacrosRegex, result)
+        result = re.sub(r'{([A-Z]*?)\(([^{},\)]*),([^{},\)]*),([^{},\)]*)\)}', self.ProcessMacrosRegex, result)
+        result = re.sub(r'{([A-Z]*?)\(([^{},\)]*),([^{},\)]*),([^{},\)]*),([^{},\)]*)\)}', self.ProcessMacrosRegex, result)
+        '''Процессинг остальных макросов'''
+        '''while True:
+            sourceBefore, macrosName, macrosArgsList, source = FindMacros(source)
             if macrosName == '':
+                result += source
                 break
-            elif macrosName in macrosDict:
-                x, after = macrosDict[macrosName](macrosName, macrosArgsList, after)
-                contents = before + self.ProcessContents(x) + after
-                contents = before + x + after
+            elif macrosName in self.macrosDict:
+                macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
+                x, source = self.macrosDict[macrosName](macrosName, macrosArgsList, source)
+                result += sourceBefore + self.ProcessTemplate(x)
             else:
                 self.doorgen.macrosUnknown.add(macrosName)
-                contents = before + after
-        return contents
+                result += sourceBefore'''
+        return result
     
     def Generate(self, keywordPage):
         '''Формируем страницу'''
         self.keywordPage = keywordPage
-        pageContents = self.ProcessContents(self.contents)
+        pageContents = self.ProcessTemplate(self.template)
         pageFileName = os.path.join(self.doorgen.localPath, self._KeywordToUrl(self.keywordPage))
         codecs.open(pageFileName, 'w', encoding='cp1251', errors='ignore').write(pageContents)
 
@@ -190,7 +220,7 @@ class Doorgen(object):
         '''Инициализация'''
         self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
         self.textPath = os.path.join(self.basePath, r'text')
-        self.snippetsPath = r'C:/Work/snippets'
+        self.snippetsPath = r'C:\Work\snippets'
         self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
         self.netLinksFile = os.path.join(self.basePath, r'text\netlinks.txt')
         self.pageExtension = '.html'
@@ -229,17 +259,17 @@ class Doorgen(object):
         self.netLinksList = [item.strip() for item in codecs.open(self.netLinksFile, encoding='cp1251', errors='ignore').readlines()]
         
         '''Формируем страницы дора и карту сайта в HTML'''
-        indexContents = codecs.open(os.path.join(self.templatePath, 'index.html'), encoding='cp1251', errors='ignore').read()
+        indexTemplateContents = codecs.open(os.path.join(self.templatePath, 'index.html'), encoding='cp1251', errors='ignore').read()
         queue = Queue.Queue()
         for keywordPage in self.keywordsListShort:
             queue.put(keywordPage)
         for _ in range(2):
-            Pagegen(self, queue, indexContents).start()
-        time.sleep(5)
+            Pagegen(self, queue, indexTemplateContents).start()
+        #time.sleep(5)
         queue.join()
-        #sitemapContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
+        #sitemapTemplateContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
         #self.keywordPage = 'sitemap'
-        #self.ProcessPage(sitemapContents)
+        #self.ProcessPage(sitemapTemplateContents)
         
         '''Карта сайта в XML'''
         #with open(os.path.join(self.localPath, 'sitemap.xml'), 'w') as fd:

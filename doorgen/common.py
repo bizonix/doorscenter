@@ -1,11 +1,10 @@
 # coding=utf8
-import sys
+import re
 
-def FindMacros(contents):
+def FindMacros(source, macrosName = ''):
     '''Находим очередной макрос'''
-    if contents.find('{') >= 0:
-        before, _, x = contents.partition('{')
-        macrosName = ''
+    if source.find('{' + macrosName) >= 0:
+        before, _, x = source.partition('{' + macrosName)
         macrosArgsList = []
         '''Идем по скобкам'''
         macrosNamePosBegin = 0
@@ -42,11 +41,15 @@ def FindMacros(contents):
             if (level1 == 0) and (level2 == 0):
                 macrosEnd = n
                 break
-        macrosName = x[macrosNamePosBegin:macrosNamePosEnd].upper()
+        macrosName = (macrosName + x[macrosNamePosBegin:macrosNamePosEnd]).upper()
         after = x[macrosEnd + 1:]
         return before, macrosName, macrosArgsList, after
     else:
-        return '', '', [], ''
+        return '', '', [], source
+
+def FindMacros2(source):
+    '''Находим очередной макрос регекспом'''
+    
 
 '''
 print(FindMacros('123456'))
