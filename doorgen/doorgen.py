@@ -4,16 +4,18 @@ import threading, Queue, time
 from common import FindMacros
 from django.template.defaultfilters import slugify
 
-class Pagegen(threading.Thread):
-    '''Генератор страницы дора'''
+class Doorgen(object):
+    '''Дорген'''
     
-    def __init__(self, doorgen, queue, template):
+    def __init__(self):
         '''Инициализация'''
-        threading.Thread.__init__(self)
-        self.daemon = True
-        self.doorgen = doorgen
-        self.queue = queue
-        self.template = template
+        self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
+        self.textPath = os.path.join(self.basePath, r'text')
+        self.snippetsPath = r'C:\Work\snippets'
+        self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
+        self.netLinksFile = os.path.join(self.basePath, r'text\netlinks.txt')
+        self.pageExtension = '.html'
+        self.filesCache = {}
         self.validChars = "-%s%s" % (string.ascii_letters, string.digits)
         self.conversionDict = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
             u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
@@ -36,17 +38,10 @@ class Pagegen(threading.Thread):
             'FOR':self.ProcessCycle, 'FORX':self.ProcessCycle, 
             }
     
-    def run(self):
-        '''Получаем страницы из очереди на генерацию'''
-        while True:
-            keywordPage = self.queue.get() 
-            self.Generate(keywordPage)
-            self.queue.task_done()
-        
     def _KeywordToUrl(self, keyword):
         '''Преобразование кея в URL'''
         url = ''
-        if keyword != self.doorgen.keywordMain:
+        if keyword != self.keywordMain:
             for c in keyword:
                 if c in self.validChars:
                     url += c
@@ -54,7 +49,7 @@ class Pagegen(threading.Thread):
                     url += self.conversionDict[c]
         else:
             url = 'index'
-        return slugify(url) + self.doorgen.pageExtension
+        return slugify(url) + self.pageExtension
     
     def _Capitalize(self, keyword, kind):
         '''Капитализация'''
@@ -69,11 +64,19 @@ class Pagegen(threading.Thread):
         else:
             return ''
         
+    def _GetCachedFileLines(self, fileName):
+        '''Читаем и кэшируем строки из файла'''
+        if fileName not in self.filesCache:
+            self.filesCache[fileName] = ['']
+            if os.path.exists(fileName):
+                self.filesCache[fileName] = [item.strip() for item in codecs.open(fileName, encoding='cp1251', errors='ignore').readlines()]
+        return self.filesCache[fileName]
+    
     '''Обработка макросов'''
     
     def GetMainKeyword(self, macrosName, macrosArgsList):
         '''Главный кейворд'''
-        keyword = self.doorgen.keywordMain
+        keyword = self.keywordMain
         kind = macrosName.replace('BOSKEYWORD', '').replace('KEYWORD', '')
         return self._Capitalize(keyword, kind)
     
@@ -85,7 +88,7 @@ class Pagegen(threading.Thread):
     
     def GetRandomKeyword(self, macrosName, macrosArgsList):
         '''Случайный кейворд'''
-        keyword = random.choice(self.doorgen.keywordsListFull)
+        keyword = random.choice(self.keywordsListFull)
         kind = macrosName.replace('RANDKEYWORD', '').replace('RAND_KEY', '')
         return self._Capitalize(keyword, kind)
     
@@ -95,55 +98,54 @@ class Pagegen(threading.Thread):
     
     def GetRandomIntLinkUrl(self, macrosName, macrosArgsList):
         '''Случайный внутренний короткий урл'''
-        keyword = random.choice(self.doorgen.keywordsListFull)
+        keyword = random.choice(self.keywordsListFull)
         return self._KeywordToUrl(keyword)
     
     def GetRandomIntLink(self, macrosName, macrosArgsList):
         '''Случайный внутренний анкор'''
-        keyword = random.choice(self.doorgen.keywordsListFull)
+        keyword = random.choice(self.keywordsListFull)
         kind = macrosName.replace('RANDLINK', '').replace('RAND_ANCOR', '')
         return '<a href="%s">%s</a>' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, kind))
     
     def GetRandomNetLink(self, macrosName, macrosArgsList):
         '''Случайная внешний анкор'''
-        return random.choice(self.doorgen.netLinksList)
+        return random.choice(self.netLinksList)
     
     def GetRandomTextLine(self, macrosName, macrosArgsList):
         '''Случайная строка из файла'''
-        fileName = os.path.join(self.doorgen.textPath, macrosArgsList[0])
-        return random.choice(self.doorgen._GetFileLines(fileName))
+        fileName = os.path.join(self.textPath, macrosArgsList[0])
+        return random.choice(self._GetCachedFileLines(fileName))
     
     def GetRandomSnippet(self, macrosName, macrosArgsList):
         '''Случайный сниппет'''
-        fileName = os.path.join(self.doorgen.snippetsPath, macrosArgsList[0])
-        return random.choice(self.doorgen._GetFileLines(fileName))
+        fileName = os.path.join(self.snippetsPath, macrosArgsList[0])
+        return random.choice(self._GetCachedFileLines(fileName))
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
-        if self.keywordPage == self.doorgen.keywordMain:
+        if self.keywordPage == self.keywordMain:
             return ''
-        return '<a href="index%s">%s</a>' % (self.doorgen.pageExtension, self.doorgen.keywordMain.title())
+        return '<a href="index%s">%s</a>' % (self.pageExtension, self.keywordMain.title())
         
     def GetSitemapLink(self, macrosName, macrosArgsList):
         '''Анкор на карту сайта'''
-        if self.keywordPage != self.doorgen.keywordMain:
+        if self.keywordPage != self.keywordMain:
             return ''
-        return '<a href="sitemap%s">Sitemap</a>' % self.doorgen.pageExtension
+        return '<a href="sitemap%s">Sitemap</a>' % self.pageExtension
     
     def GetSitemapLinks(self, macrosName, macrosArgsList):
         '''Анкоры на все страницы дора для карты сайта'''
         if self.keywordPage != 'sitemap':
             return ''
         result = ''
-        for keyword in self.doorgen.keywordsListShort:
+        for keyword in self.keywordsListShort:
             result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), keyword.title())
         return result
     
     def GetDorHost(self, macrosName, macrosArgsList):
         '''Хост дора'''
-        return urlparse.urlparse(self.doorgen.url).hostname
+        return urlparse.urlparse(self.url).hostname
     
-
     '''Обработка страницы'''
     
     def ProcessMacrosRegex(self, m):
@@ -154,7 +156,7 @@ class Pagegen(threading.Thread):
             macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
             return self.macrosDict[macrosName](macrosName, macrosArgsList)
         else:
-            self.doorgen.macrosUnknown.add(macrosName)
+            self.macrosUnknown.add(macrosName)
             return ''
     
     def ProcessCycle(self, macrosName, macrosArgsList, source):
@@ -169,8 +171,6 @@ class Pagegen(threading.Thread):
     
     def ProcessTemplate(self, source):
         '''Заменяем макросы на странице'''
-        if source == '':
-            return ''
         '''Процессинг циклов'''
         for macrosToProcess in ['FORX', 'FOR']:
             result = ''
@@ -201,39 +201,17 @@ class Pagegen(threading.Thread):
                 x, source = self.macrosDict[macrosName](macrosName, macrosArgsList, source)
                 result += sourceBefore + self.ProcessTemplate(x)
             else:
-                self.doorgen.macrosUnknown.add(macrosName)
+                self.macrosUnknown.add(macrosName)
                 result += sourceBefore'''
         return result
     
-    def Generate(self, keywordPage):
+    def GeneratePage(self, template, keywordPage):
         '''Формируем страницу'''
         self.keywordPage = keywordPage
-        pageContents = self.ProcessTemplate(self.template)
-        pageFileName = os.path.join(self.doorgen.localPath, self._KeywordToUrl(self.keywordPage))
+        pageContents = self.ProcessTemplate(template)
+        pageFileName = os.path.join(self.localPath, self._KeywordToUrl(self.keywordPage))
         codecs.open(pageFileName, 'w', encoding='cp1251', errors='ignore').write(pageContents)
 
-
-class Doorgen(object):
-    '''Дорген'''
-    
-    def __init__(self):
-        '''Инициализация'''
-        self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
-        self.textPath = os.path.join(self.basePath, r'text')
-        self.snippetsPath = r'C:\Work\snippets'
-        self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
-        self.netLinksFile = os.path.join(self.basePath, r'text\netlinks.txt')
-        self.pageExtension = '.html'
-        self.filesCache = {}
-
-    def _GetFileLines(self, fileName):
-        '''Читаем и кэшируем строки из файла'''
-        if fileName not in self.filesCache:
-            self.filesCache[fileName] = ['']
-            if os.path.exists(fileName):
-                self.filesCache[fileName] = [item.strip() for item in codecs.open(fileName, encoding='cp1251', errors='ignore').readlines()]
-        return self.filesCache[fileName]
-    
     def Generate(self, templatePath, pagesCount, localPath, url):
         '''Параметры генерации'''
         self.templatePath = os.path.join(self.basePath, templatePath)
@@ -260,31 +238,24 @@ class Doorgen(object):
         
         '''Формируем страницы дора и карту сайта в HTML'''
         indexTemplateContents = codecs.open(os.path.join(self.templatePath, 'index.html'), encoding='cp1251', errors='ignore').read()
-        sitemapTemplateContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
-        queue1 = Queue.Queue()
-        queue2 = Queue.Queue()
         for keywordPage in self.keywordsListShort:
-            queue1.put(keywordPage)
-        for _ in range(1):
-            Pagegen(self, queue1, indexTemplateContents).start()
-        queue2.put('sitemap')
-        Pagegen(self, queue2, sitemapTemplateContents).start()
-        queue1.join()
-        queue2.join()
+            self.GeneratePage(indexTemplateContents, keywordPage)
+        sitemapTemplateContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
+        self.GeneratePage(sitemapTemplateContents, 'sitemap')
         
         '''Карта сайта в XML'''
-        #with open(os.path.join(self.localPath, 'sitemap.xml'), 'w') as fd:
-        #    fd.write('''<?xml version="1.0" encoding="UTF-8"?>
-        #<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-        #''')
-        #    for keyword in self.keywordsListShort:
-        #        fd.write('''   <url>
-        #      <loc>%s</loc>
-        #      <lastmod>%s</lastmod>
-        #      <changefreq>weekly</changefreq>
-        #      <priority>0.5</priority>
-        #   </url>\n''' % (self.url + self._KeywordToUrl(keyword), datetime.date.today().strftime('%Y-%m-%d')))
-        #    fd.write('''</urlset>''')
+        with open(os.path.join(self.localPath, 'sitemap.xml'), 'w') as fd:
+            fd.write('''<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+        ''')
+            for keyword in self.keywordsListShort:
+                fd.write('''   <url>
+              <loc>%s</loc>
+              <lastmod>%s</lastmod>
+              <changefreq>weekly</changefreq>
+              <priority>0.5</priority>
+           </url>\n''' % (self.url + self._KeywordToUrl(keyword), datetime.date.today().strftime('%Y-%m-%d')))
+            fd.write('''</urlset>''')
         
         '''Отчет о проделанной работе'''
         if len(self.macrosUnknown) > 0:
