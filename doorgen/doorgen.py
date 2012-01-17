@@ -260,16 +260,17 @@ class Doorgen(object):
         
         '''Формируем страницы дора и карту сайта в HTML'''
         indexTemplateContents = codecs.open(os.path.join(self.templatePath, 'index.html'), encoding='cp1251', errors='ignore').read()
-        queue = Queue.Queue()
+        sitemapTemplateContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
+        queue1 = Queue.Queue()
+        queue2 = Queue.Queue()
         for keywordPage in self.keywordsListShort:
-            queue.put(keywordPage)
-        for _ in range(2):
-            Pagegen(self, queue, indexTemplateContents).start()
-        #time.sleep(5)
-        queue.join()
-        #sitemapTemplateContents = codecs.open(os.path.join(self.templatePath, 'dp_sitemap.html'), encoding='cp1251', errors='ignore').read()
-        #self.keywordPage = 'sitemap'
-        #self.ProcessPage(sitemapTemplateContents)
+            queue1.put(keywordPage)
+        for _ in range(1):
+            Pagegen(self, queue1, indexTemplateContents).start()
+        queue2.put('sitemap')
+        Pagegen(self, queue2, sitemapTemplateContents).start()
+        queue1.join()
+        queue2.join()
         
         '''Карта сайта в XML'''
         #with open(os.path.join(self.localPath, 'sitemap.xml'), 'w') as fd:
@@ -292,7 +293,7 @@ class Doorgen(object):
 
 
 doorgen = Doorgen()
-doorgen.Generate(r'templ\mamba-en', 100, r'out\jobs\door8773-new', 'http://lormont.wikidating.info/')
+doorgen.Generate(r'templ\mamba-en', 800, r'out\jobs\door8773-new', 'http://lormont.wikidating.info/')
 
 '''TODO:
 1. add_page_key
