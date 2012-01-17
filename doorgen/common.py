@@ -1,5 +1,4 @@
 # coding=utf8
-import re
 
 def FindMacros(source, macrosName = ''):
     '''Находим очередной макрос'''
@@ -47,9 +46,6 @@ def FindMacros(source, macrosName = ''):
     else:
         return '', '', [], source
 
-def FindMacros2(source):
-    '''Находим очередной макрос регекспом'''
-    
 
 '''
 print(FindMacros('123456'))
