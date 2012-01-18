@@ -1023,6 +1023,8 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Если не указан желаемый агент, берем из шаблона'''
         if (self.agent == None) and (self.template != None):
             self.agent = self.template.agent
+            if self.agent.description.find('aggress') < 0: # если дорген не агресс, то подбираем по хосту домена
+                self.agent = Agent.objects.get(Q(type='doorgen'), Q(host=self.domain.host))
         super(Doorway, self).save(*args, **kwargs)
 
 class DoorLink(models.Model):
@@ -1254,6 +1256,7 @@ class XrumerBaseRaw(BaseXrumerBase):
 
 class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     type = models.CharField('Agent Type', max_length=50, choices = agentTypes)
+    host = models.ForeignKey('Host', verbose_name='Host', null=True, blank=True)
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)
     dateLastPing = models.DateTimeField('Last Ping', null=True, blank=True)
     interval = models.IntegerField('Warning, h.', null=True, default=3)
