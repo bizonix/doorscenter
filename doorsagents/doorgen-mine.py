@@ -2,7 +2,7 @@
 import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 from doorgen.doorgen import Doorgen
 
-class DoorgenAgent(agent.BaseAgent):
+class DoorgenMineAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainSub, domainFolder, 
     netLinksList, tdsId, documentRoot, ftpLogin, ftpPassword, ftpPort.
@@ -16,11 +16,10 @@ class DoorgenAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        #self.appFolder = r'C:\Program Files\Apache Software Foundation\Apache2.2\htdocs\doorgen'  # папка с приложением
-        self.appFolder = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'  # папка с приложением
+        self.appFolder = os.path.dirname(os.path.abspath(__file__)) + '/3rdparty/doorgen'  # папка с приложением
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
         self.appTextFolder = os.path.join(self.appFolder, 'text')  # папка с текстовыми файлами
-        self.appSnippetsFolder = r'C:\Work\snippets'  # папка со сниппетами
+        self.appSnippetsFolder = os.path.dirname(os.path.abspath(__file__)) + '/snippets'  # папка со сниппетами
         if self.currentTask['domainSub'] == '':
             self.doorwayUrl = 'http://%s%s' % (self.currentTask['domain'], self.currentTask['domainFolder'])
         else:
@@ -71,4 +70,4 @@ class DoorgenAgent(agent.BaseAgent):
         return True
 
 if __name__ == '__main__':
-    agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 4)
+    agent = DoorgenMineAgent('http://searchpro.name/doorscenter/doorsadmin')

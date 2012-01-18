@@ -36,15 +36,17 @@ SetTaskDetails. Все строки должны передаваться в к�
 class BaseAgent(object):
     '''Базовый класс агентов'''
     
-    def __init__(self, adminUrl, agentId):
+    def __init__(self, adminUrl):
         '''Конструктор'''
-        self.agentId = agentId
+        self.agentNumberFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'Number'
+        self.currentTaskFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'CurrentTask'
+        self.maintenanceFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'Maintenance'
+
         self.adminUrl = adminUrl
+        self.agentId = int(open(self.agentNumberFileName).read().strip())
         self.actionUrl = r'%s/agents/%d/' % (self.adminUrl, self.agentId)
         
         self.currentTask = None
-        self.currentTaskFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'CurrentTask'
-        self.maintenanceFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'Maintenance'
         self._LoadCurrentTaskData()
         self._ProcessCommandLine()
     

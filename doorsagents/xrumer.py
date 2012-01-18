@@ -262,4 +262,4 @@ TimeRange=''' + spamTimeout + '''
         return True
 
 if __name__ == '__main__':
-    agent = XrumerAgent('http://searchpro.name/doorscenter/doorsadmin', 3)
+    agent = XrumerAgent('http://searchpro.name/doorscenter/doorsadmin')

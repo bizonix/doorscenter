@@ -1,7 +1,7 @@
 # coding=utf8
 import os, shutil, urllib, ftplib, io, tarfile, datetime, agent, common, tplgen
 
-class DoorgenAgent(agent.BaseAgent):
+class DoorgenAggressAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, templateFolder, domain, domainSub, domainFolder, 
     netLinksList, tdsId, documentRoot, ftpLogin, ftpPassword, ftpPort.
@@ -252,4 +252,4 @@ class DoorgenAgent(agent.BaseAgent):
         return True
 
 if __name__ == '__main__':
-    agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 1)
+    agent = DoorgenAggressAgent('http://searchpro.name/doorscenter/doorsadmin')

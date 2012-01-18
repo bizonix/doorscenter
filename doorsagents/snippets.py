@@ -42,4 +42,4 @@ class SnippetsAgent(agent.BaseAgent):
         return True
 
 if __name__ == '__main__':
-    agent = SnippetsAgent('http://searchpro.name/doorscenter/doorsadmin', 2)
+    agent = SnippetsAgent('http://searchpro.name/doorscenter/doorsadmin')
