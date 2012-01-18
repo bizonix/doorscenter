@@ -1,19 +1,17 @@
 # coding=utf8
-import os, random, string, re, codecs, shutil, glob, datetime, urlparse
+import os, random, string, re, codecs, datetime, urlparse
 from common import FindMacros
 from doorway import Doorway
 from django.template.defaultfilters import slugify
-import cProfile, pstats
 
 class Doorgen(object):
     '''Дорген'''
     
     def __init__(self, templatesPath, textPath, snippetsPath):
         '''Инициализация'''
-        self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
-        self.templatesPath = os.path.join(self.basePath, r'templ')
-        self.textPath = os.path.join(self.basePath, r'text')
-        self.snippetsPath = r'C:\Work\snippets'
+        self.templatesPath = templatesPath
+        self.textPath = textPath
+        self.snippetsPath = snippetsPath
         self.pageExtension = '.html'
         self.rx0 = re.compile(r'{([A-Z0-9_/]*?)}')
         self.rx1 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}')
@@ -296,7 +294,7 @@ class Doorgen(object):
         print('Done in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
         return self.doorway
 
-def Test():
+if __name__ == '__main__':
     templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\templ'
     textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text'
     snippetsPath = r'C:\Work\snippets'
@@ -304,16 +302,8 @@ def Test():
     netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 100, 'http://oneshop.info/123')
     #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
-
-if __name__ == '__main__':
-    Test()
-    #cProfile.run('Test()', 'profiling')
-    '''p = pstats.Stats('profiling')
-    p.print_callers()
-    p.sort_stats('time')
-    p.print_stats()'''
 
 
 '''TODO:
@@ -321,5 +311,4 @@ if __name__ == '__main__':
 2. разные даты в карте сайта xml
 3. оставлять неизвестные макросы
 4. Список последовательно выполняемыех макросов.
-
 '''

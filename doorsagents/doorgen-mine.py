@@ -70,4 +70,4 @@ class DoorgenAgent(agent.BaseAgent):
         return True
 
 if __name__ == '__main__':
-    agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 5)
+    agent = DoorgenAgent('http://searchpro.name/doorscenter/doorsadmin', 4)
