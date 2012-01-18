@@ -2,6 +2,7 @@
 import os, random, string, re, codecs, shutil, glob, datetime, urlparse
 from common import FindMacros
 from django.template.defaultfilters import slugify
+import cProfile
 
 class Doorgen(object):
     '''Дорген'''
@@ -9,6 +10,8 @@ class Doorgen(object):
     def __init__(self):
         '''Инициализация'''
         self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
+        self.templatesPath = os.path.join(self.basePath, r'templ')
+        self.outPath = os.path.join(self.basePath, r'out\jobs')
         self.textPath = os.path.join(self.basePath, r'text')
         self.snippetsPath = r'C:\Work\snippets'
         self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
@@ -29,8 +32,8 @@ class Doorgen(object):
             'RANDKEYWORD':self.GetRandomKeyword, 'ARANDKEYWORD':self.GetRandomKeyword, 'BRANDKEYWORD':self.GetRandomKeyword, 'CRANDKEYWORD':self.GetRandomKeyword, 
             'RANDLINK':self.GetRandomIntLink, 'ARANDLINK':self.GetRandomIntLink, 'BRANDLINK':self.GetRandomIntLink, 'CRANDLINK':self.GetRandomIntLink, 
             'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 
-            'RAND':self.GetRandomNumber, 'DOR_HOST':self.GetDorHost, 'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks,
-            'VARIATION':self.GetVariation}
+            'RAND':self.GetRandomNumber, 'COUNTRAND':self.GetLastRandomNumber, 'DOR_HOST':self.GetDorHost, 'VARIATION':self.GetVariation, 
+            'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks}
     
     def _KeywordToUrl(self, keyword):
         '''Преобразование кея в URL'''
@@ -92,7 +95,12 @@ class Doorgen(object):
     
     def GetRandomNumber(self, macrosName, macrosArgsList):
         '''Случайное число'''
-        return str(random.randint(int(macrosArgsList[0]), int(macrosArgsList[1])))
+        self.lastRandomNumber = random.randint(int(macrosArgsList[0]), int(macrosArgsList[1]))
+        return str(self.lastRandomNumber)
+    
+    def GetLastRandomNumber(self, macrosName, macrosArgsList):
+        '''Предыдущее случайное число'''
+        return str(self.lastRandomNumber)
     
     def GetRandomIntLinkUrl(self, macrosName, macrosArgsList):
         '''Случайный внутренний короткий урл'''
@@ -112,12 +120,12 @@ class Doorgen(object):
     def GetRandomTextLine(self, macrosName, macrosArgsList):
         '''Случайная строка из файла'''
         fileName = os.path.join(self.textPath, macrosArgsList[0])
-        return random.choice(self._GetCachedFileLines(fileName))
+        return self.PreprocessTemplate(random.choice(self._GetCachedFileLines(fileName)))
     
     def GetRandomSnippet(self, macrosName, macrosArgsList):
         '''Случайный сниппет'''
         fileName = os.path.join(self.snippetsPath, macrosArgsList[0])
-        return random.choice(self._GetCachedFileLines(fileName))
+        return self.PreprocessTemplate(random.choice(self._GetCachedFileLines(fileName)))
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
@@ -176,7 +184,7 @@ class Doorgen(object):
                 for counter in range(int(macrosArgsList[0]), int(macrosArgsList[1]) + 1):
                     template += self.ProcessTemplate(body.replace(macrosCounter, str(counter)))
                 template += self.ProcessTemplate(rest)
-        '''Процессинг макросов без вложенности в аргументах'''
+        '''Быстрый процессинг макросов регекспами'''
         if template.find('{') < 0:
             return template
         template = re.sub(r'{([A-Z0-9_/]*?)}', self.ProcessMacrosRegex, template)
@@ -187,7 +195,7 @@ class Doorgen(object):
             return template
         template = re.sub(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*)\)}', self.ProcessMacrosRegex, template)
         '''Процессинг остальных макросов'''
-        while True:
+        '''while True:
             if template.find('{') < 0:
                 return template
             templateBefore, macrosFull, macrosName, macrosArgsList, template = FindMacros(template)
@@ -198,7 +206,7 @@ class Doorgen(object):
                 template = templateBefore + self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList)) + template
             else:
                 self.macrosUnknown.add(macrosFull)
-                template = templateBefore + template
+                template = templateBefore + template'''
         return template
     
     def PreprocessTemplate(self, template):
@@ -222,17 +230,18 @@ class Doorgen(object):
         pageFileName = os.path.join(self.localPath, self._KeywordToUrl(self.keywordPage))
         codecs.open(pageFileName, 'w', encoding='cp1251', errors='ignore').write(pageContents)
 
-    def Generate(self, templatePath, pagesCount, localPath, url):
+    def Generate(self, template, pagesCount, localFolder, url):
         '''Параметры генерации'''
-        self.templatePath = os.path.join(self.basePath, templatePath)
+        self.templatePath = os.path.join(self.templatesPath, template)
         self.pagesCount = pagesCount
-        self.localPath = os.path.join(self.basePath, localPath)
+        self.localPath = os.path.join(self.outPath, localFolder)
         self.url = url
         
         '''Начинаем'''
         dateTimeStart = datetime.datetime.now()
         self.macrosUnknown = set()
         self.filesCache = {}
+        self.lastRandomNumber = 0;
         
         '''Очищаем папку дора. Копируем все файлы из шаблона в папку дора, за исключением index.html и dp_sitemap.html'''
         if os.path.exists(self.localPath):
@@ -266,9 +275,14 @@ class Doorgen(object):
             print('Unknown macros (%d): %s.' % (len(self.macrosUnknown), ', '.join(list(self.macrosUnknown))))
         print('Done in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
 
+def Test():
+    doorgen = Doorgen()
+    doorgen.Generate('mamba-en', 100, 'door8773-new', 'http://lormont.wikidating.info/')
 
-doorgen = Doorgen()
-doorgen.Generate(r'templ\mouse-gay-en', 800, r'out\jobs\door8773-new', 'http://lormont.wikidating.info/')
+if __name__ == '__main__':
+    cProfile.run('Test()')
+    #Test()
+
 
 '''TODO:
 1. add_page_key
