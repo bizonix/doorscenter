@@ -253,7 +253,6 @@ class Doorgen(object):
         templatePath = os.path.join(self.templatesPath, template)
         
         '''Инициализация'''
-        print('Generating ...')
         dateTimeStart = datetime.datetime.now()
         self.filesCache = {}
         self.keywordsUrlDict = {}
@@ -291,7 +290,7 @@ class Doorgen(object):
         '''Отчет о проделанной работе'''
         if len(self.macrosUnknown) > 0:
             print('Unknown macros (%d): %s.' % (len(self.macrosUnknown), ', '.join(list(self.macrosUnknown))))
-        print('Done in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
+        print('Generated in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
         return self.doorway
 
 if __name__ == '__main__':

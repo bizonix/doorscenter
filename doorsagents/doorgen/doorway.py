@@ -4,11 +4,11 @@ import os, io, tarfile, cStringIO, ftplib, urllib, datetime
 class Doorway(object):
     '''Дорвей'''
     
-    def __init__(self, url):
+    def __init__(self, url, mode=':gz'):
         '''Инициализация'''
         self.url = url
         self.tarFileObj = io.BytesIO()
-        self.tarFile = tarfile.open('', 'w:gz', fileobj=self.tarFileObj)
+        self.tarFile = tarfile.open('', 'w' + mode, fileobj=self.tarFileObj)
         self.closed = False
         self.htaccessContents = '''RemoveHandler .html
 AddType application/x-httpd-php .php .html'''
@@ -54,16 +54,19 @@ unlink('bean.tgz');
         '''Сохраняем дорвей в виде архива'''
         self._Close()
         self.tarFileObj.seek(0)
-        print('Saving ...')
         with open(fileName, 'wb') as fd:
             fd.write(self.tarFileObj.read())
         print('Done')
+    
+    def SaveToFolder(self, folderName):
+        '''Сохраняем дорвей в папку'''
+        self._Close()
+        self.tarFile.extractall(folderName)
     
     def UploadToFTP(self, host, login, password, remotePath):
         '''Загружаем архив с дорвеем на FTP и распаковываем там'''
         self._Close()
         self.tarFileObj.seek(0)
-        print('Uploading ...')
         dateTimeStart = datetime.datetime.now()
         '''Пытаемся создать папку и установить нужные права'''
         ftp = ftplib.FTP(host, login, password)
@@ -94,5 +97,5 @@ unlink('bean.tgz');
             urllib.urlopen(self.url + '/cmd.php')
         except Exception as error:
             print(error)
-        print('Done in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
+        print('Uploaded in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
     
