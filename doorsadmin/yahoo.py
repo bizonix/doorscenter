@@ -1,5 +1,5 @@
 # coding=utf8
-import re
+import re, tempfile
 
 url_home = 'http://www.yahoo.com/'
 url_search = 'http://siteexplorer.search.yahoo.com/search?p=%s&bwm=i&bwmf=s&bwmo=&fr=yfp-t-701&fr2=seo-rd-se'
@@ -15,7 +15,7 @@ def GetBackLinksCount(html):
 
 import os, cookielib, urllib, urllib2
 
-cookie_jar = cookielib.LWPCookieJar(os.path.join('/home/admin', cookie_name))
+cookie_jar = cookielib.LWPCookieJar(os.path.join(tempfile.gettempdir(), cookie_name))
 try:
     cookie_jar.load()
 except Exception:
