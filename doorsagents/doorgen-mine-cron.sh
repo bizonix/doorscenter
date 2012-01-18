@@ -1,0 +1,1 @@
+python2.6 /home/admin/searchpro.name/doorscenter/doorsagents/doorgen-mine.py cron >> /var/www/test.net/web/doorgen-mine.log
