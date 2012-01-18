@@ -40,11 +40,12 @@ def FindMacros(source, macrosName = ''):
             if (level1 == 0) and (level2 == 0):
                 macrosEnd = n
                 break
+        macrosFull = '{' + macrosName + x[:macrosEnd + 1]
         macrosName = (macrosName + x[macrosNamePosBegin:macrosNamePosEnd]).upper()
         after = x[macrosEnd + 1:]
-        return before, macrosName, macrosArgsList, after
+        return before, macrosFull, macrosName, macrosArgsList, after
     else:
-        return '', '', [], source
+        return '', '', '', [], source
 
 
 '''
