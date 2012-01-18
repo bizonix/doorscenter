@@ -1,21 +1,19 @@
 # coding=utf8
 import os, random, string, re, codecs, shutil, glob, datetime, urlparse
 from common import FindMacros
+from doorway import Doorway
 from django.template.defaultfilters import slugify
 import cProfile, pstats
 
 class Doorgen(object):
     '''Дорген'''
     
-    def __init__(self):
+    def __init__(self, templatesPath, textPath, snippetsPath):
         '''Инициализация'''
         self.basePath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen'
         self.templatesPath = os.path.join(self.basePath, r'templ')
-        self.outPath = os.path.join(self.basePath, r'out\jobs')
         self.textPath = os.path.join(self.basePath, r'text')
         self.snippetsPath = r'C:\Work\snippets'
-        self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
-        self.netLinksFile = os.path.join(self.basePath, r'text\netlinks.txt')
         self.pageExtension = '.html'
         self.rx0 = re.compile(r'{([A-Z0-9_/]*?)}')
         self.rx1 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}')
@@ -147,7 +145,7 @@ class Doorgen(object):
         '''Анкор на индекс'''
         if self.keywordPage == self.keywordDoor:
             return ''
-        return '<a href="index%s">%s</a>' % (self.pageExtension, self._Capitalize(self.keywordDoor, 'B'))
+        return '<a href="index%s">%s</a>' % (self.pageExtension, self._Capitalize(self.keywordDoor, 'A'))
         
     def GetSitemapLink(self, macrosName, macrosArgsList):
         '''Анкор на карту сайта'''
@@ -161,12 +159,12 @@ class Doorgen(object):
             return ''
         result = ''
         for keyword in self.keywordsListShort:
-            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, 'B'))
+            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, 'A'))
         return result
     
     def GetDorHost(self, macrosName, macrosArgsList):
         '''Хост дора'''
-        return urlparse.urlparse(self.url).hostname
+        return urlparse.urlparse(self.doorway.url).hostname
     
     def GetVariation(self, macrosName, macrosArgsList):
         '''Вариация'''
@@ -243,17 +241,21 @@ class Doorgen(object):
         '''Формируем страницу'''
         self.keywordPage = keywordPage
         pageContents = self.ProcessTemplate(template)
-        pageFileName = os.path.join(self.localPath, self._KeywordToUrl(self.keywordPage))
-        codecs.open(pageFileName, 'w', encoding='cp1251', errors='ignore').write(pageContents)
+        pageFileName = self._KeywordToUrl(keywordPage)
+        self.doorway.AddPage(pageFileName, pageContents)
+        '''Добавляем в список страниц'''
+        link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, self._Capitalize(keywordPage, ''))
+        if keywordPage != 'sitemap':
+            self.pageLinksList.append(link)
+        else:
+            self.pageLinksList.insert(1, link)
 
-    def Generate(self, template, pagesCount, localFolder, url):
-        '''Параметры генерации'''
-        self.templatePath = os.path.join(self.templatesPath, template)
-        self.pagesCount = pagesCount
-        self.localPath = os.path.join(self.outPath, localFolder)
-        self.url = url
+    def Generate(self, keywordsList, netLinksList, template, pagesCount, url):
+        '''Генерируем дор'''
+        templatePath = os.path.join(self.templatesPath, template)
         
-        '''Начинаем'''
+        '''Инициализация'''
+        print('Generating ...')
         dateTimeStart = datetime.datetime.now()
         self.filesCache = {}
         self.keywordsUrlDict = {}
@@ -263,42 +265,47 @@ class Doorgen(object):
         self.keywordsCapitDict = {}
         self.lastRandomNumber = 0;
         self.macrosUnknown = set()
-        
-        '''Очищаем папку дора. Копируем все файлы из шаблона в папку дора, за исключением index.html и dp_sitemap.html'''
-        if os.path.exists(self.localPath):
-            shutil.rmtree(self.localPath)
-        shutil.copytree(self.templatePath, self.localPath)
-        for fileName in glob.glob(os.path.join(self.localPath, 'dp_*')):
-            os.remove(fileName)
-        
-        '''Читаем кейворды и ссылки. Обрабатываем кейворды'''
-        self.keywordsListFull = [item.strip() for item in self._GetFileContents(self.keywordsFile).split('\n')]
-        self.keywordsListShort = self.keywordsListFull[:self.pagesCount]
+
+        self.keywordsListFull = [item.strip() for item in keywordsList]
+        self.keywordsListShort = self.keywordsListFull[:pagesCount]
         self.keywordDoor = self.keywordsListShort[0]
-        self.netLinksList = [item.strip() for item in self._GetFileContents(self.netLinksFile).split('\n')]
+        self.netLinksList = [item.strip() for item in netLinksList]
+        self.pageLinksList = []
+        
+        '''Начинаем создание дора'''
+        self.doorway = Doorway(url)
+        self.doorway.InitTemplate(templatePath)
         
         '''Формируем страницы дора и карту сайта в HTML'''
-        indexTemplateContents = self._GetFileContents(os.path.join(self.templatePath, 'index.html'), True)
+        indexTemplateContents = self._GetFileContents(os.path.join(templatePath, 'index.html'), True)
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
-        sitemapTemplateContents = self._GetFileContents(os.path.join(self.templatePath, 'dp_sitemap.html'), True)
+        sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'), True)
         self.GeneratePage(sitemapTemplateContents, 'sitemap')
         
         '''Карта сайта в XML'''
-        with open(os.path.join(self.localPath, 'sitemap.xml'), 'w') as fd:
-            fd.write('''<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n''')
-            for keyword in self.keywordsListShort:
-                fd.write('''  <url>\n    <loc>%s</loc>\n    <lastmod>%s</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>\n''' % (self.url + self._KeywordToUrl(keyword), datetime.date.today().strftime('%Y-%m-%d')))
-            fd.write('''</urlset>''')
+        sitemap = '''<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'''
+        for keyword in self.keywordsListShort:
+            sitemap += '''  <url>\n    <loc>%s</loc>\n    <lastmod>%s</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>\n''' % (url + self._KeywordToUrl(keyword), datetime.date.today().strftime('%Y-%m-%d'))
+        sitemap += '''</urlset>'''
+        self.doorway.AddPage('sitemap.xml', sitemap)
         
         '''Отчет о проделанной работе'''
         if len(self.macrosUnknown) > 0:
             print('Unknown macros (%d): %s.' % (len(self.macrosUnknown), ', '.join(list(self.macrosUnknown))))
         print('Done in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
+        return self.doorway
 
 def Test():
-    doorgen = Doorgen()
-    doorgen.Generate('mamba-en', 10000, 'door8773-new', 'http://lormont.wikidating.info/')
+    templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\templ'
+    textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text'
+    snippetsPath = r'C:\Work\snippets'
+    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\keys\keywords.txt', encoding='cp1251', errors='ignore').readlines()
+    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
+    
+    doorgen = Doorgen(templatesPath, textPath, snippetsPath)
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
+    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
 
 if __name__ == '__main__':
     Test()
@@ -313,5 +320,6 @@ if __name__ == '__main__':
 1. add_page_key
 2. разные даты в карте сайта xml
 3. оставлять неизвестные макросы
-4. COUNTRAND
+4. Список последовательно выполняемыех макросов.
+
 '''
