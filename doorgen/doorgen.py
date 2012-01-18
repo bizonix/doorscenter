@@ -2,7 +2,7 @@
 import os, random, string, re, codecs, shutil, glob, datetime, urlparse
 from common import FindMacros
 from django.template.defaultfilters import slugify
-import cProfile
+import cProfile, pstats
 
 class Doorgen(object):
     '''Дорген'''
@@ -17,6 +17,10 @@ class Doorgen(object):
         self.keywordsFile = os.path.join(self.basePath, r'keys\keywords.txt')
         self.netLinksFile = os.path.join(self.basePath, r'text\netlinks.txt')
         self.pageExtension = '.html'
+        self.rx0 = re.compile(r'{([A-Z0-9_/]*?)}')
+        self.rx1 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}')
+        self.rx2 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*)\)}')
+        
         self.validChars = "-%s%s" % (string.ascii_letters, string.digits)
         self.conversionDict = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
             u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
@@ -37,40 +41,52 @@ class Doorgen(object):
     
     def _KeywordToUrl(self, keyword):
         '''Преобразование кея в URL'''
-        url = ''
-        if keyword != self.keywordDoor:
+        if keyword == self.keywordDoor:
+            return 'index' + self.pageExtension
+        if keyword not in self.keywordsUrlDict:
+            url = ''
             for c in keyword:
                 if c in self.validChars:
                     url += c
                 elif c in self.conversionDict:
                     url += self.conversionDict[c]
-        else:
-            url = 'index'
-        return slugify(url) + self.pageExtension
+            self.keywordsUrlDict[keyword] = slugify(url) + self.pageExtension
+        return self.keywordsUrlDict[keyword]
     
     def _Capitalize(self, keyword, kind):
         '''Капитализация'''
         if kind == '':
-            return keyword.lower()
+            if keyword not in self.keywordsLowerDict:
+                self.keywordsLowerDict[keyword] = keyword.lower()
+            return self.keywordsLowerDict[keyword]
         elif kind == 'A':
-            return keyword.title()
+            if keyword not in self.keywordsTitleDict:
+                self.keywordsTitleDict[keyword] = keyword.title()
+            return self.keywordsTitleDict[keyword]
         elif kind == 'B':
-            return keyword.upper()
+            if keyword not in self.keywordsUpperDict:
+                self.keywordsUpperDict[keyword] = keyword.upper()
+            return self.keywordsUpperDict[keyword]
         elif kind == 'C':
-            return keyword.capitalize()
+            if keyword not in self.keywordsCapitDict:
+                self.keywordsCapitDict[keyword] = keyword.capitalize()
+            return self.keywordsCapitDict[keyword]
         else:
             return ''
         
-    def _GetFileLines(self, fileName):
-        '''Читаем строки из файла'''
-        return [item.strip() for item in codecs.open(fileName, encoding='cp1251', errors='ignore').readlines()]
+    def _GetFileContents(self, fileName, makePreprocess = False):
+        '''Читаем содержимое файла'''
+        contents = codecs.open(fileName, encoding='cp1251', errors='ignore').read()
+        if makePreprocess:
+            contents = self.PreprocessTemplate(contents)
+        return contents
     
-    def _GetCachedFileLines(self, fileName):
+    def _GetCachedFileLines(self, fileName, makePreprocess = False):
         '''Читаем и кэшируем строки из файла'''
         if fileName not in self.filesCache:
             self.filesCache[fileName] = ['']
             if os.path.exists(fileName):
-                self.filesCache[fileName] = self._GetFileLines(fileName)
+                self.filesCache[fileName] = [item.strip() for item in self._GetFileContents(fileName, makePreprocess).split('\n')]
         return self.filesCache[fileName]
     
     '''Обработка макросов'''
@@ -78,19 +94,19 @@ class Doorgen(object):
     def GetMainKeyword(self, macrosName, macrosArgsList):
         '''Главный кейворд'''
         keyword = self.keywordDoor
-        kind = macrosName.replace('DOORKEYWORD', '')
+        kind = macrosName[:-11]
         return self._Capitalize(keyword, kind)
     
     def GetPageKeyword(self, macrosName, macrosArgsList):
         '''Кейворд страницы'''
         keyword = self.keywordPage
-        kind = macrosName.replace('BOSKEYWORD', '')
+        kind = macrosName[:-10]
         return self._Capitalize(keyword, kind)
     
     def GetRandomKeyword(self, macrosName, macrosArgsList):
         '''Случайный кейворд'''
         keyword = random.choice(self.keywordsListFull)
-        kind = macrosName.replace('RANDKEYWORD', '')
+        kind = macrosName[:-11]
         return self._Capitalize(keyword, kind)
     
     def GetRandomNumber(self, macrosName, macrosArgsList):
@@ -110,7 +126,7 @@ class Doorgen(object):
     def GetRandomIntLink(self, macrosName, macrosArgsList):
         '''Случайный внутренний анкор'''
         keyword = random.choice(self.keywordsListShort)
-        kind = macrosName.replace('RANDLINK', '')
+        kind = macrosName[:-8]
         return '<a href="%s">%s</a>' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, kind))
     
     def GetRandomNetLink(self, macrosName, macrosArgsList):
@@ -120,18 +136,18 @@ class Doorgen(object):
     def GetRandomTextLine(self, macrosName, macrosArgsList):
         '''Случайная строка из файла'''
         fileName = os.path.join(self.textPath, macrosArgsList[0])
-        return self.PreprocessTemplate(random.choice(self._GetCachedFileLines(fileName)))
+        return random.choice(self._GetCachedFileLines(fileName, True))
     
     def GetRandomSnippet(self, macrosName, macrosArgsList):
         '''Случайный сниппет'''
         fileName = os.path.join(self.snippetsPath, macrosArgsList[0])
-        return self.PreprocessTemplate(random.choice(self._GetCachedFileLines(fileName)))
+        return random.choice(self._GetCachedFileLines(fileName, True))
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
         if self.keywordPage == self.keywordDoor:
             return ''
-        return '<a href="index%s">%s</a>' % (self.pageExtension, self.keywordDoor.title())
+        return '<a href="index%s">%s</a>' % (self.pageExtension, self._Capitalize(self.keywordDoor, 'B'))
         
     def GetSitemapLink(self, macrosName, macrosArgsList):
         '''Анкор на карту сайта'''
@@ -145,7 +161,7 @@ class Doorgen(object):
             return ''
         result = ''
         for keyword in self.keywordsListShort:
-            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), keyword.title())
+            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, 'B'))
         return result
     
     def GetDorHost(self, macrosName, macrosArgsList):
@@ -187,15 +203,15 @@ class Doorgen(object):
         '''Быстрый процессинг макросов регекспами'''
         if template.find('{') < 0:
             return template
-        template = re.sub(r'{([A-Z0-9_/]*?)}', self.ProcessMacrosRegex, template)
+        template = self.rx0.sub(self.ProcessMacrosRegex, template)
         if template.find('{') < 0:
             return template
-        template = re.sub(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}', self.ProcessMacrosRegex, template)
+        template = self.rx1.sub(self.ProcessMacrosRegex, template)
         if template.find('{') < 0:
             return template
-        template = re.sub(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*)\)}', self.ProcessMacrosRegex, template)
+        template = self.rx2.sub(self.ProcessMacrosRegex, template)
         '''Процессинг остальных макросов'''
-        '''while True:
+        while True:
             if template.find('{') < 0:
                 return template
             templateBefore, macrosFull, macrosName, macrosArgsList, template = FindMacros(template)
@@ -206,7 +222,7 @@ class Doorgen(object):
                 template = templateBefore + self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList)) + template
             else:
                 self.macrosUnknown.add(macrosFull)
-                template = templateBefore + template'''
+                template = templateBefore + template
         return template
     
     def PreprocessTemplate(self, template):
@@ -239,9 +255,14 @@ class Doorgen(object):
         
         '''Начинаем'''
         dateTimeStart = datetime.datetime.now()
-        self.macrosUnknown = set()
         self.filesCache = {}
+        self.keywordsUrlDict = {}
+        self.keywordsLowerDict = {}
+        self.keywordsUpperDict = {}
+        self.keywordsTitleDict = {}
+        self.keywordsCapitDict = {}
         self.lastRandomNumber = 0;
+        self.macrosUnknown = set()
         
         '''Очищаем папку дора. Копируем все файлы из шаблона в папку дора, за исключением index.html и dp_sitemap.html'''
         if os.path.exists(self.localPath):
@@ -251,16 +272,16 @@ class Doorgen(object):
             os.remove(fileName)
         
         '''Читаем кейворды и ссылки. Обрабатываем кейворды'''
-        self.keywordsListFull = self._GetFileLines(self.keywordsFile)
+        self.keywordsListFull = [item.strip() for item in self._GetFileContents(self.keywordsFile).split('\n')]
         self.keywordsListShort = self.keywordsListFull[:self.pagesCount]
         self.keywordDoor = self.keywordsListShort[0]
-        self.netLinksList = self._GetFileLines(self.netLinksFile)
+        self.netLinksList = [item.strip() for item in self._GetFileContents(self.netLinksFile).split('\n')]
         
         '''Формируем страницы дора и карту сайта в HTML'''
-        indexTemplateContents = self.PreprocessTemplate('\n'.join(self._GetFileLines(os.path.join(self.templatePath, 'index.html'))))
+        indexTemplateContents = self._GetFileContents(os.path.join(self.templatePath, 'index.html'), True)
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
-        sitemapTemplateContents = self.PreprocessTemplate('\n'.join(self._GetFileLines(os.path.join(self.templatePath, 'dp_sitemap.html'))))
+        sitemapTemplateContents = self._GetFileContents(os.path.join(self.templatePath, 'dp_sitemap.html'), True)
         self.GeneratePage(sitemapTemplateContents, 'sitemap')
         
         '''Карта сайта в XML'''
@@ -277,11 +298,15 @@ class Doorgen(object):
 
 def Test():
     doorgen = Doorgen()
-    doorgen.Generate('mamba-en', 100, 'door8773-new', 'http://lormont.wikidating.info/')
+    doorgen.Generate('mamba-en', 10000, 'door8773-new', 'http://lormont.wikidating.info/')
 
 if __name__ == '__main__':
-    cProfile.run('Test()')
-    #Test()
+    Test()
+    #cProfile.run('Test()', 'profiling')
+    '''p = pstats.Stats('profiling')
+    p.print_callers()
+    p.sort_stats('time')
+    p.print_stats()'''
 
 
 '''TODO:
