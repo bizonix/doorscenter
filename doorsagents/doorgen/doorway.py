@@ -56,7 +56,7 @@ unlink('bean.tgz');
         self.tarFileObj.seek(0)
         with open(fileName, 'wb') as fd:
             fd.write(self.tarFileObj.read())
-        print('Done')
+        print('Saved')
     
     def SaveToFolder(self, folderName):
         '''Сохраняем дорвей в папку'''

@@ -1,1 +1,1 @@
-python2.6 /home/admin/searchpro.name/doorscenter/doorsagents/doorgen-next.py cron >> /var/www/test.net/web/doorgen-next.log
+python2.6 /home/admin/searchpro.name/doorscenter/doorsagents/doorgen-next.py cron

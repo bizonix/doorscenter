@@ -19,7 +19,7 @@ class DoorgenMineAgent(agent.BaseAgent):
         self.appFolder = os.path.dirname(os.path.abspath(__file__)) + '/3rdparty/doorgen'  # папка с приложением
         self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
         self.appTextFolder = os.path.join(self.appFolder, 'text')  # папка с текстовыми файлами
-        self.appSnippetsFolder = os.path.dirname(os.path.abspath(__file__)) + '/snippets'  # папка со сниппетами
+        self.appSnippetsFolder = r'c:\Work\snippets'  # папка со сниппетами
         if self.currentTask['domainSub'] == '':
             self.doorwayUrl = 'http://%s%s' % (self.currentTask['domain'], self.currentTask['domainFolder'])
         else:
@@ -50,8 +50,8 @@ class DoorgenMineAgent(agent.BaseAgent):
         keywordsList = self.currentTask['keywordsList']
         keywordsList.extend(self.currentTask['keywordsListAdd'])
         self.doorway = self.doorgen.Generate(keywordsList, self.currentTask['netLinksList'], self.currentTask['templateFolder'], len(self.currentTask['keywordsList']), self.doorwayUrl)
-        self.doorway.SaveToFolder(self.remoteFolder)
-        #self.doorway.UploadToFTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
+        #self.doorway.SaveToFolder(self.remoteFolder)
+        self.doorway.UploadToFTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
         self._Done()
         self._Cron()
         return True

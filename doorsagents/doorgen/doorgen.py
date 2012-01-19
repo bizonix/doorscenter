@@ -301,8 +301,9 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 100, 'http://oneshop.info/123')
-    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
+    doorway.SaveToFile(r'C:\Temp\door.tgz')
+    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
 
 
 '''TODO:
