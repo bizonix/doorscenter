@@ -16,9 +16,8 @@ class DoorgenMineAgent(agent.BaseAgent):
     
     def _Settings(self, generateTemplate = False):
         '''Настройки'''
-        self.appFolder = os.path.dirname(os.path.abspath(__file__)) + '/3rdparty/doorgen'  # папка с приложением
-        self.appTemplatesFolder = os.path.join(self.appFolder, 'templ')  # папка с шаблонами 
-        self.appTextFolder = os.path.join(self.appFolder, 'text')  # папка с текстовыми файлами
+        self.appTemplatesFolder = os.path.dirname(os.path.abspath(__file__)) + '/doorgen/templates'  # папка с шаблонами 
+        self.appTextsFolder = os.path.dirname(os.path.abspath(__file__)) + '/doorgen/templates/texts'  # папка с текстовыми файлами
         self.appSnippetsFolder = os.path.dirname(os.path.abspath(__file__)) + '/snippets'  # папка со сниппетами
         if self.currentTask['domainSub'] == '':
             self.doorwayUrl = 'http://%s%s' % (self.currentTask['domain'], self.currentTask['domainFolder'])
@@ -46,7 +45,7 @@ class DoorgenMineAgent(agent.BaseAgent):
     def _ActionOn(self):
         self._Settings(True)
         '''Запуск приложения'''
-        self.doorgen = Doorgen(self.appTemplatesFolder, self.appTextFolder, self.appSnippetsFolder)
+        self.doorgen = Doorgen(self.appTemplatesFolder, self.appTextsFolder, self.appSnippetsFolder)
         keywordsList = self.currentTask['keywordsList'][:]
         keywordsList.extend(self.currentTask['keywordsListAdd'])
         self.doorway = self.doorgen.Generate(keywordsList, self.currentTask['netLinksList'], self.currentTask['templateFolder'], len(self.currentTask['keywordsList']), self.doorwayUrl)

@@ -350,11 +350,11 @@ class Doorgen(object):
         return self.doorway
 
 if __name__ == '__main__':
-    templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\templ'
-    textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text'
+    templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates'
+    textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates\texts'
     snippetsPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\snippets'
-    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\keys\keywords.txt', encoding='cp1251', errors='ignore').readlines()
-    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
+    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\keywords.txt', encoding='cp1251', errors='ignore').readlines()
+    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
     doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
