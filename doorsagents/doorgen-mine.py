@@ -47,10 +47,9 @@ class DoorgenMineAgent(agent.BaseAgent):
         self._Settings(True)
         '''Запуск приложения'''
         self.doorgen = Doorgen(self.appTemplatesFolder, self.appTextFolder, self.appSnippetsFolder)
-        keywordsList = self.currentTask['keywordsList']
+        keywordsList = self.currentTask['keywordsList'][:]
         keywordsList.extend(self.currentTask['keywordsListAdd'])
         self.doorway = self.doorgen.Generate(keywordsList, self.currentTask['netLinksList'], self.currentTask['templateFolder'], len(self.currentTask['keywordsList']), self.doorwayUrl)
-        #self.doorway.SaveToFolder(self.remoteFolder)
         self.doorway.UploadToFTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
         self._Done()
         self._Cron()
