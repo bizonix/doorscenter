@@ -47,21 +47,13 @@ def FindMacros(source, macrosName = ''):
     else:
         return '', '', '', [], source
 
-
-'''
-print(FindMacros('123456'))
-print(FindMacros('123{}456'))
-print(FindMacros('123{NAME}456'))
-print(FindMacros('{NAME}456'))
-print(FindMacros('123{NAME}'))
-print(FindMacros('123{NAME()}456'))
-print(FindMacros('123{NAME()()}456'))
-print(FindMacros('123{NAME(1)}456'))
-print(FindMacros('123{NAME(1,2)}456'))
-print(FindMacros('123{NAME(11,22,33)}456'))
-print(FindMacros('123{NAME(1,,,4)}456'))
-print(FindMacros('123{NaMe}456'))
-print(FindMacros('123{NAME({FOR(1,2)},{FOR(3,4)})}456'))
-
-sys.exit()
-'''
+def ReplaceNth(subject, strToFind, strToReplace, n):
+    '''Заменяем nth вхождение подстроки'''
+    if n <= 0:
+        return subject
+    pos = -1
+    for _ in range(n):
+        pos = subject.find(strToFind, pos + 1)
+        if pos < 0:
+            return subject
+    return subject[:pos] + strToReplace + subject[pos + len(strToFind):]

@@ -1,6 +1,6 @@
 # coding=utf8
 import os, random, string, re, codecs, datetime, urlparse, sys
-from common import FindMacros
+from common import FindMacros, ReplaceNth
 from doorway import Doorway
 from django.template.defaultfilters import slugify
 
@@ -82,7 +82,7 @@ class Doorgen(object):
             return ''
         
     def _GetFileContents(self, fileName):
-        '''Читаем содержимое файла'''
+        '''Читаем содержимое файла + препроцессинг'''
         return self.PreprocessTemplate(codecs.open(fileName, encoding='cp1251', errors='ignore').read())
     
     def _GetCachedFileLines(self, fileName):
@@ -274,16 +274,9 @@ class Doorgen(object):
         if template.find('###') < 0:
             return template
         '''Добавляем немного кейвордов страницы вместо случайных'''
-        '''count = template.count('RANDKEYWORD}')
-        print(template)
-        for _ in range(min(random.randint(3,5), count)):
-            print(template.count('RANDKEYWORD}'))
-            template = template.replace('RANDKEYWORD}', 'XXXKEYWORD}', random.randint(0, count - 1))
-            print(template.count('RANDKEYWORD}'))
-            template = template.replace('RANDKEYWORD}', 'BOSKEYWORD}', 1)
-            print(template.count('RANDKEYWORD}'))
-            template = template.replace('XXXKEYWORD}', 'RANDKEYWORD}')
-            print(template.count('RANDKEYWORD}'))'''
+        count = template.count('RANDKEYWORD###')  # сколько случайных кейвордов на странице
+        for _ in range(min(random.randint(3,5), count)):  # сколько будем заменять
+            template = ReplaceNth(template, 'RANDKEYWORD###', 'BOSKEYWORD###', random.randint(1, count))  # заменяем случайный кейворд на кейворд страницы
         '''Быстрый процессинг макросов регекспами, часть 2'''
         template = self.rxPost0.sub(self.ProcessMacrosRegexPost, template)
         return template
@@ -338,11 +331,17 @@ class Doorgen(object):
         self.GeneratePage(sitemapTemplateContents, 'sitemap')
         
         '''Карта сайта в XML'''
-        sitemap = '''<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'''
+        sitemapXml = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        sitemapXml += '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for keyword in self.keywordsListShort:
-            sitemap += '''  <url>\n    <loc>%s</loc>\n    <lastmod>%s</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.5</priority>\n  </url>\n''' % (url + self._KeywordToUrl(keyword), datetime.date.today().strftime('%Y-%m-%d'))
-        sitemap += '''</urlset>'''
-        self.doorway.AddPage('sitemap.xml', sitemap)
+            sitemapXml += '  <url>\n'
+            sitemapXml += '    <loc>%s</loc>\n' % (url + self._KeywordToUrl(keyword))
+            sitemapXml += '    <lastmod>%s</lastmod>\n' % datetime.date.today().strftime('%Y-%m-%d')
+            sitemapXml += '    <changefreq>weekly</changefreq>\n'
+            sitemapXml += '    <priority>0.5</priority>\n'
+            sitemapXml += '  </url>\n'
+        sitemapXml += '</urlset>'
+        self.doorway.AddPage('sitemap.xml', sitemapXml)
         
         '''Отчет о проделанной работе'''
         if len(self.macrosUnknown) > 0:
@@ -358,12 +357,6 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 100, 'http://oneshop.info/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
     doorway.SaveToFile(r'C:\Temp\door.tgz')
-    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
-
-
-'''TODO:
-1. add_page_key
-2. разные даты в карте сайта xml
-'''
+    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')

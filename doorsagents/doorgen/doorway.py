@@ -56,7 +56,6 @@ unlink('bean.tgz');
         self.tarFileObj.seek(0)
         with open(fileName, 'wb') as fd:
             fd.write(self.tarFileObj.read())
-        print('Saved')
     
     def UploadToFTP(self, host, login, password, remotePath):
         '''Загружаем архив с дорвеем на FTP и распаковываем там'''
@@ -68,11 +67,11 @@ unlink('bean.tgz');
         try:
             ftp.mkd(remotePath)
         except Exception as error:
-            print(error)
+            pass
         try:
             ftp.sendcmd('SITE CHMOD 02775 ' + remotePath)
         except Exception as error:
-            print(error)
+            pass
         '''Отправляем архив'''
         try:
             ftp.storbinary('STOR ' + remotePath + '/bean.tgz', self.tarFileObj)
@@ -93,4 +92,3 @@ unlink('bean.tgz');
         except Exception as error:
             print(error)
         print('Uploaded in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
-    
