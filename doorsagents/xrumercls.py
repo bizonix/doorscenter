@@ -15,7 +15,7 @@ class XrumerHelper(object):
         self.linker = XrumerTopicLinker(self)
         self.creationType = self.currentTask['creationType']
         self.registerRun = self.currentTask['registerRun']
-        snippetsFolder = 'C:\\Work\\snippets'
+        snippetsFolder = os.path.dirname(os.path.abspath(__file__)) + '/snippets'
         keywordsFolder = os.path.join(self.agent.appFolder, 'Keywords')
         self.keywordsFile = os.path.join(keywordsFolder, '%s.txt' % self.currentTask['niche'])
         self.keywordsFileEsc = escape(self.keywordsFile)

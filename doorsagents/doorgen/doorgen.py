@@ -352,7 +352,7 @@ class Doorgen(object):
 if __name__ == '__main__':
     templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\templ'
     textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text'
-    snippetsPath = r'C:\Work\snippets'
+    snippetsPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\snippets'
     keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\keys\keywords.txt', encoding='cp1251', errors='ignore').readlines()
     netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
