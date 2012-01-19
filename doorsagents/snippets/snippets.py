@@ -61,28 +61,34 @@ Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; ADVPLUGIN|K115|165|S5488
         self.snippetsList = []
         parser = HTMLParser.HTMLParser()
         for keyword in keywordsList:
-            keyword = keyword.strip()
-            print('- %s' % keyword)
-            '''Делаем запрос'''
-            url = 'http://www.google.com/search?as_q=%s&tbs=qdr:z&num=100&hl=%s&output=ie&filter=0' % (urllib.quote_plus(keyword), language)
-            request = urllib2.Request(url)
-            request.add_header('User-Agent', random.choice(self.userAgentsList))
-            self.cookieJar.add_cookie_header(request)
-            response = urllib2.urlopen(request)
-            newSnippetsList = self.rxSnippet.findall(response.read())
-            response.close()
-            '''Обрабатываем результаты'''
-            for snippet in newSnippetsList:
-                snippet = parser.unescape(snippet)
-                snippet = self.rxStripTags.sub('', snippet)
-                snippet = self.rxStripDates.sub('', snippet)
-                snippet = self.rxStripSpaces.sub(' ', snippet)
-                snippet = ''.join([char for char in snippet if char in self.validChars])
-                snippet = ' '.join([self._Decapitalize(word) for word in snippet.split(' ')])
-                snippet = snippet.replace('...', '')
-                snippet = snippet.strip()
-                if len(snippet) > 60:
-                    self.snippetsList.append(snippet)
+            try:
+                keyword = keyword.strip()
+                print('- %s' % keyword)
+                '''Делаем запрос'''
+                url = 'http://www.google.com/search?as_q=%s&tbs=qdr:z&num=100&hl=%s&output=ie&filter=0' % (urllib.quote_plus(keyword), language)
+                request = urllib2.Request(url)
+                request.add_header('User-Agent', random.choice(self.userAgentsList))
+                self.cookieJar.add_cookie_header(request)
+                response = urllib2.urlopen(request)
+                newSnippetsList = self.rxSnippet.findall(response.read())
+                response.close()
+                '''Обрабатываем результаты'''
+                for snippet in newSnippetsList:
+                    try:
+                        snippet = parser.unescape(snippet)
+                        snippet = self.rxStripTags.sub('', snippet)
+                        snippet = self.rxStripDates.sub('', snippet)
+                        snippet = self.rxStripSpaces.sub(' ', snippet)
+                        snippet = ''.join([char for char in snippet if char in self.validChars])
+                        snippet = ' '.join([self._Decapitalize(word) for word in snippet.split(' ')])
+                        snippet = snippet.replace('...', '')
+                        snippet = snippet.strip()
+                        if len(snippet) > 60:
+                            self.snippetsList.append(snippet)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
         '''Отчет о проделанной работе'''
         print('Parsed %d snippets in %d sec.' % (len(self.snippetsList), (datetime.datetime.now() - dateTimeStart).seconds))
         return self.snippetsList

@@ -9,7 +9,7 @@ class SnippetsAgent(agent.BaseAgent):
     
     def _Settings(self):
         '''Настройки'''
-        self.localFile = os.path.dirname(os.path.abspath(__file__)) + os.sep + self.currentTask['localFile']  # куда поместить конечный файл
+        self.localFile = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'snippets', self.currentTask['localFile'])  # куда поместить конечный файл
         
     def _ActionOn(self):
         self._Settings()
@@ -23,7 +23,7 @@ class SnippetsAgent(agent.BaseAgent):
         #self._Settings()  # в текущей версии парсера это не нужно
         '''Обработка'''
         with codecs.open(self.localFile, 'w', encoding='cp1251', errors='ignore') as fd:
-            fd.writelines(self.snippets.snippetsList)
+            fd.write('\n'.join(self.snippets.snippetsList))
         self.currentTask['phrasesCount'] = kwk8.ProcessSnippets(self.localFile, self.localFile, self.currentTask['stopwordsList'], ['http://', '[url', '.com', '.net', '.org', '.info', '.us', '.ru', '.ua', '.by', '.htm', '.html', '.php'])
         '''Значения по умолчанию'''
         self.currentTask['keywordsList'] = []
