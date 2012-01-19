@@ -1023,8 +1023,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Если не указан желаемый агент, берем из шаблона'''
         if (self.agent == None) and (self.template != None):
             self.agent = self.template.agent
-            if self.agent.description.find('aggress') < 0: # если дорген не агресс, то подбираем по хосту домена
-                self.agent = Agent.objects.get(Q(type='doorgen'), Q(host=self.domain.host))
         super(Doorway, self).save(*args, **kwargs)
 
 class DoorLink(models.Model):

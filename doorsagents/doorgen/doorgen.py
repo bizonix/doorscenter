@@ -172,13 +172,17 @@ class Doorgen(object):
     
     def ProcessMacrosRegex(self, m):
         '''Обрабатываем макрос, найденный регекспом'''
-        macrosName =  m.groups()[0]
-        if macrosName in self.macrosDict:
-            macrosArgsList = m.groups()[1:]
-            macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
-            return self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList))
-        else:
-            self.macrosUnknown.add(m.group(0))
+        try:
+            macrosName =  m.groups()[0]
+            if macrosName in self.macrosDict:
+                macrosArgsList = m.groups()[1:]
+                macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
+                return self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList))
+            else:
+                self.macrosUnknown.add(m.group(0))
+                return ''
+        except Exception as error:
+            print(error)
             return ''
     
     def ProcessTemplate(self, template):
@@ -237,10 +241,13 @@ class Doorgen(object):
     
     def GeneratePage(self, template, keywordPage):
         '''Формируем страницу'''
-        self.keywordPage = keywordPage
-        pageContents = self.ProcessTemplate(template)
-        pageFileName = self._KeywordToUrl(keywordPage)
-        self.doorway.AddPage(pageFileName, pageContents)
+        try:
+            self.keywordPage = keywordPage
+            pageContents = self.ProcessTemplate(template)
+            pageFileName = self._KeywordToUrl(keywordPage)
+            self.doorway.AddPage(pageFileName, pageContents)
+        except Exception as error:
+            print(error)
         '''Добавляем в список страниц'''
         link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, self._Capitalize(keywordPage, ''))
         if keywordPage != 'sitemap':
