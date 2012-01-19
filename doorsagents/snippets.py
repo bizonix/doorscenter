@@ -34,11 +34,7 @@ class SnippetsAgent(agent.BaseAgent):
         self.currentTask['stopwordsList'] = []
         self.currentTask['phrasesCount'] = 0
         '''Обработка'''
-        kwk8.ProcessSnippets(self.appTextFile, self.localFile, self.stopwordsFile)
-        phrasesCount = 0
-        for _ in open(self.localFile, 'r'):
-            phrasesCount += 1
-        self.currentTask['phrasesCount'] = phrasesCount
+        self.currentTask['phrasesCount'] = kwk8.ProcessSnippets(self.appTextFile, self.localFile, self.stopwordsFile, ['http://', '[url', '.com', '.net', '.org', '.info', '.us', '.ru', '.ua', '.by', '.htm', '.html', '.php'])
         return True
 
 if __name__ == '__main__':

@@ -82,21 +82,6 @@ class Kwk8:
         self._Print('- done %s' % self._TimeFinish())
         return self
     
-    def Snippets(self):
-        '''Дополнительная очистка сниппетов'''
-        self._Print('Snippets processing...')
-        self._TimeStart()
-        newLines = []
-        rxSnippetsDate = re.compile(r'^[0-9]?[0-9] ... 20[0-1][0-9] ')
-        for line in self.lines:
-            line = line.strip() + '\n'
-            if rxSnippetsDate.match(line):
-                line = line[12:].strip() + '\n'
-            newLines.append(line)
-        self._Print('- done %s' % self._TimeFinish())
-        self.lines = newLines
-        return self
-    
     def Sort(self, mode = 'alpha'):
         '''Сортировка, mode: (alfa|length)'''
         self._Print('Sorting by {0}...'.format(mode))
@@ -254,16 +239,12 @@ def ProcessLinks(inPathLinks, outPathLinks):
     '''Стандартная обработка ссылок'''
     return Kwk8Links(inPathLinks, False).Basic().Duplicates().Shuffle().Save(outPathLinks).Count()
 
-def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None):
+def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None, snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']):
     '''Стандартная обработка сниппетов'''
-    snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']
-    return Kwk8Keys(inPathKeywords, False).Snippets().DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
+    return Kwk8Keys(inPathKeywords, False).DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
 
-def Test():
+if __name__ == '__main__':
     #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
     #ProcessLinks('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out2.txt')
     #ProcessSnippets('/home/sasch/temp/list/text.txt', '/home/sasch/temp/list/text-out.txt', '/home/sasch/temp/list/stopwords.txt')
-    Kwk8Links(r'D:\Miscellaneous\Lodger6\tmp\LinksList id995_before.txt', True).PostProcessing().Save(r'D:\Miscellaneous\Lodger6\tmp\LinksList id995_after2.txt')
-
-if __name__ == '__main__':
-    Test()
+    pass
