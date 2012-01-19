@@ -239,9 +239,9 @@ def ProcessLinks(inPathLinks, outPathLinks):
     '''Стандартная обработка ссылок'''
     return Kwk8Links(inPathLinks, False).Basic().Duplicates().Shuffle().Save(outPathLinks).Count()
 
-def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = None, snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']):
+def ProcessSnippets(inPathKeywords, outPathKeywords, pathStopwords = [], snippetsStopWords = ['http://', '[url', '.ru', '.com', '.html', '.php']):
     '''Стандартная обработка сниппетов'''
-    return Kwk8Keys(inPathKeywords, False).DeleteByList(snippetsStopWords).DeleteByFile(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
+    return Kwk8Keys(inPathKeywords, False).DeleteByList(snippetsStopWords).DeleteByList(pathStopwords).Duplicates().Shuffle().Save(outPathKeywords).Count()
 
 if __name__ == '__main__':
     #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
