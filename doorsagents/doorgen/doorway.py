@@ -4,11 +4,11 @@ import os, io, tarfile, cStringIO, ftplib, urllib, datetime
 class Doorway(object):
     '''Дорвей'''
     
-    def __init__(self, url, mode=':gz'):
+    def __init__(self, url):
         '''Инициализация'''
         self.url = url
         self.tarFileObj = io.BytesIO()
-        self.tarFile = tarfile.open('', 'w' + mode, fileobj=self.tarFileObj)
+        self.tarFile = tarfile.open('', 'w:gz', fileobj=self.tarFileObj)
         self.closed = False
         self.htaccessContents = '''RemoveHandler .html
 AddType application/x-httpd-php .php .html'''
@@ -57,11 +57,6 @@ unlink('bean.tgz');
         with open(fileName, 'wb') as fd:
             fd.write(self.tarFileObj.read())
         print('Saved')
-    
-    def SaveToFolder(self, folderName):
-        '''Сохраняем дорвей в папку'''
-        self._Close()
-        self.tarFile.extractall(folderName)
     
     def UploadToFTP(self, host, login, password, remotePath):
         '''Загружаем архив с дорвеем на FTP и распаковываем там'''

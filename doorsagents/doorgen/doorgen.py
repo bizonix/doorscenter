@@ -1,5 +1,5 @@
 # coding=utf8
-import os, random, string, re, codecs, datetime, urlparse
+import os, random, string, re, codecs, datetime, urlparse, sys
 from common import FindMacros
 from doorway import Doorway
 from django.template.defaultfilters import slugify
@@ -13,10 +13,12 @@ class Doorgen(object):
         self.textPath = textPath
         self.snippetsPath = snippetsPath
         self.pageExtension = '.html'
-        self.rx0 = re.compile(r'{([A-Z0-9_/]*?)}')
-        self.rx1 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}')
-        self.rx2 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*)\)}')
-        
+        '''Инструменты для работы'''
+        self.rxMain0 = re.compile(r'{([A-Z0-9_/]*?)}')
+        self.rxMain1 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*)\)}')
+        self.rxMain2 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*)\)}')
+        self.rxMain3 = re.compile(r'{([A-Z0-9_/]*?)\(([^{},\)]*),([^{},\)]*),([^{},\)]*)\)}')
+        self.rxPost0 = re.compile(r'###([A-Z0-9_/]*?)###')
         self.validChars = "-%s%s" % (string.ascii_letters, string.digits)
         self.conversionDict = {u'а':'a',u'б':'b',u'в':'v',u'г':'g',u'д':'d',u'е':'e',u'ё':'e',u'ж':'zh',
             u'з':'z',u'и':'i',u'й':'j',u'к':'k',u'л':'l',u'м':'m',u'н':'n',u'о':'o',u'п':'p',
@@ -26,14 +28,23 @@ class Doorgen(object):
             u'И':'i',u'Й':'j',u'К':'k',u'Л':'l',u'М':'m',u'Н':'n',u'О':'o',u'П':'p',u'Р':'r',
             u'С':'s',u'Т':'t',u'У':'u',u'Ф':'f',u'Х':'h',u'Ц':'c',u'Ч':'ch',u'Ш':'sh',u'Щ':'sch',
             u'Ъ':'',u'Ы':'y',u'Ь':'',u'Э':'e',u'Ю':'ju',u'Я':'ja',' ':'-'}
-        self.macrosDict = {
+        self.macrosDictMain = {  # меняем макросы регекспами при основном проходе
             'DOORKEYWORD':self.GetMainKeyword, 'ADOORKEYWORD':self.GetMainKeyword, 'BDOORKEYWORD':self.GetMainKeyword, 'CDOORKEYWORD':self.GetMainKeyword, 
-            'BOSKEYWORD':self.GetPageKeyword, 'ABOSKEYWORD':self.GetPageKeyword, 'BBOSKEYWORD':self.GetPageKeyword, 'CBOSKEYWORD':self.GetPageKeyword, 
-            'RANDKEYWORD':self.GetRandomKeyword, 'ARANDKEYWORD':self.GetRandomKeyword, 'BRANDKEYWORD':self.GetRandomKeyword, 'CRANDKEYWORD':self.GetRandomKeyword, 
             'RANDLINK':self.GetRandomIntLink, 'ARANDLINK':self.GetRandomIntLink, 'BRANDLINK':self.GetRandomIntLink, 'CRANDLINK':self.GetRandomIntLink, 
-            'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 
-            'RAND':self.GetRandomNumber, 'COUNTRAND':self.GetLastRandomNumber, 'DOR_HOST':self.GetDorHost, 'VARIATION':self.GetVariation, 
-            'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks}
+            'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 'DOR_HOST':self.GetDorHost, 
+            'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 'VARIATION':self.GetVariation, 
+            'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks, 
+            }
+        self.macrosDictSequent = {  # эти макросы меняем последовательно при основном проходе. макросы используют результаты работы друг друга
+            'RAND':self.GetRandomNumber, 'COUNTRAND':self.GetLastRandomNumber, 
+            }
+        self.macrosDictPost = {  # меняем макросы регекспами на пост-процессинге
+            'BOSKEYWORD':self.GetPageKeyword, 'ABOSKEYWORD':self.GetPageKeyword, 'BBOSKEYWORD':self.GetPageKeyword, 'CBOSKEYWORD':self.GetPageKeyword, 
+            'RANDKEYWORD':self.GetRandomKeyword, 'ARANDKEYWORD':self.GetRandomKeyword, 'BRANDKEYWORD':self.GetRandomKeyword, 'CRANDKEYWORD':self.GetRandomKeyword,
+            }
+        '''ВНИМАНИЕ: здесь отключается последовательная обработка макросов для существенного ускорения работы'''
+        self.macrosDictMain.update(self.macrosDictSequent)
+        self.macrosDictSequent.clear()
     
     def _KeywordToUrl(self, keyword):
         '''Преобразование кея в URL'''
@@ -70,19 +81,16 @@ class Doorgen(object):
         else:
             return ''
         
-    def _GetFileContents(self, fileName, makePreprocess = False):
+    def _GetFileContents(self, fileName):
         '''Читаем содержимое файла'''
-        contents = codecs.open(fileName, encoding='cp1251', errors='ignore').read()
-        if makePreprocess:
-            contents = self.PreprocessTemplate(contents)
-        return contents
+        return self.PreprocessTemplate(codecs.open(fileName, encoding='cp1251', errors='ignore').read())
     
-    def _GetCachedFileLines(self, fileName, makePreprocess = False):
+    def _GetCachedFileLines(self, fileName):
         '''Читаем и кэшируем строки из файла'''
         if fileName not in self.filesCache:
             self.filesCache[fileName] = ['']
             if os.path.exists(fileName):
-                self.filesCache[fileName] = [item.strip() for item in self._GetFileContents(fileName, makePreprocess).split('\n')]
+                self.filesCache[fileName] = [item.strip() for item in self._GetFileContents(fileName).split('\n')]
         return self.filesCache[fileName]
     
     '''Обработка макросов'''
@@ -132,12 +140,12 @@ class Doorgen(object):
     def GetRandomTextLine(self, macrosName, macrosArgsList):
         '''Случайная строка из файла'''
         fileName = os.path.join(self.textPath, macrosArgsList[0])
-        return random.choice(self._GetCachedFileLines(fileName, True))
+        return random.choice(self._GetCachedFileLines(fileName))
     
     def GetRandomSnippet(self, macrosName, macrosArgsList):
         '''Случайный сниппет'''
         fileName = os.path.join(self.snippetsPath, macrosArgsList[0])
-        return random.choice(self._GetCachedFileLines(fileName, True))
+        return random.choice(self._GetCachedFileLines(fileName))
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
@@ -170,16 +178,35 @@ class Doorgen(object):
     
     '''Обработка страницы'''
     
-    def ProcessMacrosRegex(self, m):
-        '''Обрабатываем макрос, найденный регекспом'''
+    def ProcessMacrosRegexMain(self, m):
+        '''Обрабатываем макрос, найденный регекспом при основном проходе'''
         try:
-            macrosName =  m.groups()[0]
-            if macrosName in self.macrosDict:
+            macrosFull = m.group(0)
+            macrosName =  m.group(1)
+            if macrosName in self.macrosDictMain:  # меняем макросы по списку
                 macrosArgsList = m.groups()[1:]
                 macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
-                return self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList))
+                return self.ProcessTemplate(self.macrosDictMain[macrosName](macrosName, macrosArgsList))
+            elif macrosName in self.macrosDictSequent.keys():  # макросы для последовательной обработки оставляем как есть
+                return macrosFull
+            elif macrosName in self.macrosDictPost.keys():  # макросы для пост-процессинга помечаем по-другому
+                return '###' + macrosName + '###'
             else:
-                self.macrosUnknown.add(m.group(0))
+                self.macrosUnknown.add(macrosFull)  # неизвестные макросы собираем
+                return ''
+        except Exception as error:
+            print(error)
+            return ''
+    
+    def ProcessMacrosRegexPost(self, m):
+        '''Обрабатываем макрос, найденный регекспом на пост-процессинге. У этих макросов нет аргументов.'''
+        try:
+            macrosFull = m.group(0)
+            macrosName =  m.group(1)
+            if macrosName in self.macrosDictPost:
+                return self.ProcessTemplate(self.macrosDictPost[macrosName](macrosName, []))
+            else:
+                self.macrosUnknown.add(macrosFull)
                 return ''
         except Exception as error:
             print(error)
@@ -200,30 +227,33 @@ class Doorgen(object):
                 for counter in range(int(macrosArgsList[0]), int(macrosArgsList[1]) + 1):
                     template += self.ProcessTemplate(body.replace(macrosCounter, str(counter)))
                 template += self.ProcessTemplate(rest)
-        '''Быстрый процессинг макросов регекспами'''
+        '''Быстрый процессинг макросов регекспами, часть 1'''
         if template.find('{') < 0:
             return template
-        template = self.rx0.sub(self.ProcessMacrosRegex, template)
+        template = self.rxMain0.sub(self.ProcessMacrosRegexMain, template)
         if template.find('{') < 0:
             return template
-        template = self.rx1.sub(self.ProcessMacrosRegex, template)
+        template = self.rxMain1.sub(self.ProcessMacrosRegexMain, template)
         if template.find('{') < 0:
             return template
-        template = self.rx2.sub(self.ProcessMacrosRegex, template)
-        '''Процессинг остальных макросов'''
+        template = self.rxMain2.sub(self.ProcessMacrosRegexMain, template)
+        if template.find('{') < 0:
+            return template
+        template = self.rxMain3.sub(self.ProcessMacrosRegexMain, template)
+        if template.find('{') < 0:
+            return template
+        '''Процессинг макросов, требующих последовательную обработку'''
+        result = ''
         while True:
-            if template.find('{') < 0:
-                return template
             templateBefore, macrosFull, macrosName, macrosArgsList, template = FindMacros(template)
             if macrosName == '':
-                break
-            if macrosName in self.macrosDict:
+                return result + template
+            if macrosName in self.macrosDictSequent:
                 macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
-                template = templateBefore + self.ProcessTemplate(self.macrosDict[macrosName](macrosName, macrosArgsList)) + template
+                result += templateBefore + self.ProcessTemplate(self.macrosDictSequent[macrosName](macrosName, macrosArgsList))
             else:
                 self.macrosUnknown.add(macrosFull)
-                template = templateBefore + template
-        return template
+                result += templateBefore
     
     def PreprocessTemplate(self, template):
         '''Препроцессинг шаблона страницы'''
@@ -239,11 +269,31 @@ class Doorgen(object):
         template = template.replace('[[', '{VARIATION(').replace(']]', ')}')
         return template
     
+    def PostprocessTemplate(self, template):
+        '''Пост-процессинг страницы'''
+        if template.find('###') < 0:
+            return template
+        '''Добавляем немного кейвордов страницы вместо случайных'''
+        '''count = template.count('RANDKEYWORD}')
+        print(template)
+        for _ in range(min(random.randint(3,5), count)):
+            print(template.count('RANDKEYWORD}'))
+            template = template.replace('RANDKEYWORD}', 'XXXKEYWORD}', random.randint(0, count - 1))
+            print(template.count('RANDKEYWORD}'))
+            template = template.replace('RANDKEYWORD}', 'BOSKEYWORD}', 1)
+            print(template.count('RANDKEYWORD}'))
+            template = template.replace('XXXKEYWORD}', 'RANDKEYWORD}')
+            print(template.count('RANDKEYWORD}'))'''
+        '''Быстрый процессинг макросов регекспами, часть 2'''
+        template = self.rxPost0.sub(self.ProcessMacrosRegexPost, template)
+        return template
+        
     def GeneratePage(self, template, keywordPage):
         '''Формируем страницу'''
         try:
             self.keywordPage = keywordPage
             pageContents = self.ProcessTemplate(template)
+            pageContents = self.PostprocessTemplate(pageContents)
             pageFileName = self._KeywordToUrl(keywordPage)
             self.doorway.AddPage(pageFileName, pageContents)
         except Exception as error:
@@ -281,10 +331,10 @@ class Doorgen(object):
         self.doorway.InitTemplate(templatePath)
         
         '''Формируем страницы дора и карту сайта в HTML'''
-        indexTemplateContents = self._GetFileContents(os.path.join(templatePath, 'index.html'), True)
+        indexTemplateContents = self._GetFileContents(os.path.join(templatePath, 'index.html'))
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
-        sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'), True)
+        sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'))
         self.GeneratePage(sitemapTemplateContents, 'sitemap')
         
         '''Карта сайта в XML'''
@@ -308,14 +358,12 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\3rdparty\doorgen\text\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 100, 'http://oneshop.info/123')
     doorway.SaveToFile(r'C:\Temp\door.tgz')
-    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
 
 
 '''TODO:
 1. add_page_key
 2. разные даты в карте сайта xml
-3. оставлять неизвестные макросы
-4. Список последовательно выполняемыех макросов.
 '''
