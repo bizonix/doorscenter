@@ -90,13 +90,13 @@ def _ResumeAfterRegEntity(entity):
 def UpdateIndexCount():
     '''Чекаем индекс доменов в гугле'''
     '''Проверяем последнюю дату'''
-    lastIndexCountDate = Domain.objects.filter(stateSimple='ok').all().aggregate(xx=Max('indexCountDate'))['xx']
+    lastIndexCountDate = Domain.objects.filter(Q(active=True), Q(stateSimple='ok')).all().aggregate(xx=Max('indexCountDate'))['xx']
     delta = datetime.datetime.now() - lastIndexCountDate
     if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка: интервал парсинга в минутах
         return
     '''Апдейтим индекс'''
     bannedDomains = []
-    domains = Domain.objects.filter(stateSimple='ok').order_by('indexCountDate', 'pk').all()
+    domains = Domain.objects.filter(Q(active=True), Q(stateSimple='ok')).order_by('indexCountDate', 'pk').all()
     for domain in domains[:50]:  # настройка: по сколько доменов проверять
         indexCountOld = domain.indexCount
         domain.UpdateIndexCount()
