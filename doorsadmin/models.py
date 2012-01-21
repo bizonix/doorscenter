@@ -574,7 +574,7 @@ class Net(BaseNet):
                 p.spamLinksCount = min(max(p.spamLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
                 p.save()
                 doorwaysLimit -= 1
-                linksLimit -= (p.spamLinksCount + 1)  # + карта сайта
+                linksLimit -= p.spamLinksCount + 1  # + карта сайта
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
         return doorwaysLimit, linksLimit
