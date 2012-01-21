@@ -48,11 +48,11 @@ def ExpandNets():
     for net in Net.objects.filter(active=True).order_by('?').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
-        if ((domainsLimitActual <= 0) and (domainsLimitBase > 0)) or (linksLimitActual <= 0):
+        if (domainsLimitActual <= 0) or (linksLimitActual <= 0):
             break
         if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             doorwaysLimitActual, linksLimitActual = net.GenerateDoorways(None, None, doorwaysLimitActual, linksLimitActual)
-        if ((doorwaysLimitActual <= 0) and (doorwaysLimitBase > 0)) or (linksLimitActual <= 0):
+        if (doorwaysLimitActual <= 0) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
     EventLog('info', 'Doorways limit: %d/%d' % (doorwaysLimitBase - doorwaysLimitActual, doorwaysLimitBase))
