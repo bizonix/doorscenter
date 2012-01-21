@@ -535,7 +535,7 @@ class Net(BaseNet):
                 count -= 1
                 domainsLimit -= 1
                 '''Генерируем дорвей'''
-                linksLimit = self.GenerateDoorways(1, domain, linksLimit)
+                linksLimit = self.GenerateDoorways(1, domain, 9999, linksLimit)
                 '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
                 netDomains = self.domain_set.order_by('pk')
             except Exception as error:
@@ -544,18 +544,21 @@ class Net(BaseNet):
         self.domainsPerDay = max(0, min(self.domainsPerDay, len(netChain) - netDomains.count()))
         self.save()
         return domainsLimit, linksLimit
-    def GenerateDoorways(self, count = None, domain = None, linksLimit = 9999):
-        '''Генерация дорвеев. Аргументы: count - сколько дорвеев генерировать, 
-        domain - на каком домене генерировать, linksLimit - максимальное количество 
-        ссылок для спама на сгенеренных дорах. Возвращает обновленный лимит.'''
+    def GenerateDoorways(self, count = None, domain = None, doorwaysLimit = 9999, linksLimit = 9999):
+        '''Генерация дорвеев. Аргументы: 
+        count - сколько дорвеев генерировать, 
+        domain - на каком домене генерировать, 
+        doorwaysLimit - лимит по дорам, 
+        linksLimit - максимальное количество ссылок для спама на сгенеренных дорах. 
+        Возвращает обновленные лимиты.'''
         if count == None:
             count = self.doorsPerDay
         if domain == None:
             domain = self.GetNextDomain()
             if domain == None:
-                return linksLimit
+                return doorwaysLimit, linksLimit
         for _ in range(0, count):
-            if (linksLimit <= 0):
+            if (doorwaysLimit < 0) or (linksLimit <= 0):
                 break
             try:
                 p = Doorway.objects.create(niche=self.niche, 
@@ -570,10 +573,11 @@ class Net(BaseNet):
                 p.spamLinksCount = int(p.pagesCount * random.uniform(1.0, 1.5) / 100.0)  # число ссылок для спама: берем в процентах от количества страниц дора, 
                 p.spamLinksCount = min(max(p.spamLinksCount, 3), p.pagesCount)  # минимум три и максимум число страниц дора
                 p.save()
+                doorwaysLimit -= 1
                 linksLimit -= (p.spamLinksCount + 1)  # + карта сайта
             except Exception as error:
                 EventLog('error', 'Error in GenerateDoorways', self, error)
-        return linksLimit
+        return doorwaysLimit, linksLimit
     def save(self, *args, **kwargs):
         '''Автогенерация сетки'''
         try:

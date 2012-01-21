@@ -214,7 +214,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'trafficLastYear', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['niche', 'net', 'group', 'active', 'stateSimple']
+    list_filter = ['niche', 'net', 'host', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
         (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS', 'autoSubdomains'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),

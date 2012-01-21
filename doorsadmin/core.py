@@ -35,25 +35,25 @@ def Helper():
 
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
-    avgSpamTaskDuration = 10  # настройка: средняя продолжительность прогона по базе R, минут
+    avgSpamTaskDuration = 30  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
-    domainsLimitBase = 0  # настройка: лимит расхода доменов в сутки
-    folderDoorsLimitBase = 25  # настройка: лимит доров в папки в сутки
     linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
-    domainsLimitActual = domainsLimitBase
-    folderDoorsLimitActual = folderDoorsLimitBase
+    domainsLimitBase = 0  # настройка: лимит расхода доменов в сутки
+    doorwaysLimitBase = 0  # настройка: лимит доров в папках / на субдоменах в сутки
+    
     linksLimitActual = linksLimitBase
+    domainsLimitActual = domainsLimitBase
+    doorwaysLimitActual = doorwaysLimitBase
     dd = datetime.date.today()
     for net in Net.objects.filter(active=True).order_by('?').all():
         if (net.domainsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
             domainsLimitActual, linksLimitActual = net.AddDomains(None, domainsLimitActual, linksLimitActual)
         if (net.doorsPerDay > 0) and ((net.dateStart==None) or (net.dateStart <= dd)) and ((net.dateEnd==None) or (net.dateEnd >= dd)):
-            linksLimitActual = net.GenerateDoorways(None, None, linksLimitActual)
-            folderDoorsLimitActual -= 1  # на сегодня кол-во сгенеренных доров реально не считается
-        if ((domainsLimitActual <= 0) and (domainsLimitBase > 0)) or ((folderDoorsLimitActual <= 0) and (folderDoorsLimitBase > 0)) or (linksLimitActual <= 0):
+            linksLimitActual = net.GenerateDoorways(None, None, doorwaysLimitActual, linksLimitActual)
+        if ((domainsLimitActual <= 0) and (domainsLimitBase > 0)) or ((doorwaysLimitActual <= 0) and (doorwaysLimitBase > 0)) or (linksLimitActual <= 0):
             break
     EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
-    EventLog('info', 'Folder doors limit: %d/%d' % (folderDoorsLimitBase - folderDoorsLimitActual, folderDoorsLimitBase))
+    EventLog('info', 'Doorways limit: %d/%d' % (doorwaysLimitBase - doorwaysLimitActual, doorwaysLimitBase))
     EventLog('info', 'Links limit: %d/%d' % (linksLimitBase - linksLimitActual, linksLimitBase))
 
 def RenewSnippets():
