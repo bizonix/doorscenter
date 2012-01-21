@@ -1010,9 +1010,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 self.domainFolder = r'/'
             else:
                 subName = FindShortKeyword(self.keywordsList.split('\n'))
-                if random.randint(0, 100) < 90: # настройка: процент выбора из списка городов
+                if random.randint(0, 100) < 50: # настройка: процент выбора из списка городов
                     subName = GetRandomLocation()
-                if (self.domain.autoSubdomains) and (random.randint(0, 100) < 90): # настройка: процент генерации на субдоменах
+                if (self.domain.autoSubdomains) and (random.randint(0, 100) < 95): # настройка: процент генерации на субдоменах
                     '''генерация дора на субдомене'''
                     self.domainSub = KeywordToUrl(subName)
                     self.domainFolder = r'/'
