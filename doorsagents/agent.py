@@ -46,6 +46,7 @@ class BaseAgent(object):
         self.agentId = int(open(self.agentNumberFileName).read().strip())
         self.actionUrl = r'%s/agents/%d/' % (self.adminUrl, self.agentId)
         
+        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
         self.currentTask = None
         self._LoadCurrentTaskData()
         self._ProcessCommandLine()
