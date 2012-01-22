@@ -2,7 +2,7 @@
 
 if (isset($_POST['domainName']))
   DelDomain($_POST['domainName'], $_POST['controlPanelUrl']);
-// DelDomain('test-xxx.com', 'http://searchpro.name:15671');
+//DelDomain('test-xxx.com', 'http://searchpro.name:15671');
 
 function DelDomain($domainName, $controlPanelUrl) {
 	$con = mysql_connect('localhost', 'root', 'yo2k21iO');
