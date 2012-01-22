@@ -709,10 +709,10 @@ class Domain(BaseDoorObject, BaseDoorObjectActivatable):
     ipAddress = models.ForeignKey('IPAddress', verbose_name='IP Address', null=True)
     nameServer1 = models.CharField('NS 1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('NS 2', max_length=200, default='', blank=True)
-    useOwnDNS = models.BooleanField('Use own DNS', default=False, blank=True)
+    useOwnDNS = models.BooleanField('Use own DNS', default=True, blank=True)
+    autoSubdomains = models.BooleanField('Auto subdomains', default=True, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
-    autoSubdomains = models.BooleanField('Auto subdomains', default=True, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
@@ -864,8 +864,9 @@ def DomainOnDelete(sender, **kwargs):
     try:
         if domain.name != '#':
             error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
-            #if error != '':
-            #    EventLog('error', 'Cannot delete domain from control panel', domain, error)
+            if error != '':
+                #EventLog('error', 'Cannot delete domain from control panel', domain, error)
+                pass
     except Exception as error:
         #EventLog('error', 'Cannot delete domain from control panel', domain, error)
         pass

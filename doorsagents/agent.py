@@ -239,4 +239,4 @@ class SomeAgent(BaseAgent):
         return True
 
 if __name__ == '__main__':
-    agent = SomeAgent('http://127.0.0.1:8000/doorsadmin', 1)
+    agent = SomeAgent('http://127.0.0.1:8000/doorsadmin')
