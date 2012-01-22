@@ -2,7 +2,7 @@
 
 if (isset($_POST['domainName']))
   AddDomain($_POST['domainName'], $_POST['ipAddress'], $_POST['useDNS'], $_POST['controlPanelUrl'], $_POST['controlPanelServerId']);
-AddDomain('test-xxx.com', '1.1.1.1', false, 'http://searchpro.name:15671', 1);
+//AddDomain('test-xxx.com', '1.1.1.1', false, 'http://searchpro.name:15671', 1);
 
 function AddDomain($domainName, $ipAddress, $useDNS, $controlPanelUrl, $controlPanelServerId) {
 	// common params
