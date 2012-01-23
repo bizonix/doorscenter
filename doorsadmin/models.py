@@ -508,7 +508,7 @@ class Net(BaseNet):
             return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
         except Exception as error:
             EventLog('error', 'Cannot find a domain', self, error)
-    def AddDomains(self, count = None, domainsLimit = 9999, linksLimit = 9999):
+    def AddDomains(self, count = None, domainsLimit = 999, linksLimit = 999):
         '''Добавление доменов в сетку. Аргументы: 
         count - сколько доменов присоединять, 
         domainsLimit - лимит по доменам, 
@@ -535,7 +535,7 @@ class Net(BaseNet):
                 count -= 1
                 domainsLimit -= 1
                 '''Генерируем дорвей'''
-                linksLimit = self.GenerateDoorways(1, domain, 9999, linksLimit)
+                _, linksLimit = self.GenerateDoorways(1, domain, 999, linksLimit)
                 '''Код дублируется для возможности проводить вязку сетей в одном цикле'''
                 netDomains = self.domain_set.order_by('pk')
             except Exception as error:
@@ -544,7 +544,7 @@ class Net(BaseNet):
         self.domainsPerDay = max(0, min(self.domainsPerDay, len(netChain) - netDomains.count()))
         self.save()
         return domainsLimit, linksLimit
-    def GenerateDoorways(self, count = None, domain = None, doorwaysLimit = 9999, linksLimit = 9999):
+    def GenerateDoorways(self, count = None, domain = None, doorwaysLimit = 999, linksLimit = 999):
         '''Генерация дорвеев. Аргументы: 
         count - сколько дорвеев генерировать, 
         domain - на каком домене генерировать, 
