@@ -1093,6 +1093,10 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     class Meta:
         verbose_name = 'Spam Task'
         verbose_name_plural = 'II.3.1 Spam Tasks - [large, managed]'
+    def GetSpamLinksCount(self):
+        return self.doorlink_set.count()
+    GetSpamLinksCount.short_description = 'Links'
+    GetSpamLinksCount.allow_tags = True
     def GetSpamLinksList(self):
         '''Получаем список ссылок для спама'''
         s = ''
