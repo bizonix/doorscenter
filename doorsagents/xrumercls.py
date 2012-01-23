@@ -80,7 +80,7 @@ class XrumerHelperBaseRaw(XrumerHelper):
         '''Содержимое проекта'''
         randomToken = ''.join(random.choice(string.letters) for _ in xrange(10))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, randomToken, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        projBody = '#file_links[%s,10,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,10,S]' % (self.snippetsFileEsc, randomToken, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Пишем кейворды'''
         self._WriteKeywords()
         '''Создаем настройки'''
@@ -103,7 +103,7 @@ class XrumerHelperBaseSpam(XrumerHelper):
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        projBody = '#file_links[%s,10,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,10,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Пишем кейворды, копируем исходную базу в целевую и удаляем существующую базу R или Z'''
         self._WriteKeywords()
         self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
@@ -164,7 +164,7 @@ class XrumerHelperSpamTask(XrumerHelper):
         '''Содержимое проекта'''
         spamLinksList = escape(codecs.decode(' '.join(self.currentTask['spamLinksList']), 'cp1251'))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
-        projBody = '#file_links[%s,7,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,3,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
+        projBody = '#file_links[%s,10,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,10,S]' % (self.snippetsFileEsc, spamLinksList, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
         '''Пишем кейворды'''
         self._WriteKeywords()
         '''Создаем настройки'''
