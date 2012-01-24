@@ -22,7 +22,7 @@ class SnippetsAgent(agent.BaseAgent):
     def _ActionOff(self):
         #self._Settings()  # в текущей версии парсера это не нужно
         '''Обработка'''
-        with codecs.open(self.localFile, 'w', encoding='cp1251', errors='ignore') as fd:
+        with codecs.open(self.localFile, 'w', 'cp1251', 'ignore') as fd:
             fd.write('\n'.join(self.snippets.snippetsList))
         self.currentTask['phrasesCount'] = kwk8.ProcessSnippets(self.localFile, self.localFile, self.currentTask['stopwordsList'], ['http://', '[url', '.com', '.net', '.org', '.info', '.us', '.ru', '.ua', '.by', '.htm', '.html', '.php'])
         '''Значения по умолчанию'''

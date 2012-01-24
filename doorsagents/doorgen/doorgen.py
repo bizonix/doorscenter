@@ -83,7 +83,7 @@ class Doorgen(object):
         
     def _GetFileContents(self, fileName):
         '''Читаем содержимое файла + препроцессинг'''
-        return self.PreprocessTemplate(codecs.open(fileName, encoding='cp1251', errors='ignore').read())
+        return self.PreprocessTemplate(codecs.open(fileName, 'r', 'cp1251', 'ignore').read())
     
     def _GetCachedFileLines(self, fileName):
         '''Читаем и кэшируем строки из файла'''
@@ -282,21 +282,22 @@ class Doorgen(object):
         return template
         
     def GeneratePage(self, template, keywordPage):
-        '''Формируем страницу'''
         try:
+            '''Формируем страницу'''
             self.keywordPage = keywordPage
             pageContents = self.ProcessTemplate(template)
             pageContents = self.PostprocessTemplate(pageContents)
             pageFileName = self._KeywordToUrl(keywordPage)
             self.doorway.AddPage(pageFileName, pageContents)
+            
+            '''Добавляем в список страниц'''
+            link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, self._Capitalize(keywordPage, ''))
+            if keywordPage != 'sitemap':
+                self.pageLinksList.append(link)
+            else:
+                self.pageLinksList.insert(1, link)
         except Exception as error:
-            print(error)
-        '''Добавляем в список страниц'''
-        link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, self._Capitalize(keywordPage, ''))
-        if keywordPage != 'sitemap':
-            self.pageLinksList.append(link)
-        else:
-            self.pageLinksList.insert(1, link)
+            print('Error at "%s": %s' % (keywordPage, error))
 
     def Generate(self, keywordsList, netLinksList, template, pagesCount, url):
         '''Генерируем дор'''
@@ -353,8 +354,8 @@ if __name__ == '__main__':
     templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates'
     textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates\texts'
     snippetsPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\snippets'
-    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\keywords.txt', encoding='cp1251', errors='ignore').readlines()
-    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', encoding='cp1251', errors='ignore').readlines()
+    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\keywords.txt', 'r', 'cp1251', 'ignore').readlines()
+    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
     doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')

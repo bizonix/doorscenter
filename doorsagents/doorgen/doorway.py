@@ -83,7 +83,7 @@ Disallow: /*/js/'''
     def AddPage(self, fileName, fileContents):
         '''Добавляем страницу к дорвею'''
         if not self.closed:
-            fileContents = fileContents.encode('utf-8', errors='ignore')
+            fileContents = fileContents.encode('utf-8', 'ignore')
             fileBuffer = cStringIO.StringIO(fileContents)
             fileBuffer.seek(0)
             tarInfo = tarfile.TarInfo(name=fileName)
