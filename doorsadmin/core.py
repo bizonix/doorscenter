@@ -20,8 +20,9 @@ def CronDaily():
 def Helper():
     '''Запуск из командной строки'''
     '''UpdateIndexCount()'''
-    '''for niche in Niche.objects.filter(active=True).order_by('pk').all():
-        niche.GenerateSpamTasksMultiple()'''
+    for _ in range(5):
+        for niche in Niche.objects.filter(active=True).order_by('pk').all():
+            niche.GenerateSpamTasksMultiple()
     '''Net.objects.get(pk=269).AddDomains()'''
     '''with open('/home/admin/tmp/domains.txt') as fd:
         addDomains = ''.join(fd.readlines())'''

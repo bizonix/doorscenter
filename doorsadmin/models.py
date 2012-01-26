@@ -1293,8 +1293,9 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
                 '''Генерируем задания для спама'''  
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
                     # def GenerateSpamTasks():
-                    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-                        niche.GenerateSpamTasksMultiple()
+                    for _ in range(5):
+                        for niche in Niche.objects.filter(active=True).order_by('pk').all():
+                            niche.GenerateSpamTasksMultiple()
         except Exception as error:
             EventLog('error', 'Error in "OnUpdate"', self, error)
     def GetDateLastPingAgo(self):
