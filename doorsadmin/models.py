@@ -357,36 +357,38 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GenerateSpamTasksMultiple(self):
         '''Генерация заданий сразу в несколько баз'''
         try:
-            '''Получаем список баз R для данной ниши'''
-            xrumerBasesSpam = XrumerBaseSpam.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?').all()
-            xrumerBasesSpamCount = len(xrumerBasesSpam)
-            '''Инициализация списков: список ссылок и список количеств оставшихся доменов'''
-            linksLists = []
-            domainsCounts = []
-            for n in range(xrumerBasesSpamCount):
-                linksLists.append([])
-                xrumerBaseSpam = xrumerBasesSpam[n]
-                domainsCounts.append(random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax))
-            '''Цикл по доменам с заданиями на спам'''
-            domains = Domain.objects.filter(niche=self).order_by('?').all()
-            for domain in domains:
-                '''Получаем список непроспамленных ссылок домена'''
-                spamLinks = self.GetSpamDomainLinks(domain).order_by('?').all()
-                '''Распределяем их по базам'''
+            '''Генерируем в несколько проходов, для максимального распределения ссылок'''
+            for _ in range(3):
+                '''Получаем список баз R для данной ниши'''
+                xrumerBasesSpam = XrumerBaseSpam.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?').all()
+                xrumerBasesSpamCount = len(xrumerBasesSpam)
+                '''Инициализация списков: список ссылок и список количеств оставшихся доменов'''
+                linksLists = []
+                domainsCounts = []
                 for n in range(xrumerBasesSpamCount):
-                    if len(spamLinks) == 0:
-                        break
+                    linksLists.append([])
                     xrumerBaseSpam = xrumerBasesSpam[n]
-                    linksCount = random.randint(xrumerBaseSpam.spamTaskDomainLinksMin, xrumerBaseSpam.spamTaskDomainLinksMax)
-                    for spamLink in spamLinks[:linksCount]:
-                        linksLists[n].append(spamLink.pk)
-                    spamLinks = spamLinks[linksCount:]
-                    domainsCounts[n] -= 1
-                    '''Если задание сформировано'''
-                    if domainsCounts[n] == 0:
-                        self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
-                        linksLists[n] = []
-                        domainsCounts[n] = random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax)
+                    domainsCounts.append(random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax))
+                '''Цикл по доменам с заданиями на спам'''
+                domains = Domain.objects.filter(niche=self).order_by('?').all()
+                for domain in domains:
+                    '''Получаем список непроспамленных ссылок домена'''
+                    spamLinks = self.GetSpamDomainLinks(domain).order_by('?').all()
+                    '''Распределяем их по базам'''
+                    for n in range(xrumerBasesSpamCount):
+                        if len(spamLinks) == 0:
+                            break
+                        xrumerBaseSpam = xrumerBasesSpam[n]
+                        linksCount = random.randint(xrumerBaseSpam.spamTaskDomainLinksMin, xrumerBaseSpam.spamTaskDomainLinksMax)
+                        for spamLink in spamLinks[:linksCount]:
+                            linksLists[n].append(spamLink.pk)
+                        spamLinks = spamLinks[linksCount:]
+                        domainsCounts[n] -= 1
+                        '''Если задание сформировано'''
+                        if domainsCounts[n] == 0:
+                            self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
+                            linksLists[n] = []
+                            domainsCounts[n] = random.randint(xrumerBaseSpam.spamTaskDomainsMin, xrumerBaseSpam.spamTaskDomainsMax)
             '''Сохраняем нераспределенные остатки'''
             #for n in range(xrumerBasesSpamCount):
             #    if len(linksLists[n]) > 0:
@@ -1293,9 +1295,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
                 '''Генерируем задания для спама'''  
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
                     # def GenerateSpamTasks():
-                    for _ in range(5):
-                        for niche in Niche.objects.filter(active=True).order_by('pk').all():
-                            niche.GenerateSpamTasksMultiple()
+                    for niche in Niche.objects.filter(active=True).order_by('pk').all():
+                        niche.GenerateSpamTasksMultiple()
         except Exception as error:
             EventLog('error', 'Error in "OnUpdate"', self, error)
     def GetDateLastPingAgo(self):

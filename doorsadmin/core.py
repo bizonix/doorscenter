@@ -20,9 +20,8 @@ def CronDaily():
 def Helper():
     '''Запуск из командной строки'''
     '''UpdateIndexCount()'''
-    for _ in range(5):
-        for niche in Niche.objects.filter(active=True).order_by('pk').all():
-            niche.GenerateSpamTasksMultiple()
+    for niche in Niche.objects.filter(active=True).order_by('pk').all():
+        niche.GenerateSpamTasksMultiple()
     '''Net.objects.get(pk=269).AddDomains()'''
     '''with open('/home/admin/tmp/domains.txt') as fd:
         addDomains = ''.join(fd.readlines())'''
@@ -30,9 +29,10 @@ def Helper():
 
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
+    xrumersCount = 2  # настройка: количество хрумеров
     avgSpamTaskDuration = 30  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
-    linksLimitBase = int(1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
+    linksLimitBase = int(xrumersCount * 1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitBase = 999  # настройка: лимит расхода доменов в сутки
     doorwaysLimitBase = 999  # настройка: лимит доров в папках / на субдоменах в сутки
     
