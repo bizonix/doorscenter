@@ -1,7 +1,7 @@
 # coding=utf8
 import os, urllib2, pycurl, cStringIO, datetime, time, threading, Queue
 
-proxyListRawUrl = 'http://proxylist.fineproxy.ru/all.txt'
+proxyListRawUrl = 'http://searchpro.name/tools/proxy-all.txt'
 proxyCacheFile = 'proxies.txt'
 
 googleQueryUrl = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
