@@ -1,5 +1,5 @@
 # coding=utf8
-import urllib2, pycurl, cStringIO, datetime, time, threading, Queue
+import os, urllib2, pycurl, cStringIO, datetime, time, threading, Queue
 
 proxyListRawUrl = 'http://proxylist.fineproxy.ru/all.txt'
 proxyCacheFile = 'proxies.txt'
@@ -77,8 +77,8 @@ class GoogleProxiesChecker(threading.Thread):
                 self.queueChecked.put(proxy)
             self.queueRaw.task_done()
 
-class CommonCheckerMonitor(threading.Thread):
-    '''Монитор двух очередей'''
+class GoogleProxiesCheckerMonitor(threading.Thread):
+    '''Монитор чекера прокси'''
     
     def __init__(self, queue1, queue2):
         '''Инициализация'''
@@ -89,15 +89,15 @@ class CommonCheckerMonitor(threading.Thread):
         self.queue1InitialSize = self.queue1.qsize()
         
     def run(self):
-        '''Каждые N секунд выводим текущую информацию'''
+        print('Monitoring started.')
         lastActionTime = time.time()
         while not self.queue1.empty():
+            '''Каждые N секунд выводим текущую информацию'''
             if time.time() - lastActionTime > 5:
-                print('%d/%d (%.2f%%) => %d.' % ((self.queue1InitialSize - self.queue1.qsize()), self.queue1InitialSize, (self.queue1InitialSize - self.queue1.qsize()) * 100.0 / self.queue1InitialSize, self.queue2.qsize()))
+                print('... %d/%d (%.2f%%) => %d.' % ((self.queue1InitialSize - self.queue1.qsize()), self.queue1InitialSize, (self.queue1InitialSize - self.queue1.qsize()) * 100.0 / self.queue1InitialSize, self.queue2.qsize()))
                 lastActionTime = time.time()
             time.sleep(1)
-        print('Monitoring finished')
-
+        print('Monitoring finished.')
 
 def ParseProxies(fromCache = False):
     '''Проверка прокси'''
@@ -116,7 +116,7 @@ def ParseProxies(fromCache = False):
         for line in proxyListRawStr:
             if line.strip() != '':
                 queueProxyRaw.put(GoogleProxy('http', line.strip()))
-        CommonCheckerMonitor(queueProxyRaw, queueProxyChecked).start()
+        GoogleProxiesCheckerMonitor(queueProxyRaw, queueProxyChecked).start()
         for _ in range(threadsCount):
             GoogleProxiesChecker(queueProxyRaw, queueProxyChecked).start()
         queueProxyRaw.join()
@@ -136,8 +136,9 @@ def ParseProxies(fromCache = False):
     else:
         print('Loading proxies ...')
         proxyListChecked = []
-        for line in open(proxyCacheFile):
-            if line.strip() != '':
-                proxyListChecked.append(GoogleProxy('http', line.strip()))
+        if os.path.exists(proxyCacheFile):
+            for line in open(proxyCacheFile):
+                if line.strip() != '':
+                    proxyListChecked.append(GoogleProxy('http', line.strip()))
         print('Proxies checked: %d.' % len(proxyListChecked))
     return proxyListChecked
