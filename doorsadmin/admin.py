@@ -444,6 +444,7 @@ class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
 class EventAdmin(BaseAdmin):
     list_display = ('pk', 'date', 'type', 'object', 'text')
     list_filter = ['type']
+    search_fields = ['object', 'text']
     fieldsets = [
         (None, {'fields': ['date', ('type', 'object'), 'text']}),
     ]

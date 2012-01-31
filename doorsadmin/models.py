@@ -23,10 +23,9 @@ taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
 spamBaseTypes = (('LinksList', 'LinksList'), ('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
 
-emailDomains = ['shotarou.com', 'monctonlife.com', 'pnpbiz.com', 'gothentai.com', 'theexitgroup.com', 'shophall.net', 'zonedating.info']
-emailCommonLogin = 'catch@gothentai.com'
-emailCommonPassword = 'kernel32'
-emailCommonPopServer = 'mail.gothentai.com'
+emailCommonLogin = 'local223344@gmail.com'
+emailCommonPassword = 'kernel223344'
+emailCommonPopServer = 'pop.gmail.com'
 
 '''Helper functions'''
 
@@ -79,6 +78,10 @@ def NextYearDate():
 def NextBaseNumber():
     '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseProfiles.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+
+def GenerateRandomEmail():
+    '''Генерируем случайный адрес почты'''
+    return emailCommonLogin.replace('@gmail.com', '+%s@gmail.com' % GenerateRandomWord())
 
 '''Abstract models'''
 
@@ -200,10 +203,10 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
                 'realName': self.realName, 
                 'password': self.password, 
                 'emailAddress': self.emailAddress, 
-                'nickNameRandom': '#gennick[%s]' % GenerateRandomWord(12).upper(), 
-                'realNameRandom': '#gennick[%s]' % GenerateRandomWord(12).upper(), 
-                'passwordRandom': GenerateRandomWord(12), 
-                'emailAddressRandom': '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains)), 
+                'nickNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
+                'realNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
+                'passwordRandom': GenerateRandomWord(), 
+                'emailAddressRandom': GenerateRandomEmail(), 
                 'emailPassword': emailCommonPassword, 
                 'emailLogin': emailCommonLogin, 
                 'emailPopServer': emailCommonPopServer, 
@@ -223,13 +226,13 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
             self.snippetsSet = self.niche.GetRandomSnippetsSet()
         '''Если не указаны ник, имя и пароль - генерим случайные'''
         if self.nickName == '':
-            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+            self.nickName = '#gennick[%s]' % GenerateRandomWord().upper()
         if self.realName == '':
-            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+            self.realName = '#gennick[%s]' % GenerateRandomWord().upper()
         if self.password == '':
-            self.password = GenerateRandomWord(12)
+            self.password = GenerateRandomWord()
         if self.emailAddress == '':
-            self.emailAddress = '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains))
+            self.emailAddress = GenerateRandomEmail()
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
