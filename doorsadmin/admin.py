@@ -63,7 +63,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastDayRelative', 'GetTrafficLastMonth', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
