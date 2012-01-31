@@ -285,6 +285,18 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetSnippetsSetsCount.short_description = 'Snip.'
     GetSnippetsSetsCount.allow_tags = True
     def GetTrafficLastDay(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
         traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
@@ -294,9 +306,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 return '%d&nbsp;(-)' % traffic
         else:
             return '-'
-    GetTrafficLastDay.short_description = 'Traf/d'
-    GetTrafficLastDay.allow_tags = True
-    def GetTrafficLastMonth(self):
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
         traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
@@ -306,9 +318,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 return '%d&nbsp;(-)' % traffic
         else:
             return '-'
-    GetTrafficLastMonth.short_description = 'Traf/m'
-    GetTrafficLastMonth.allow_tags = True
-    def GetTrafficLastYear(self):
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
         traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
@@ -318,8 +330,8 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 return '%d&nbsp;(-)' % traffic
         else:
             return '-'
-    GetTrafficLastYear.short_description = 'Traf/y'
-    GetTrafficLastYear.allow_tags = True
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
         try:
