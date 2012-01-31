@@ -285,15 +285,39 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetSnippetsSetsCount.short_description = 'Snip.'
     GetSnippetsSetsCount.allow_tags = True
     def GetTrafficLastDay(self):
-        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%d (%.1f)' % (traffic, traffic / doorsCount)
+            else:
+                return '%d (-)' % traffic
+        else:
+            return '-'
     GetTrafficLastDay.short_description = 'Traf/d'
     GetTrafficLastDay.allow_tags = True
     def GetTrafficLastMonth(self):
-        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%d (%.1f)' % (traffic, traffic / doorsCount)
+            else:
+                return '%d (-)' % traffic
+        else:
+            return '-'
     GetTrafficLastMonth.short_description = 'Traf/m'
     GetTrafficLastMonth.allow_tags = True
     def GetTrafficLastYear(self):
-        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%d (%.1f)' % (traffic, traffic / doorsCount)
+            else:
+                return '%d (-)' % traffic
+        else:
+            return '-'
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetRandomTemplate(self):
