@@ -301,9 +301,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%d&nbsp;(%.2f)' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
             else:
-                return '%d&nbsp;(-)' % traffic
+                return '-'
         else:
             return '-'
     GetTrafficLastDayRelative.short_description = 'Traf/d'
@@ -313,9 +313,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%d&nbsp;(%.2f)' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
             else:
-                return '%d&nbsp;(-)' % traffic
+                return '-'
         else:
             return '-'
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
@@ -325,9 +325,9 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%d&nbsp;(%.2f)' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
             else:
-                return '%d&nbsp;(-)' % traffic
+                return '-'
         else:
             return '-'
     GetTrafficLastYearRelative.short_description = 'Traf/y'
