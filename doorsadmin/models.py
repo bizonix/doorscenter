@@ -301,7 +301,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic * 1.0 / doorsCount)
             else:
                 return '-'
         else:
@@ -313,7 +313,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic * 1.0 / doorsCount)
             else:
                 return '-'
         else:
@@ -325,7 +325,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         if (traffic != None) and (traffic != 0):
             doorsCount = self.doorway_set.count()
             if (doorsCount != None) and (doorsCount != 0):
-                return '%.2f' % (traffic, traffic * 1.0 / doorsCount)
+                return '%.2f' % (traffic * 1.0 / doorsCount)
             else:
                 return '-'
         else:
