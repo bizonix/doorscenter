@@ -1,7 +1,7 @@
 # coding=utf8
-import os, re, glob, urllib, random, operator, datetime, time, threading, Queue, googleproxy
+import os, re, glob, codecs, math, random, urllib, operator, datetime, time, threading, Queue, googleproxy
 
-keywordsDatabaseFile = 'keywords-db.txt'
+databaseFileName = 'keywords-data.txt'
 
 googleResultsStrList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'<div>([0-9,]*) res']
 googleNoResultsStr1 = 'No results found for'
@@ -10,56 +10,140 @@ googleNoResultsStr2 = 'did not match any documents'
 class KeywordsDatabase(object):
     '''База кейвордов'''
     
-    def __init__(self):
+    def __init__(self, folder, encoding='utf-8'):
         '''Инициализация'''
-        self.keywordsDict = {}
-        self.keywordsCheckList = []
-        if os.path.exists(keywordsDatabaseFile):
-            for line in open(keywordsDatabaseFile):
+        self.folder = folder
+        self.encoding = encoding
+        self.databaseFile = os.path.join(self.folder, databaseFileName)
+        self.keywordsFileMask = os.path.join(self.folder, r'[*.txt')
+        self.keywordsDataDict = {}
+        self.keywordsListCheck = []
+    
+    def Count(self):
+        '''Считаем количество кейвордов'''
+        n = 0
+        for fileName in glob.glob(self.keywordsFileMask):
+            for line in open(fileName, 'r'):
+                if line.strip() != '':
+                    n += 1
+        return n
+
+    def LoadData(self):
+        '''Читаем данные по кейвордам'''
+        self.keywordsDataDict = {}
+        self.keywordsListCheck = []
+        if os.path.exists(self.databaseFile):
+            for line in open(self.databaseFile):
                 if line.strip() == '':
                     continue
-                keyword, _, data = line.strip().rpartition(':')
-                keyword = keyword.strip()
-                data = int(data.strip())
-                self.keywordsDict[keyword] = data
-                if data == -1:
-                    self.keywordsCheckList.append(keyword)
-        print('Keywords database size: %d, to check: %d.' % (len(self.keywordsDict), len(self.keywordsCheckList)))
-            
-    def Has(self, keyword):
-        '''Есть ли кейворд в базе'''
-        return keyword in self.keywordsDict
-    
-    def Add(self, keyword, data):
-        '''Добавляем данные по кейворду в базу'''
-        self.keywordsDict[keyword] = data
+                try:
+                    keyword, _, data = line.strip().rpartition(':')
+                    keyword = keyword.strip()
+                    data = int(data.strip())
+                    if data != -1:
+                        self.keywordsDataDict[keyword] = data
+                    elif keyword not in self.keywordsListCheck:
+                        self.keywordsListCheck.append(keyword)
+                except Exception as error:
+                    #print('### Error: %s' % error)
+                    pass
         
-    def GetData(self, keyword, default = None):
-        '''Получаем данные по кейворду'''
-        if self.Has(keyword):
-            return self.keywordsDict[keyword]
-        else:
-            return default
-        
-    def Flush(self):
-        '''Сохраняем базу в отсортированном виде'''
-        with open(keywordsDatabaseFile, 'w') as fd:
-            keywordsListSorted = sorted(self.keywordsDict.iteritems(), key=operator.itemgetter(1))
+    def FlushData(self):
+        '''Забираем результаты из очереди ...'''
+        while not self.queueKeywordsOut.empty():
+            d = self.queueKeywordsOut.get()
+            self.keywordsDataDict.update(d)
+            self.queueKeywordsOut.task_done()
+        '''... и сохраняем базу в отсортированном виде'''
+        with open(self.databaseFile, 'w') as fd:
+            keywordsListSorted = sorted(self.keywordsDataDict.iteritems(), key=operator.itemgetter(1))
             for item in keywordsListSorted:
                 fd.write('%s: %d\n' % (item[0], item[1]))
-        print('Keywords database flushed (%d items).' % len(self.keywordsDict))
+        print('Keywords database flushed (%d items).' % len(self.keywordsDataDict))
         
-    def FlushQueue(self, queue):
-        '''Забираем результаты из очереди и сохраняем базу'''
-        while not queue.empty():
-            d = queue.get()
-            self.Add(d.keys()[0], d.values()[0])
-            queue.task_done()
-        self.Flush()
+    def UpdateData(self):
+        '''Проверка кейвородов в гугле'''
+        print('Checking keywords ...')
+        proxyList = googleproxy.GoogleProxiesList()
         
-    def FilterKeywordsList(self, keywordsList, maxData):
-        '''Отбираем ко конкуренции'''
-        return [item for item in keywordsList if self.GetData(item, maxData + 1) <= maxData]
+        '''Читаем кейворды'''
+        self.LoadData()
+        for fileName in glob.glob(self.keywordsFileMask):
+            for keyword in open(fileName):
+                keyword = keyword.strip()
+                if keyword == '':
+                    continue
+                if keyword not in self.keywordsDataDict:
+                    self.keywordsListCheck.append(keyword)
+        print('Keywords database size: %d.' % len(self.keywordsDataDict))
+        print('Keywords to check: %d.' % len(self.keywordsListCheck))
+    
+        '''Цикл по группам кейвордов'''
+        chunkSize = 5000
+        chunksCount = (len(self.keywordsListCheck) - 1) / chunkSize + 1
+        for n in range(chunksCount):
+            '''Получаем свежие прокси'''
+            proxyList.Update()
+    
+            '''Помещаем группу в очередь'''
+            dateTimeStart = datetime.datetime.now()
+            print('Checking keywords (part %d/%d) ...' % (n + 1, chunksCount))
+            keywordsListChunk = self.keywordsListCheck[n * chunkSize : (n + 1) * chunkSize]
+            keywordsListChunkCount = len(keywordsListChunk)
+            self.queueKeywordsIn = Queue.Queue()
+            self.queueKeywordsOut = Queue.Queue()
+            for item in keywordsListChunk:
+                self.queueKeywordsIn.put(item)
+            
+            '''Проверка'''
+            threadsCount = 100
+            KeywordsCheckerMonitor(self.queueKeywordsIn, self.queueKeywordsOut, self, n * chunkSize, len(self.keywordsListCheck)).start()
+            for _ in range(threadsCount):
+                KeywordsChecker(self.queueKeywordsIn, self.queueKeywordsOut, proxyList).start()
+            self.queueKeywordsIn.join()
+            self.FlushData()
+            
+            '''Статистика'''
+            timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
+            print('Checked %d keywords in %d sec. (%.2f sec./keyword)' % (keywordsListChunkCount, timeDelta, timeDelta * 1.0 / keywordsListChunkCount))
+    
+    def _GetKeywordCompetition(self, keyword):
+        '''Получаем конкуренцию по кейворду'''
+        if keyword in self.keywordsDataDict:
+            return self.keywordsDataDict[keyword]
+        else:
+            return 99999999999
+        
+    def _GetFilePercent(self, fileName):
+        '''Получаем цифру из названия файла'''
+        try:
+            return int(re.match(r'^\[(.*?)\].*', fileName).group(1))
+        except Exception:
+            return 0
+    
+    def SelectKeywords(self, keywordsCountTotal = 100, maxCompetition = -1):
+        '''Создание списка кеев для доров по Бабулеру.
+        Для каждого дора из каждого файла в папке берется заданный процент кеев.'''
+        if maxCompetition >= 0:
+            self.LoadData()
+        resultList = []
+        percentsTotal = 0
+        for fileName in glob.glob(self.keywordsFileMask):
+            percentsTotal += self._GetFilePercent(fileName)
+        for fileName in glob.glob(self.keywordsFileMask):
+            percents = self._GetFilePercent(fileName)
+            keywordsList = [line.strip() for line in codecs.open(fileName, 'r', self.encoding, 'ignore').readlines()]
+            if maxCompetition >= 0:
+                keywordsList = [keyword for keyword in keywordsList if self._GetKeywordCompetition(keyword) <= maxCompetition]
+            keywordsCount = int(min(len(keywordsList), math.floor(keywordsCountTotal * percents / percentsTotal * random.randint(80, 120) / 100))) 
+            if keywordsCount > 0:
+                random.shuffle(keywordsList)
+                resultList.extend(keywordsList[0:keywordsCount])
+            keywordsCountTotal -= keywordsCount
+            percentsTotal -= percents
+        '''Перемешиваем готовый список'''
+        random.shuffle(resultList)
+        return resultList
 
 class KeywordsChecker(threading.Thread):
     '''Поточный чекер кейвордов в гугле'''
@@ -77,23 +161,23 @@ class KeywordsChecker(threading.Thread):
         '''Обработка очередей'''
         while not self.queueIn.empty():
             keyword = self.queueIn.get()
-            x = self.Check(keyword)
-            print('- %s: %d' % (keyword, x))
-            self.queueOut.put({keyword: x})
+            data = self.GetData(keyword)
+            print('- %s: %d' % (keyword, data))
+            self.queueOut.put({keyword: data})
             self.queueIn.task_done()
     
-    def Check(self, keyword):
-        '''Делаем запрос'''
+    def GetData(self, keyword):
+        '''Делаем запрос в гугл'''
         query = urllib.quote_plus('"' + keyword + '"')
         attemptsCount = 200
         for _ in range(attemptsCount):
-            proxy = random.choice(self.proxyList)
+            proxy = self.proxyList.GetRandom()
             if not proxy.googleAccess:
                 continue
             #print('-- %s: %s' % (keyword, proxy))
             html = proxy.Request(query)
             if not proxy.googleAccess:
-                print('### Failed: %s' % proxy)
+                print('### Proxy failed: %s' % proxy)
                 continue
             if html == '':
                 continue
@@ -133,65 +217,13 @@ class KeywordsCheckerMonitor(threading.Thread):
                 lastActionTime1 = time.time()
             '''Каждые M секунд сохраняем базу кейвордов'''
             if time.time() - lastActionTime2 > 60:
-                self.keywordsDatabase.FlushQueue(self.queue2)
+                self.keywordsDatabase.FlushData()
                 lastActionTime2 = time.time()
             time.sleep(1)
-        self.keywordsDatabase.FlushQueue(self.queue2)
+        self.keywordsDatabase.FlushData()
         print('Monitoring finished.')
 
-def CheckKeywordsList(keywordsList):
-    '''Проверка кейвородов из списка'''
-    print('Checking keywords ...')
-    keywordsList = list(set(keywordsList))
-    keywordsDatabase = KeywordsDatabase()
-    keywordsListNew = [item for item in keywordsList if not keywordsDatabase.Has(item)]
-    print('Keywords to check: %d/%d/%d.' % (len(keywordsDatabase.keywordsCheckList), len(keywordsListNew), len(keywordsList)))
-    keywordsListNew.extend(keywordsDatabase.keywordsCheckList)
-
-    '''Цикл по группам кейвордов'''
-    chunkSize = 5000
-    chunksCount = (len(keywordsListNew) - 1) / chunkSize + 1
-    for n in range(chunksCount):
-        '''Получаем свежие прокси'''
-        proxyList = googleproxy.ParseProxies()
-
-        '''Помещаем группу в очередь'''
-        dateTimeStart = datetime.datetime.now()
-        print('Checking keywords (part %d/%d) ...' % (n + 1, chunksCount))
-        keywordsListChunk = keywordsListNew[n * chunkSize : (n + 1) * chunkSize]
-        keywordsListChunkCount = len(keywordsListChunk)
-        queueKeywordsIn = Queue.Queue()
-        queueKeywordsOut = Queue.Queue()
-        for item in keywordsListChunk:
-            queueKeywordsIn.put(item)
-        
-        '''Проверка'''
-        threadsCount = 100
-        KeywordsCheckerMonitor(queueKeywordsIn, queueKeywordsOut, keywordsDatabase, n * chunkSize, len(keywordsListNew)).start()
-        for _ in range(threadsCount):
-            KeywordsChecker(queueKeywordsIn, queueKeywordsOut, proxyList).start()
-        queueKeywordsIn.join()
-        keywordsDatabase.FlushQueue(queueKeywordsOut)
-        
-        '''Статистика'''
-        timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
-        print('Checked %d keywords in %d sec. (%.2f sec./keyword)' % (keywordsListChunkCount, timeDelta, timeDelta * 1.0 / keywordsListChunkCount))
-
-def CheckKeywordsFile(keywordsFile):
-    '''Проверка кейвородов из файла'''
-    keywordsList = []
-    for line in open(keywordsFile):
-        if line.strip() != '':
-            keywordsList.append(line.strip())
-    CheckKeywordsList(keywordsList)
-
-def CheckKeywordsFolder(keywordsFolder):
-    '''Проверка кейвородов из папки'''
-    keywordsList = []
-    for fileName in glob.glob(os.path.join(keywordsFolder, '*.txt')):
-        for line in open(fileName):
-            if line.strip() != '':
-                keywordsList.append(line.strip())
-    CheckKeywordsList(keywordsList)
-
-CheckKeywordsFolder(r'C:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\*')
+if __name__ == '__main__':
+    keywordsDatabase = KeywordsDatabase(r'D:\Miscellaneous\Lodger6\keys9\4')
+    print(keywordsDatabase.Count())
+    keywordsDatabase.UpdateData()

@@ -1,7 +1,8 @@
 # coding=utf8
-import os, urllib2, pycurl, cStringIO, datetime, time, threading, Queue
+import os, urllib2, pycurl, cStringIO, random, datetime, time, threading, Queue
 
-proxyListRawUrl = 'http://searchpro.name/tools/proxy-all.txt'
+proxyListRawUrl = 'http://alexborisov.net/proxyc/list-all.txt'
+#proxyListRawUrl = 'http://searchpro.name/tools/proxy-all.txt'
 proxyCacheFile = 'proxies.txt'
 
 googleQueryUrl = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
@@ -58,6 +59,67 @@ class GoogleProxy(object):
                 print('Failed html: %s' % html)'''
         return html
         
+class GoogleProxiesList(object):
+    '''Список прокси под гугл'''
+    
+    def __init__(self):
+        '''Инициализация'''
+        self.proxyList = []
+        self.LoadFromCache()
+    
+    def GetRandom(self):
+        '''Возвращаем случайную прокси из списка'''
+        return random.choice(self.proxyList)
+        
+    def LoadFromCache(self):
+        '''Загружаем из кэша'''
+        print('Loading proxies ...')
+        self.proxyList = []
+        if os.path.exists(proxyCacheFile):
+            for line in open(proxyCacheFile):
+                if line.strip() != '':
+                    self.proxyList.append(GoogleProxy('http', line.strip()))
+        print('Proxies: %d.' % len(self.proxyList))
+        
+    def SaveToCache(self):
+        '''Пишем в кэш'''
+        with open(proxyCacheFile, 'w') as fd:
+            for proxy in self.proxyList:
+                fd.write(proxy.address + '\n')
+
+    def Update(self):
+        '''Проверка прокси'''
+        print('Updating proxies ...')
+    
+        '''Инициализация'''
+        dateTimeStart = datetime.datetime.now()
+        proxyListRawStr = urllib2.urlopen(proxyListRawUrl).read().splitlines()
+        print('Proxies raw: %d.' % len(proxyListRawStr))
+    
+        '''Проверка'''
+        threadsCount = 100
+        queueProxyRaw = Queue.Queue()
+        queueProxyChecked = Queue.Queue()
+        for line in proxyListRawStr:
+            if line.strip() != '':
+                queueProxyRaw.put(GoogleProxy('http', line.strip()))
+        GoogleProxiesCheckerMonitor(queueProxyRaw, queueProxyChecked).start()
+        for _ in range(threadsCount):
+            GoogleProxiesChecker(queueProxyRaw, queueProxyChecked).start()
+        queueProxyRaw.join()
+        
+        '''Обработка результатов'''
+        self.proxyList = []
+        while not queueProxyChecked.empty():
+            proxy = queueProxyChecked.get()
+            self.proxyList.append(proxy)
+            queueProxyChecked.task_done()
+        self.SaveToCache()
+    
+        '''Статистика'''
+        timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
+        print('Parsed %d of %d proxies in %d sec. (%.2f sec./proxy)' % (len(self.proxyList), len(proxyListRawStr), timeDelta, timeDelta * 1.0 / len(proxyListRawStr)))
+
 class GoogleProxiesChecker(threading.Thread):
     '''Поточный чекер прокси'''
 
@@ -99,46 +161,6 @@ class GoogleProxiesCheckerMonitor(threading.Thread):
             time.sleep(1)
         print('Monitoring finished.')
 
-def ParseProxies(fromCache = False):
-    '''Проверка прокси'''
-    if not fromCache:
-        print('Checking proxies ...')
-    
-        '''Инициализация'''
-        dateTimeStart = datetime.datetime.now()
-        proxyListRawStr = urllib2.urlopen(proxyListRawUrl).read().splitlines()
-        print('Proxies raw: %d.' % len(proxyListRawStr))
-    
-        '''Проверка'''
-        threadsCount = 100
-        queueProxyRaw = Queue.Queue()
-        queueProxyChecked = Queue.Queue()
-        for line in proxyListRawStr:
-            if line.strip() != '':
-                queueProxyRaw.put(GoogleProxy('http', line.strip()))
-        GoogleProxiesCheckerMonitor(queueProxyRaw, queueProxyChecked).start()
-        for _ in range(threadsCount):
-            GoogleProxiesChecker(queueProxyRaw, queueProxyChecked).start()
-        queueProxyRaw.join()
-        
-        '''Обработка результатов'''
-        proxyListChecked = []
-        with open(proxyCacheFile, 'w') as fd:
-            while not queueProxyChecked.empty():
-                proxy = queueProxyChecked.get()
-                fd.write(proxy.address + '\n')
-                proxyListChecked.append(proxy)
-                queueProxyChecked.task_done()
-    
-        '''Статистика'''
-        timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
-        print('Parsed %d of %d proxies in %d sec. (%.2f sec./proxy)' % (len(proxyListChecked), len(proxyListRawStr), timeDelta, timeDelta * 1.0 / len(proxyListRawStr)))
-    else:
-        print('Loading proxies ...')
-        proxyListChecked = []
-        if os.path.exists(proxyCacheFile):
-            for line in open(proxyCacheFile):
-                if line.strip() != '':
-                    proxyListChecked.append(GoogleProxy('http', line.strip()))
-        print('Proxies checked: %d.' % len(proxyListChecked))
-    return proxyListChecked
+if __name__ == '__main__':
+    proxyList = GoogleProxiesList()
+    proxyList.Update()
