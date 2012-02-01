@@ -23,10 +23,9 @@ taskPriorities = (('high', 'high'), ('std', 'std'), ('zero', 'zero'))
 baseCreationTypes = (('post', 'post'), ('reply', 'reply'), ('reg + post', 'reg + post'), ('reg + reply', 'reg + reply'))
 spamBaseTypes = (('LinksList', 'LinksList'), ('ZLinksList', 'ZLinksList'), ('RLinksList', 'RLinksList'))
 
-emailDomains = ['shotarou.com', 'monctonlife.com', 'pnpbiz.com', 'gothentai.com', 'theexitgroup.com', 'shophall.net', 'zonedating.info']
-emailCommonLogin = 'catch@gothentai.com'
-emailCommonPassword = 'kernel32'
-emailCommonPopServer = 'mail.gothentai.com'
+emailCommonLogin = 'local223344@gmail.com'
+emailCommonPassword = 'kernel223344'
+emailCommonPopServer = 'pop.gmail.com'
 
 '''Helper functions'''
 
@@ -79,6 +78,10 @@ def NextYearDate():
 def NextBaseNumber():
     '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseProfiles.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+
+def GenerateRandomEmail():
+    '''Генерируем случайный адрес почты'''
+    return emailCommonLogin.replace('@gmail.com', '+%s@gmail.com' % GenerateRandomWord())
 
 '''Abstract models'''
 
@@ -200,10 +203,10 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
                 'realName': self.realName, 
                 'password': self.password, 
                 'emailAddress': self.emailAddress, 
-                'nickNameRandom': '#gennick[%s]' % GenerateRandomWord(12).upper(), 
-                'realNameRandom': '#gennick[%s]' % GenerateRandomWord(12).upper(), 
-                'passwordRandom': GenerateRandomWord(12), 
-                'emailAddressRandom': '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains)), 
+                'nickNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
+                'realNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
+                'passwordRandom': GenerateRandomWord(), 
+                'emailAddressRandom': GenerateRandomEmail(), 
                 'emailPassword': emailCommonPassword, 
                 'emailLogin': emailCommonLogin, 
                 'emailPopServer': emailCommonPopServer, 
@@ -223,13 +226,13 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
             self.snippetsSet = self.niche.GetRandomSnippetsSet()
         '''Если не указаны ник, имя и пароль - генерим случайные'''
         if self.nickName == '':
-            self.nickName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+            self.nickName = '#gennick[%s]' % GenerateRandomWord().upper()
         if self.realName == '':
-            self.realName = '#gennick[%s]' % GenerateRandomWord(12).upper()
+            self.realName = '#gennick[%s]' % GenerateRandomWord().upper()
         if self.password == '':
-            self.password = GenerateRandomWord(12)
+            self.password = GenerateRandomWord()
         if self.emailAddress == '':
-            self.emailAddress = '#gennick[%s]@%s' % (GenerateRandomWord(12).upper(), random.choice(emailDomains))
+            self.emailAddress = GenerateRandomEmail()
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
@@ -293,6 +296,42 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         return GetFieldCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
     def GetRandomTemplate(self):
         '''Получить случайный шаблон'''
         try:
@@ -502,6 +541,42 @@ class Net(BaseNet):
         return GetFieldCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
     def GetNextDomain(self):
         '''Получить следующий свободный домен'''
         try:
@@ -633,6 +708,54 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
     def GenerateKeywordsList(self, count):
         '''Сгенерировать набор ключевых слов по теме'''
         try:
@@ -667,6 +790,54 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
         return GetFieldCounter(self.doorway_set, 'pagesCount')
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.doorway_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.doorway_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.doorway_set.count()
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
 
 class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManaged):
     '''Сниппеты'''
@@ -1213,6 +1384,54 @@ class Host(BaseDoorObject):
         return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
 
 class IPAddress(BaseDoorObject):
     '''IP адрес'''
@@ -1235,6 +1454,54 @@ class IPAddress(BaseDoorObject):
         return ReplaceZero(self.domain_set.annotate(x=Sum('doorway__pagesCount')).aggregate(xx=Sum('x'))['xx'])
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
+    def GetTrafficLastDay(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastDay')
+    GetTrafficLastDay.short_description = 'Traf/d'
+    GetTrafficLastDay.allow_tags = True
+    def GetTrafficLastMonth(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastMonth')
+    GetTrafficLastMonth.short_description = 'Traf/m'
+    GetTrafficLastMonth.allow_tags = True
+    def GetTrafficLastYear(self):
+        return GetFieldCounter(self.domain_set, 'trafficLastYear')
+    GetTrafficLastYear.short_description = 'Traf/y'
+    GetTrafficLastYear.allow_tags = True
+    def GetTrafficLastDayRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastDayRelative.short_description = 'Traf/d'
+    GetTrafficLastDayRelative.allow_tags = True
+    def GetTrafficLastMonthRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastMonthRelative.short_description = 'Traf/m'
+    GetTrafficLastMonthRelative.allow_tags = True
+    def GetTrafficLastYearRelative(self):
+        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
+        if (traffic != None) and (traffic != 0):
+            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
+            if (doorsCount != None) and (doorsCount != 0):
+                return '%.1f' % (traffic * 1.0 / doorsCount)
+            else:
+                return '-'
+        else:
+            return '-'
+    GetTrafficLastYearRelative.short_description = 'Traf/y'
+    GetTrafficLastYearRelative.allow_tags = True
 
 class XrumerBaseRaw(BaseXrumerBase):
     '''Сырая база Хрумера'''

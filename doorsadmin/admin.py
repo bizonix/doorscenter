@@ -63,7 +63,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -76,7 +76,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastYear', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     search_fields = ['description']
@@ -180,7 +180,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     GenerateNets.short_description = "a. Generate a net"
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
@@ -191,7 +191,7 @@ class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class TemplateAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'niche', 'type', 'agent', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'niche', 'type', 'agent', 'localFolder', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['niche__description']
     fieldsets = [
@@ -381,7 +381,7 @@ class XrumerBaseProfilesAdmin(BaseAdminActivatable, BaseAdminManaged):
     ResetNames.short_description = "a. Reset names"
 
 class HostAdmin(BaseAdminSimple):
-    list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'type', 'company', 'hostName', 'costPerMonth', 'diskSpace', 'traffic', 'controlPanelType', 'GetIPAddressesCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'stateSimple', 'dateAdded')
     list_filter = ['stateSimple']
     fieldsets = [
         (None, {'fields': ['type', ('company', 'hostName'), ('costPerMonth', 'diskSpace', 'traffic'), ('controlPanelType', 'controlPanelUrl', 'controlPanelServerId')]}),
@@ -392,7 +392,7 @@ class HostAdmin(BaseAdminSimple):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
 
 class IPAddressAdmin(BaseAdminSimple):
-    list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'address', 'host', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'stateSimple', 'dateAdded')
     list_filter = ['stateSimple']
     ordering = ['address']
     fieldsets = [
@@ -444,6 +444,7 @@ class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
 class EventAdmin(BaseAdmin):
     list_display = ('pk', 'date', 'type', 'object', 'text')
     list_filter = ['type']
+    search_fields = ['object', 'text']
     fieldsets = [
         (None, {'fields': ['date', ('type', 'object'), 'text']}),
     ]
