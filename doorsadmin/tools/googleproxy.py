@@ -1,8 +1,7 @@
 # coding=utf8
 import os, urllib2, pycurl, cStringIO, random, datetime, time, threading, Queue
 
-proxyListRawUrl = 'http://alexborisov.net/proxyc/list-all.txt'
-#proxyListRawUrl = 'http://searchpro.name/tools/proxy-all.txt'
+proxyListRawUrls = ['http://alexborisov.net/proxyc/list-all.txt', 'http://searchpro.name/tools/proxy-all.txt']
 proxyCacheFile = 'proxies.txt'
 
 googleQueryUrl = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
@@ -90,17 +89,20 @@ class GoogleProxiesList(object):
     def Update(self):
         '''Проверка прокси'''
         print('Updating proxies ...')
-    
-        '''Инициализация'''
         dateTimeStart = datetime.datetime.now()
-        proxyListRawStr = urllib2.urlopen(proxyListRawUrl).read().splitlines()
-        print('Proxies raw: %d.' % len(proxyListRawStr))
+    
+        '''Получаем сырые списки'''
+        proxyListRawList = []
+        for url in proxyListRawUrls:
+            proxyListRawList.extend(urllib2.urlopen(url).read().splitlines())
+        proxyListRawList = list(set(proxyListRawList))
+        print('Proxies raw: %d.' % len(proxyListRawList))
     
         '''Проверка'''
         threadsCount = 100
         queueProxyRaw = Queue.Queue()
         queueProxyChecked = Queue.Queue()
-        for line in proxyListRawStr:
+        for line in proxyListRawList:
             if line.strip() != '':
                 queueProxyRaw.put(GoogleProxy('http', line.strip()))
         GoogleProxiesCheckerMonitor(queueProxyRaw, queueProxyChecked).start()
@@ -118,7 +120,7 @@ class GoogleProxiesList(object):
     
         '''Статистика'''
         timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
-        print('Parsed %d of %d proxies in %d sec. (%.2f sec./proxy)' % (len(self.proxyList), len(proxyListRawStr), timeDelta, timeDelta * 1.0 / len(proxyListRawStr)))
+        print('Parsed %d of %d proxies in %d sec. (%.2f sec./proxy)' % (len(self.proxyList), len(proxyListRawList), timeDelta, timeDelta * 1.0 / len(proxyListRawList)))
 
 class GoogleProxiesChecker(threading.Thread):
     '''Поточный чекер прокси'''
