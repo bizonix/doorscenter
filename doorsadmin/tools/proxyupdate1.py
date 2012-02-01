@@ -1,10 +1,10 @@
 '''python 3.1'''
-import email, getpass, imaplib, os, zipfile, io, ftplib
+import email, imaplib, zipfile, io, ftplib
 
 done = False
 '''Get mail'''
-obj = imaplib.IMAP4_SSL('imap.gmail.com',993)
-obj.login('proxy@alexborisov.info'.encode(),'kernel32'.encode())
+obj = imaplib.IMAP4_SSL('imap.gmail.com', 993)
+obj.login('proxy@alexborisov.info'.encode(), 'kernel32'.encode())
 obj.select()
 typ, data = obj.search(None, 'ALL')
 for num in reversed(data[0].split()):
@@ -28,7 +28,7 @@ for num in reversed(data[0].split()):
         fileObj1 = io.BytesIO(decoded)
         '''Unzip the file'''
         attachment = zipfile.ZipFile(fileObj1)
-        listAll = attachment.read('emaillists/full_list_nopl/_full-list.txt').decode('utf-8').split('\n')
+        listAll = attachment.read('full_list_nopl/_full_list.txt').decode('utf-8').split('\n')
         '''Split to HTTP and Socks. HTTP ports: 27977, 3128, 80. Socks ports: 1080.'''
         listHttp = []
         listSocks = []
