@@ -326,7 +326,7 @@ class XrumerBaseSpamAdmin(BaseAdminActivatable, BaseAdminManaged):
             base.ResetNames()
             processed += 1
         self.message_user(request, "%s reset and marked as new." % GetMessageBit(processed))
-    ResetNamesAndNew.short_description = "b. Reset names and mark as new"
+    ResetNamesAndNew.short_description = "3a. Reset names and mark as new"
 
 class SpamTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseSpam', 'GetSpamLinksCount', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
@@ -429,7 +429,7 @@ class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
             base.ResetNames()
             processed += 1
         self.message_user(request, "%s reset and marked as new." % GetMessageBit(processed))
-    ResetNamesAndNew.short_description = "b. Reset names and mark as new"
+    ResetNamesAndNew.short_description = "3a. Reset names and mark as new"
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'type', 'description', 'host', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
