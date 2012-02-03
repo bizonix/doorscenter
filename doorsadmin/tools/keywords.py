@@ -7,6 +7,35 @@ googleResultsStrList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'
 googleNoResultsStr1 = 'No results found for'
 googleNoResultsStr2 = 'did not match any documents'
 
+class KeywordsDatabaseGlobal(object):
+    '''Класс для работы с несколькими базами кейвордов'''
+    
+    def __init__(self, folder):
+        '''Инициализация'''
+        self.folder = folder
+        self.keywordsDataDict = {}
+    
+    def UpdateData(self):
+        '''Проверка кейвородов в гугле'''
+        self.keywordsDataDict = {}
+        '''Формируем глобальную базу'''
+        for path, _, _ in os.walk(self.folder):
+            if path == self.folder:
+                continue
+            database = KeywordsDatabase(path)
+            database.LoadData()
+            self.keywordsDataDict.update(database.keywordsDataDict)
+        print('The global keywords database size: %d.' % len(self.keywordsDataDict))
+        '''Апдейтим каждую базу и снова апдейтим глобальную'''
+        for path, _, _ in os.walk(self.folder):
+            if path == self.folder:
+                continue
+            print('\nProcessing "%s" ...' % path)
+            database = KeywordsDatabase(path)
+            database.UpdateData(self)
+            self.keywordsDataDict.update(database.keywordsDataDict)
+        print('The global keywords database size: %d.' % len(self.keywordsDataDict))
+    
 class KeywordsDatabase(object):
     '''База кейвордов'''
     
@@ -18,6 +47,8 @@ class KeywordsDatabase(object):
         self.keywordsFileMask = os.path.join(self.folder, r'[*.txt')
         self.keywordsDataDict = {}
         self.keywordsListCheck = []
+        self.queueKeywordsIn = None
+        self.queueKeywordsOut = None
     
     def Count(self):
         '''Считаем количество кейвордов'''
@@ -31,7 +62,6 @@ class KeywordsDatabase(object):
     def LoadData(self):
         '''Читаем данные по кейвордам'''
         self.keywordsDataDict = {}
-        self.keywordsListCheck = []
         if os.path.exists(self.databaseFile):
             for line in open(self.databaseFile):
                 if line.strip() == '':
@@ -42,18 +72,19 @@ class KeywordsDatabase(object):
                     data = int(data.strip())
                     if data != -1:
                         self.keywordsDataDict[keyword] = data
-                    elif keyword not in self.keywordsListCheck:
+                    if (data == -1) and (keyword not in self.keywordsListCheck):
                         self.keywordsListCheck.append(keyword)
                 except Exception as error:
                     #print('### Error: %s' % error)
                     pass
-        
+    
     def FlushData(self):
         '''Забираем результаты из очереди ...'''
-        while not self.queueKeywordsOut.empty():
-            d = self.queueKeywordsOut.get()
-            self.keywordsDataDict.update(d)
-            self.queueKeywordsOut.task_done()
+        if self.queueKeywordsOut != None:
+            while not self.queueKeywordsOut.empty():
+                d = self.queueKeywordsOut.get()
+                self.keywordsDataDict.update(d)
+                self.queueKeywordsOut.task_done()
         '''... и сохраняем базу в отсортированном виде'''
         with open(self.databaseFile, 'w') as fd:
             keywordsListSorted = sorted(self.keywordsDataDict.iteritems(), key=operator.itemgetter(1))
@@ -61,12 +92,12 @@ class KeywordsDatabase(object):
                 fd.write('%s: %d\n' % (item[0], item[1]))
         print('Keywords database flushed (%d items).' % len(self.keywordsDataDict))
         
-    def UpdateData(self):
+    def UpdateData(self, globalDatabase = None):
         '''Проверка кейвородов в гугле'''
         print('Checking keywords ...')
-        proxyList = googleproxy.GoogleProxiesList()
         
-        '''Читаем кейворды'''
+        '''Читаем кейворды и данные по ним'''
+        self.keywordsListCheck = []
         self.LoadData()
         for fileName in glob.glob(self.keywordsFileMask):
             for keyword in open(fileName):
@@ -77,8 +108,20 @@ class KeywordsDatabase(object):
                     self.keywordsListCheck.append(keyword)
         print('Keywords database size: %d.' % len(self.keywordsDataDict))
         print('Keywords to check: %d.' % len(self.keywordsListCheck))
+        
+        '''Делаем апдейт из глобальной базы'''
+        if globalDatabase != None:
+            print('Updating from the global database ...')
+            for keyword in self.keywordsListCheck:
+                if keyword in globalDatabase.keywordsDataDict:
+                    self.keywordsDataDict[keyword] = globalDatabase.keywordsDataDict[keyword]
+                    self.keywordsListCheck.remove(keyword)
+            self.FlushData()
+            print('Keywords database size: %d.' % len(self.keywordsDataDict))
+            print('Keywords to check: %d.' % len(self.keywordsListCheck))
     
         '''Цикл по группам кейвордов'''
+        proxyList = googleproxy.GoogleProxiesList()
         chunkSize = 5000
         chunksCount = (len(self.keywordsListCheck) - 1) / chunkSize + 1
         for n in range(chunksCount):
@@ -224,6 +267,8 @@ class KeywordsCheckerMonitor(threading.Thread):
         print('Monitoring finished.')
 
 if __name__ == '__main__':
-    keywordsDatabase = KeywordsDatabase(r'D:\Miscellaneous\Lodger6\keys9\4')
+    db = KeywordsDatabaseGlobal(r'C:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords')
+    db.UpdateData()
+    '''keywordsDatabase = KeywordsDatabase(r'D:\Miscellaneous\Lodger6\keys9\4')
     print(keywordsDatabase.Count())
-    keywordsDatabase.UpdateData()
+    keywordsDatabase.UpdateData()'''

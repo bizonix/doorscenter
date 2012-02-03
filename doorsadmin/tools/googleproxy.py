@@ -1,7 +1,8 @@
 # coding=utf8
 import os, urllib2, pycurl, cStringIO, random, datetime, time, threading, Queue
 
-proxyListRawUrls = ['http://alexborisov.net/proxyc/list-all.txt', 'http://searchpro.name/tools/proxy-all.txt']
+#proxyListRawUrls = ['http://alexborisov.net/proxyc/list-all.txt', 'http://searchpro.name/tools/proxy-all.txt']
+proxyListRawUrls = ['http://searchpro.name/tools/proxy-all.txt']
 proxyCacheFile = 'proxies.txt'
 
 googleQueryUrl = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
