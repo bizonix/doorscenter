@@ -81,8 +81,11 @@ class XrumerHelperBaseRaw(XrumerHelper):
         randomToken = ''.join(random.choice(string.letters) for _ in xrange(10))
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = '#file_links[%s,10,S] %s #file_links[%s,3,S] #file_links[%s,3,S] #file_links[%s,10,S]' % (self.snippetsFileEsc, randomToken, self.anchorsFileEsc, self.profilesFileEsc, self.snippetsFileEsc)
-        '''Пишем кейворды'''
+        '''Пишем кейворды и удаляем старые базы'''
         self._WriteKeywords()
+        self._DeleteBase(self.agent.baseMainRFile)
+        self._DeleteBase(self.agent.baseMainZFile)
+        self._DeleteBase(self.agent.baseMainEFile)
         '''Создаем настройки'''
         threadsCount = 110
         self.agent._CreateSettings('none', '', 'post', 'LinksList', threadsCount, projSubject, projBody)

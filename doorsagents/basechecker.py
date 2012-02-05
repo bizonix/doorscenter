@@ -88,7 +88,7 @@ def Check(xrumerFolder, projectName, baseNumber):
     time.sleep(5)
     queue.join()
     
-    '''Записываем найденные домены во временный файл'''
+    '''Сохраняем найденные домены'''
     print('Saving links found ...')
     tempFileName = os.path.join(xrumerLinksFolder, 'TLinksList id%d.txt' % baseNumber)
     with open(tempFileName, 'w') as fd:
@@ -105,11 +105,6 @@ def Check(xrumerFolder, projectName, baseNumber):
         if os.path.exists(fileName):
             kwk8.Kwk8Links(fileName).SelectByFile(tempFileName).Save(fileName)
     
-    '''Удаляем временный файл'''
-    try:
-        os.remove(tempFileName)
-    except Exception:
-        pass
     print('Done.')
     
 if __name__ == '__main__':

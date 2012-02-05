@@ -195,9 +195,11 @@ TimeRange=''' + spamTimeout + '''
         self.baseMainFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseMainRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseMainZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberMain'])
+        self.baseMainEFile = os.path.join(self.appLinksFolder, 'ELinksList id%d.txt' % self.currentTask['baseNumberMain'])
         self.baseSourceFile = os.path.join(self.appLinksFolder, 'LinksList id%d.txt' % self.currentTask['baseNumberSource'])
         self.baseSourceRFile = os.path.join(self.appLinksFolder, 'RLinksList id%d.txt' % self.currentTask['baseNumberSource'])
         self.baseSourceZFile = os.path.join(self.appLinksFolder, 'ZLinksList id%d.txt' % self.currentTask['baseNumberSource'])
+        self.baseSourceEFile = os.path.join(self.appLinksFolder, 'ELinksList id%d.txt' % self.currentTask['baseNumberSource'])
         
         '''Логи'''
         self.projectName = self.helper.GetProjectName()
