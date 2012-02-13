@@ -112,11 +112,12 @@ class GoogleProxiesList(object):
         queueProxyRaw.join()
         
         '''Обработка результатов'''
-        self.proxyList = []
+        proxyListNew = []
         while not queueProxyChecked.empty():
             proxy = queueProxyChecked.get()
-            self.proxyList.append(proxy)
+            proxyListNew.append(proxy)
             queueProxyChecked.task_done()
+        self.proxyList = proxyListNew[:]
         self.SaveToCache()
     
         '''Статистика'''

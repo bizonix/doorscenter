@@ -93,6 +93,7 @@ class KeywordsDatabase(object):
         print('Keywords database flushed (%d items).' % len(self.keywordsDataDict))
         
     def UpdateData(self, globalDatabase = None):
+        global monitorCancelled
         '''Проверка кейвородов в гугле'''
         print('Checking keywords ...')
         
@@ -120,35 +121,32 @@ class KeywordsDatabase(object):
             print('Keywords database size: %d.' % len(self.keywordsDataDict))
             print('Keywords to check: %d.' % len(self.keywordsListCheck))
     
-        '''Цикл по группам кейвордов'''
+        if len(self.keywordsListCheck) <= 20:
+            return
+        
         proxyList = googleproxy.GoogleProxiesList()
-        chunkSize = 5000
-        chunksCount = (len(self.keywordsListCheck) - 1) / chunkSize + 1
-        for n in range(chunksCount):
-            '''Получаем свежие прокси'''
-            proxyList.Update()
+        proxyList.Update()
     
-            '''Помещаем группу в очередь'''
-            dateTimeStart = datetime.datetime.now()
-            print('Checking keywords (part %d/%d) ...' % (n + 1, chunksCount))
-            keywordsListChunk = self.keywordsListCheck[n * chunkSize : (n + 1) * chunkSize]
-            keywordsListChunkCount = len(keywordsListChunk)
-            self.queueKeywordsIn = Queue.Queue()
-            self.queueKeywordsOut = Queue.Queue()
-            for item in keywordsListChunk:
-                self.queueKeywordsIn.put(item)
-            
-            '''Проверка'''
-            threadsCount = 100
-            KeywordsCheckerMonitor(self.queueKeywordsIn, self.queueKeywordsOut, self, n * chunkSize, len(self.keywordsListCheck)).start()
-            for _ in range(threadsCount):
-                KeywordsChecker(self.queueKeywordsIn, self.queueKeywordsOut, proxyList).start()
-            self.queueKeywordsIn.join()
-            self.FlushData()
-            
-            '''Статистика'''
-            timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
-            print('Checked %d keywords in %d sec. (%.2f sec./keyword)' % (keywordsListChunkCount, timeDelta, timeDelta * 1.0 / keywordsListChunkCount))
+        '''Помещаем группу в очередь'''
+        dateTimeStart = datetime.datetime.now()
+        self.queueKeywordsIn = Queue.Queue()
+        self.queueKeywordsOut = Queue.Queue()
+        for item in self.keywordsListCheck:
+            self.queueKeywordsIn.put(item)
+        
+        '''Проверка'''
+        threadsCount = 100
+        monitorCancelled = False
+        KeywordsCheckerMonitor(self.queueKeywordsIn, self.queueKeywordsOut, self, proxyList, len(self.keywordsListCheck)).start()
+        for _ in range(threadsCount):
+            KeywordsChecker(self.queueKeywordsIn, self.queueKeywordsOut, proxyList).start()
+        self.queueKeywordsIn.join()
+        monitorCancelled = True
+        self.FlushData()
+        
+        '''Статистика'''
+        timeDelta = (datetime.datetime.now() - dateTimeStart).seconds
+        print('Checked %d keywords in %d sec. (%.2f sec./keyword)' % (len(self.keywordsListCheck), timeDelta, timeDelta * 1.0 / len(self.keywordsListCheck)))
     
     def _GetKeywordCompetition(self, keyword):
         '''Получаем конкуренцию по кейворду'''
@@ -237,37 +235,43 @@ class KeywordsChecker(threading.Thread):
 class KeywordsCheckerMonitor(threading.Thread):
     '''Монитор чекера прокси'''
     
-    def __init__(self, queue1, queue2, keywordsDatabase, keywordsListOffset, keywordsListCount):
+    def __init__(self, queue1, queue2, keywordsDatabase, proxyList, keywordsListCount):
         '''Инициализация'''
         threading.Thread.__init__(self)
         self.daemon = True
         self.queue1 = queue1
         self.queue2 = queue2
+        self.proxyList = proxyList
         self.keywordsDatabase = keywordsDatabase
-        self.keywordsListOffset = keywordsListOffset
         self.keywordsListCount = keywordsListCount
         self.queue1InitialSize = self.queue1.qsize()
         
     def run(self):
+        global monitorCancelled
         print('Monitoring started.')
         lastActionTime1 = time.time()
         lastActionTime2 = time.time()
-        while not self.queue1.empty():
+        lastActionTime3 = time.time()
+        while not monitorCancelled:
             '''Каждые N секунд выводим текущую информацию'''
             if time.time() - lastActionTime1 > 5:
-                currentOffset = self.keywordsListOffset + self.queue1InitialSize - self.queue1.qsize()
-                print('... %d/%d (%.2f%%).' % (currentOffset, self.keywordsListCount, currentOffset * 100.0 / self.keywordsListCount))
+                offset = self.queue1InitialSize - self.queue1.qsize()
+                print('... %d/%d (%.2f%%).' % (offset, self.keywordsListCount, offset * 100.0 / self.keywordsListCount))
                 lastActionTime1 = time.time()
             '''Каждые M секунд сохраняем базу кейвордов'''
             if time.time() - lastActionTime2 > 60:
                 self.keywordsDatabase.FlushData()
                 lastActionTime2 = time.time()
+            '''Каждые X секунд апдейтим прокси'''
+            if time.time() - lastActionTime3 > 60 * 3:
+                self.proxyList.Update()
+                lastActionTime3 = time.time()
             time.sleep(1)
         self.keywordsDatabase.FlushData()
         print('Monitoring finished.')
 
 if __name__ == '__main__':
-    db = KeywordsDatabaseGlobal(r'C:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords')
+    db = KeywordsDatabaseGlobal(r'C:\Work\keys\en-dating')
     db.UpdateData()
     '''keywordsDatabase = KeywordsDatabase(r'D:\Miscellaneous\Lodger6\keys9\4')
     print(keywordsDatabase.Count())
