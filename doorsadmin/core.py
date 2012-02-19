@@ -30,7 +30,7 @@ def Helper():
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
     xrumersCount = 2  # настройка: количество хрумеров
-    avgSpamTaskDuration = 30  # настройка: средняя продолжительность прогона по базе R, минут
+    avgSpamTaskDuration = 12  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
     linksLimitBase = int(xrumersCount * 1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitBase = 999  # настройка: лимит расхода доменов в сутки
@@ -57,14 +57,16 @@ def RenewSnippets():
     '''Перегенерируем сниппеты'''
     dt = datetime.datetime.now()
     for snippetsSet in SnippetsSet.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
-        if (snippetsSet.dateLastParsed==None) or (snippetsSet.dateLastParsed + datetime.timedelta(0, snippetsSet.interval*60*60, 0) < dt):
+        if (snippetsSet.dateLastParsed==None) or (snippetsSet.dateLastParsed + datetime.timedelta(0, snippetsSet.interval * 60 * 60, 0) < dt):
             snippetsSet.stateManaged = 'new'
             snippetsSet.save()
 
 def RenewBasesSpam():
     '''Перегенерируем изношенные базы'''
+    interval = 10  # настройка: интервал перегенерации баз R в днях
+    dt = datetime.datetime.now()
     for xrumerBaseSpam in XrumerBaseSpam.objects.filter(Q(active=True), Q(stateManaged='done')).order_by('pk').all():
-        if xrumerBaseSpam.linksCount < 2:  # в тысячах
+        if (xrumerBaseSpam.linksCount < 2) or (xrumerBaseSpam.dateLastParsed==None) or (xrumerBaseSpam.dateLastParsed + datetime.timedelta(0, interval * 24 * 60 * 60, 0) < dt):
             xrumerBaseSpam.ResetNames()
             xrumerBaseSpam.stateManaged = 'new'
             xrumerBaseSpam.save()
