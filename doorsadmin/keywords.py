@@ -50,15 +50,6 @@ class KeywordsDatabase(object):
         self.queueKeywordsIn = None
         self.queueKeywordsOut = None
     
-    def Count(self):
-        '''Считаем количество кейвордов'''
-        n = 0
-        for fileName in glob.glob(self.keywordsFileMask):
-            for line in open(fileName, 'r'):
-                if line.strip() != '':
-                    n += 1
-        return n
-
     def LoadData(self):
         '''Читаем данные по кейвордам'''
         self.keywordsDataDict = {}
@@ -191,6 +182,19 @@ class KeywordsDatabase(object):
         random.shuffle(resultList)
         return resultList
 
+    def Count(self, maxCompetition = -1):
+        '''Считаем количество кейвордов'''
+        if maxCompetition < 0:
+            n = 0
+            for fileName in glob.glob(self.keywordsFileMask):
+                for line in open(fileName, 'r'):
+                    if line.strip() != '':
+                        n += 1
+            return n
+        else:
+            self.LoadData()
+            return len([keyword for keyword in self.keywordsDataDict if self._GetKeywordCompetition(keyword) <= maxCompetition])
+
 class KeywordsChecker(threading.Thread):
     '''Поточный чекер кейвордов в гугле'''
 
@@ -278,5 +282,6 @@ class KeywordsCheckerMonitor(threading.Thread):
 if __name__ == '__main__':
     #db = KeywordsDatabaseGlobal(r'C:\Work\keys\en-dating')
     #db.UpdateData()
-    keywordsDatabase = KeywordsDatabase(r'c:\Work\keys3\en-dating\adult-new')
-    print('\n'.join(keywordsDatabase.SelectKeywords(100, 100)))
+    keywordsDatabase = KeywordsDatabase(r'c:\Work\doorscenter\doorsadmin\keywords\adult-new')
+    print(keywordsDatabase.Count(150000))
+    #print('\n'.join(keywordsDatabase.SelectKeywords(100, 100)))

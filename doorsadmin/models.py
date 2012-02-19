@@ -1081,9 +1081,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Если не указан домен - берем следующий свободный по нише'''
         if self.domain == None:
             self.domain = self.niche.GetNextDomain()
-        '''Если нет ключевых слов, то генерируем'''
+        '''Если нет ключевых слов, то генерируем (с фильтром по конкуренции)'''
         if self.keywordsList == '':
-            self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount))
+            self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount, 150000))  # настройка: максимальная конкуренция в гугле
         '''Если нет ссылок сетки, то генерируем'''
         if self.netLinksList == '':
             self.netLinksList = self.domain.GetNetLinksList(self)
