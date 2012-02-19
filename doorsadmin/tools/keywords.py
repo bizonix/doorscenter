@@ -120,13 +120,11 @@ class KeywordsDatabase(object):
             self.FlushData()
             print('Keywords database size: %d.' % len(self.keywordsDataDict))
             print('Keywords to check: %d.' % len(self.keywordsListCheck))
-    
+        
+        '''Отсекаем мелкие задачи'''
         if len(self.keywordsListCheck) <= 20:
             return
         
-        proxyList = googleproxy.GoogleProxiesList()
-        proxyList.Update()
-    
         '''Помещаем группу в очередь'''
         dateTimeStart = datetime.datetime.now()
         self.queueKeywordsIn = Queue.Queue()
@@ -134,6 +132,10 @@ class KeywordsDatabase(object):
         for item in self.keywordsListCheck:
             self.queueKeywordsIn.put(item)
         
+        '''Загружаем прокси'''
+        proxyList = googleproxy.GoogleProxiesList()
+        proxyList.Update()
+    
         '''Проверка'''
         threadsCount = 100
         monitorCancelled = False
@@ -153,12 +155,12 @@ class KeywordsDatabase(object):
         if keyword in self.keywordsDataDict:
             return self.keywordsDataDict[keyword]
         else:
-            return 99999999999
+            return 0
         
     def _GetFilePercent(self, fileName):
         '''Получаем цифру из названия файла'''
         try:
-            return int(re.match(r'^\[(.*?)\].*', fileName).group(1))
+            return int(re.match(r'^\[(.*?)\].*', os.path.basename(fileName)).group(1))
         except Exception:
             return 0
     
@@ -169,11 +171,14 @@ class KeywordsDatabase(object):
             self.LoadData()
         resultList = []
         percentsTotal = 0
+        '''Получаем общую сумму процентов'''
         for fileName in glob.glob(self.keywordsFileMask):
             percentsTotal += self._GetFilePercent(fileName)
+        '''Цикл по файлам'''
         for fileName in glob.glob(self.keywordsFileMask):
             percents = self._GetFilePercent(fileName)
             keywordsList = [line.strip() for line in codecs.open(fileName, 'r', self.encoding, 'ignore').readlines()]
+            '''Фильтр по конкуренции'''
             if maxCompetition >= 0:
                 keywordsList = [keyword for keyword in keywordsList if self._GetKeywordCompetition(keyword) <= maxCompetition]
             keywordsCount = int(min(len(keywordsList), math.floor(keywordsCountTotal * percents / percentsTotal * random.randint(80, 120) / 100))) 
@@ -271,8 +276,7 @@ class KeywordsCheckerMonitor(threading.Thread):
         print('Monitoring finished.')
 
 if __name__ == '__main__':
-    db = KeywordsDatabaseGlobal(r'C:\Work\keys\en-dating')
-    db.UpdateData()
-    '''keywordsDatabase = KeywordsDatabase(r'D:\Miscellaneous\Lodger6\keys9\4')
-    print(keywordsDatabase.Count())
-    keywordsDatabase.UpdateData()'''
+    #db = KeywordsDatabaseGlobal(r'C:\Work\keys\en-dating')
+    #db.UpdateData()
+    keywordsDatabase = KeywordsDatabase(r'c:\Work\keys3\en-dating\adult-new')
+    print('\n'.join(keywordsDatabase.SelectKeywords(100, 100)))

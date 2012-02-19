@@ -6,9 +6,9 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, GetRelativeTrafficCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import KeywordToUrl, FindShortKeyword, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, GetRelativeTrafficCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 from doorsadmin.locations import GetRandomLocation
-import datetime, random, os, re, MySQLdb, google, yahoo, nausea
+import datetime, random, os, re, MySQLdb, keywords, google, yahoo, nausea
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -690,17 +690,19 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
         return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
-    def GenerateKeywordsList(self, count):
+    def GenerateKeywordsList(self, count, maxCompetition = -1):
         '''Сгенерировать набор ключевых слов по теме'''
         try:
-            return SelectKeywords(self.localFolder, self.encoding, count)
+            keywordsDatabase = keywords.KeywordsDatabase(self.localFolder, self.encoding)
+            return keywordsDatabase.SelectKeywords(count, maxCompetition)
         except Exception as error:
             EventLog('error', 'Cannot generate keywords list', self, error)
     def save(self, *args, **kwargs):
         '''Если не указано число ключей, то считаем их'''
         try:
             if self.keywordsCount == None:
-                self.keywordsCount = CountKeywords(self.localFolder) / 1000.0
+                keywordsDatabase = keywords.KeywordsDatabase(self.localFolder, self.encoding)
+                self.keywordsCount = keywordsDatabase.Count() / 1000.0
         except Exception as error:
             EventLog('error', 'Cannot count keywords list', self, error)
         super(KeywordsSet, self).save(*args, **kwargs)
