@@ -1,40 +1,44 @@
 # coding=utf8
-import os, glob, shutil
+import os, glob, shutil, sys
 
 class FolderSync(object):
     '''Синхронизация папок'''
     
-    def __init__(self, folderA, folderB):
+    def __init__(self, folderA, folderB, fileMask):
         '''Инициализация'''
         self.folderA = folderA
         self.folderB = folderB
+        self.fileMask = fileMask
         self.processedFilesList = []
     
-    def _CopyFile(self, fileNameSrc, fileNameDst, baseFileName):
+    def _CopyFile(self, fileNameSrc, fileNameDst):
         '''Копируем файл и подавляем исключения'''
         try:
             print('- copying "%s" -> "%s"...' % (fileNameSrc, fileNameDst))
             shutil.copyfile(fileNameSrc, fileNameDst)
             shutil.copystat(fileNameSrc, fileNameDst)
-            self.processedFilesList.append(baseFileName)
         except Exception as error:
             print('Error: %s' % error)
         
     def _SyncOneWay(self, folder1, folder2):
         '''Односторонняя синхронизация папок'''
         '''Цикл по первой папке'''
-        for fileName1 in glob.glob(os.path.join(folder1, '*.*')):
+        for fileName1 in glob.glob(os.path.join(folder1, self.fileMask)):
+            '''Получаем имя файла из второй папки'''
             baseFileName = os.path.basename(fileName1)
-            '''Повторно файлы не обрабатываем'''
+            fileName2 = os.path.join(folder2, baseFileName)
+            '''Не обрабатываем каталоги и повторные файлы'''
+            if os.path.isdir(fileName1) or os.path.isdir(fileName2):
+                continue
             if baseFileName in self.processedFilesList:
                 continue
-            '''Получаем имя второго файла'''
-            fileName2 = os.path.join(folder2, baseFileName)
             '''Копируем по необходимости'''
             if not os.path.exists(fileName2):
-                self._CopyFile(fileName1, fileName2, baseFileName)  # копируем файл, отсутствующий во второй папке
+                self._CopyFile(fileName1, fileName2)  # копируем файл, отсутствующий во второй папке
+                self.processedFilesList.append(baseFileName)
             elif (os.stat(fileName1).st_mtime - os.stat(fileName2).st_mtime) > 1:
-                self._CopyFile(fileName1, fileName2, baseFileName)  # копируем более новый файл во вторую папку
+                self._CopyFile(fileName1, fileName2)  # копируем более новый файл во вторую папку
+                self.processedFilesList.append(baseFileName)
             else:
                 print('- skipped "%s".' % fileName1)
             
@@ -47,5 +51,5 @@ class FolderSync(object):
         print('Sync finished.')
 
 if __name__ == '__main__':
-    sync = FolderSync(r'c:\Work\temp\1', r'c:\Work\temp\2')
+    sync = FolderSync(sys.argv[1], sys.argv[2], sys.argv[3])
     sync.Sync()
