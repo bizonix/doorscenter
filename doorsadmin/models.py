@@ -6,7 +6,7 @@ from django.contrib.admin.models import LogEntry, ADDITION
 from django.contrib.contenttypes.models import ContentType
 from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
-from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
+from doorsadmin.common import SelectKeywords, CountKeywords, FindShortKeyword, KeywordToUrl, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, GetRelativeTrafficCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 from doorsadmin.locations import GetRandomLocation
 import datetime, random, os, re, MySQLdb, google, yahoo, nausea
 
@@ -136,6 +136,7 @@ class BaseDoorObjectManaged(models.Model):
         except:
             return ''
     GetRunTime.short_description = 'Run Time'
+    GetRunTime.allow_tags = True
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
@@ -171,6 +172,7 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
     '''Предок баз профилей, доров на форумах и спама по топикам'''
     baseNumber = models.IntegerField('#', unique=True, default=NextBaseNumber)
     linksCount = models.FloatField('Count, k.', null=True, blank=True)
+    dateLastParsed = models.DateTimeField('Last Parsed', null=True, blank=True)
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Raw', null=True, on_delete=models.SET_NULL)
     snippetsSet = models.ForeignKey('SnippetsSet', verbose_name='Snippets', null=True, blank=True)
@@ -186,6 +188,10 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
         abstract = True
     def __unicode__(self):
         return "#%d" % self.baseNumber
+    def GetDateLastParsedAgo(self):
+        return PrettyDate(self.dateLastParsed)
+    GetDateLastParsedAgo.short_description = 'Last Parsed'
+    GetDateLastParsedAgo.allow_tags = True
     def ResetNames(self):
         '''Сбрасываем имена'''
         self.nickName = ''
@@ -297,39 +303,15 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
     def GetRandomTemplate(self):
@@ -542,39 +524,15 @@ class Net(BaseNet):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
     def GetNextDomain(self):
@@ -721,39 +679,15 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
     def GenerateKeywordsList(self, count):
@@ -803,39 +737,15 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.doorway_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.doorway_set.count()
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
 
@@ -853,6 +763,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
+    GetDateLastParsedAgo.allow_tags = True
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
@@ -1074,9 +985,11 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
     def GetNet(self):
         return self.domain.net
     GetNet.short_description = 'Net'
+    GetNet.allow_tags = True
     def GetTemplateType(self):
         return self.template.type
     GetTemplateType.short_description = 'Template Type'
+    GetTemplateType.allow_tags = True
     def GetUrl(self):
         if (self.domainSub == '') and (self.domainFolder == '/'):
             return '<a href="http://%s/">%s</a>' % (self.domain.name, self.domain.name)
@@ -1230,7 +1143,7 @@ class DoorLink(models.Model):
     GetSpamTaskState.allow_tags = True
 
 class XrumerBaseSpam(BaseXrumerBase):
-    '''База R для спама по топикам'''
+    '''Базы R, Z, L для спама по топикам'''
     baseType = models.CharField('Base Type', max_length=50, choices=spamBaseTypes, default='RLinksList')
     spamTaskDomainsMin = models.IntegerField('Spam Task Domains Min', default = 3)
     spamTaskDomainsMax = models.IntegerField('Spam Task Domains Max', default = 5)
@@ -1258,6 +1171,7 @@ class XrumerBaseSpam(BaseXrumerBase):
         return result
     def SetTaskDetails(self, data):
         '''Обработка данных агента'''
+        self.dateLastParsed = datetime.datetime.now()
         super(XrumerBaseSpam, self).SetTaskDetails(data)
 
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
@@ -1397,39 +1311,15 @@ class Host(BaseDoorObject):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
 
@@ -1467,39 +1357,15 @@ class IPAddress(BaseDoorObject):
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastDay'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastMonth'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        traffic = self.domain_set.aggregate(x = Sum('trafficLastYear'))['x']
-        if (traffic != None) and (traffic != 0):
-            doorsCount = self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx']
-            if (doorsCount != None) and (doorsCount != 0):
-                return '%.1f' % (traffic * 1.0 / doorsCount)
-            else:
-                return '-'
-        else:
-            return '-'
+        return GetRelativeTrafficCounter(self.domain_set, 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
 

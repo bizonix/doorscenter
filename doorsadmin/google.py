@@ -5,9 +5,17 @@ url_home = 'http://www.google.com/'
 url_search = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
 cookie_name = '.google-cookie'
 
+googleResultsStrList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'<div>([0-9,]*) res']
+rxList = [re.compile(item) for item in googleResultsStrList]
+
 def GetPagesCount(html):
     '''Из текста страницы получаем количество найденных страниц'''
-    return int(re.findall(r'About ([0-9,]*) res', html)[0].replace(',', ''))
+    for rx in rxList:
+        try:
+            return int(rx.findall(html)[0].replace(',', ''))
+        except Exception:
+            pass
+    return 0
 
 ###
 

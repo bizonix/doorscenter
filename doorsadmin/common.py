@@ -232,6 +232,17 @@ def GetFieldCounter(objects, fieldName):
     except Exception:
         return '-'
 
+def GetRelativeTrafficCounter(objects, fieldName):
+    traffic = objects.aggregate(x = Sum(fieldName))['x']
+    if (traffic != None) and (traffic != 0):
+        objectsCount = objects.count()
+        if (objectsCount != None) and (objectsCount != 0):
+            return '%.1f' % (traffic * 1.0 / objectsCount)
+        else:
+            return '-'
+    else:
+        return '-'
+
 def ReplaceZero(s):
     '''Заменяем None на тире'''
     if s == None or s == 0 or s == 'None' or s == '0':
