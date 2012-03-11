@@ -1,8 +1,11 @@
 # coding=utf8
-import os, random, string, re, codecs, datetime, urlparse, sys
+import os, random, string, re, codecs, datetime, urlparse
 from common import FindMacros, ReplaceNth
 from doorway import Doorway
 from django.template.defaultfilters import slugify
+
+pageUrlTemplate = '[[{BOSKEYWORDSLUG}|page{RAND(1,10000)}|str{RAND(1,10000)}|article-{RAND(100,500)}|{BOSKEYWORDSLUG}-{RAND(1,100)}]]'
+anchorTemplate = '[[{BOSKEYWORD}|{RANDKEYWORD} {BOSKEYWORD}|{BOSKEYWORD} {RANDKEYWORD}]]'
 
 class Doorgen(object):
     '''Дорген'''
@@ -34,6 +37,7 @@ class Doorgen(object):
             'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 'DOR_HOST':self.GetDorHost, 
             'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 'VARIATION':self.GetVariation, 
             'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks, 
+            'BOSKEYWORDSLUG':self.GetPageKeywordSlug, 
             }
         self.macrosDictSequent = {  # эти макросы меняем последовательно при основном проходе. макросы используют результаты работы друг друга
             'RAND':self.GetRandomNumber, 'COUNTRAND':self.GetLastRandomNumber, 
@@ -47,19 +51,46 @@ class Doorgen(object):
         self.macrosDictSequent.clear()
     
     def _KeywordToUrl(self, keyword):
-        '''Преобразование кея в URL'''
+        '''Преобразование кея в URL по шаблону из настроек'''
         if keyword == self.keywordDoor:
             return 'index' + self.pageExtension
-        if keyword not in self.keywordsUrlDict:
-            url = ''
-            for c in keyword:
-                if c in self.validChars:
-                    url += c
-                elif c in self.conversionDict:
-                    url += self.conversionDict[c]
-            self.keywordsUrlDict[keyword] = slugify(url) + self.pageExtension
-        return self.keywordsUrlDict[keyword]
+        elif keyword == 'sitemap':
+            return 'sitemap' + self.pageExtension
+        keywordPage = self.keywordPage  # подменяем кей текущей страницы
+        self.keywordPage = keyword  # ...
+        template = self.PreprocessTemplate(pageUrlTemplate) + self.pageExtension
+        url = self.ProcessTemplate(template)
+        url = self.PostprocessTemplate(url)
+        self.keywordPage = keywordPage  # восстанавливаем кей текущей страницы
+        return url
     
+    def _GetKeywordUrl(self, keyword):
+        '''Получение URL по кейворду'''
+        return self.keywordsUrlDict[keyword]
+        
+    def _GetNextKeyword(self):
+        '''Получение следующего кейворда в кольце для внутренней линковки'''
+        if self.currentCircleNumber >= len(self.keywordsCirclesList):
+            return random.choice(self.keywordsListShort)
+        keywordsCircle = self.keywordsCirclesList[self.currentCircleNumber]
+        if self.keywordPage not in keywordsCircle:
+            return random.choice(self.keywordsListShort)
+        currentKeywordPos = keywordsCircle.index(self.keywordPage)
+        nextKeywordPos = (currentKeywordPos + 1) % len(keywordsCircle)
+        nextKeyword = keywordsCircle[nextKeywordPos]
+        self.currentCircleNumber += 1
+        return nextKeyword
+        
+    def _GetLinkAnchor(self, keyword):
+        '''Генерация анкора для заданного кейворда по шаблону из настроек'''
+        keywordPage = self.keywordPage  # подменяем кей текущей страницы
+        self.keywordPage = keyword  # ...
+        template = self.PreprocessTemplate(anchorTemplate)
+        anchor = self.ProcessTemplate(template)
+        anchor = self.PostprocessTemplate(anchor)
+        self.keywordPage = keywordPage  # восстанавливаем кей текущей страницы
+        return anchor
+        
     def _Capitalize(self, keyword, kind):
         '''Капитализация'''
         if kind == '':
@@ -107,6 +138,16 @@ class Doorgen(object):
         kind = macrosName[:-10]
         return self._Capitalize(keyword, kind)
     
+    def GetPageKeywordSlug(self, macrosName, macrosArgsList):
+        '''Преобразуем кейворд страницы в форму, допустимую для URL'''
+        url = ''
+        for c in self.keywordPage:
+            if c in self.validChars:
+                url += c
+            elif c in self.conversionDict:
+                url += self.conversionDict[c]
+        return slugify(url)
+    
     def GetRandomKeyword(self, macrosName, macrosArgsList):
         '''Случайный кейворд'''
         keyword = random.choice(self.keywordsListFull)
@@ -124,14 +165,16 @@ class Doorgen(object):
     
     def GetRandomIntLinkUrl(self, macrosName, macrosArgsList):
         '''Случайный внутренний короткий урл'''
-        keyword = random.choice(self.keywordsListShort)
-        return self._KeywordToUrl(keyword)
+        keyword = self._GetNextKeyword()
+        return self._GetKeywordUrl(keyword)
     
     def GetRandomIntLink(self, macrosName, macrosArgsList):
         '''Случайный внутренний анкор'''
-        keyword = random.choice(self.keywordsListShort)
+        keyword = self._GetNextKeyword()
         kind = macrosName[:-8]
-        return '<a href="%s">%s</a>' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, kind))
+        url = self._GetKeywordUrl(keyword)
+        anchor = self._Capitalize(self._GetLinkAnchor(keyword), kind)
+        return '<a href="%s">%s</a>' % (url, anchor)
     
     def GetRandomNetLink(self, macrosName, macrosArgsList):
         '''Случайная внешний анкор'''
@@ -149,23 +192,29 @@ class Doorgen(object):
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
-        if self.keywordPage == self.keywordDoor:
+        if self.keywordPage == self.keywordDoor:  # с индекса на себя ссылку не ставим
             return ''
-        return '<a href="index%s">%s</a>' % (self.pageExtension, self._Capitalize(self.keywordDoor, 'A'))
+        url = 'index' + self.pageExtension
+        anchor = self._Capitalize(self._GetLinkAnchor(self.keywordDoor), 'A')
+        return '<a href="%s">%s</a>' % (url, anchor)
         
     def GetSitemapLink(self, macrosName, macrosArgsList):
         '''Анкор на карту сайта'''
-        if self.keywordPage != self.keywordDoor:
+        if self.keywordPage != self.keywordDoor:  # на карту ставим ссылку только с индекса
             return ''
-        return '<a href="sitemap%s">Sitemap</a>' % self.pageExtension
+        url = 'sitemap' + self.pageExtension
+        anchor = 'Sitemap'
+        return '<a href="%s">%s</a>' % (url, anchor)
     
     def GetSitemapLinks(self, macrosName, macrosArgsList):
         '''Анкоры на все страницы дора для карты сайта'''
-        if self.keywordPage != 'sitemap':
+        if self.keywordPage != 'sitemap':  # макрос работает только на странице карты
             return ''
         result = ''
         for keyword in self.keywordsListShort:
-            result += '<a href="%s">%s</a><br/>\n' % (self._KeywordToUrl(keyword), self._Capitalize(keyword, 'A'))
+            url = self._GetKeywordUrl(keyword)
+            anchor = self._Capitalize(self._GetLinkAnchor(keyword), 'A')
+            result += '<a href="%s">%s</a><br/>\n' % (url, anchor)
         return result
     
     def GetDorHost(self, macrosName, macrosArgsList):
@@ -228,20 +277,21 @@ class Doorgen(object):
                     template += self.ProcessTemplate(body.replace(macrosCounter, str(counter)))
                 template += self.ProcessTemplate(rest)
         '''Быстрый процессинг макросов регекспами, часть 1'''
-        if template.find('{') < 0:
-            return template
-        template = self.rxMain0.sub(self.ProcessMacrosRegexMain, template)
-        if template.find('{') < 0:
-            return template
-        template = self.rxMain1.sub(self.ProcessMacrosRegexMain, template)
-        if template.find('{') < 0:
-            return template
-        template = self.rxMain2.sub(self.ProcessMacrosRegexMain, template)
-        if template.find('{') < 0:
-            return template
-        template = self.rxMain3.sub(self.ProcessMacrosRegexMain, template)
-        if template.find('{') < 0:
-            return template
+        for _ in range(10):  # цикл необходим для обработки вложенных макросов
+            if template.find('{') < 0:
+                return template
+            template = self.rxMain0.sub(self.ProcessMacrosRegexMain, template)
+            if template.find('{') < 0:
+                return template
+            template = self.rxMain1.sub(self.ProcessMacrosRegexMain, template)
+            if template.find('{') < 0:
+                return template
+            template = self.rxMain2.sub(self.ProcessMacrosRegexMain, template)
+            if template.find('{') < 0:
+                return template
+            template = self.rxMain3.sub(self.ProcessMacrosRegexMain, template)
+            if template.find('{') < 0:
+                return template
         '''Процессинг макросов, требующих последовательную обработку'''
         result = ''
         while True:
@@ -274,24 +324,30 @@ class Doorgen(object):
         if template.find('###') < 0:
             return template
         '''Добавляем немного кейвордов страницы вместо случайных'''
-        count = template.count('RANDKEYWORD###')  # сколько случайных кейвордов на странице
-        for _ in range(min(random.randint(3,5), count)):  # сколько будем заменять
-            template = ReplaceNth(template, 'RANDKEYWORD###', 'BOSKEYWORD###', random.randint(1, count))  # заменяем случайный кейворд на кейворд страницы
+        if self.flag1:
+            count = template.count('RANDKEYWORD###')  # сколько случайных кейвордов на странице
+            for _ in range(min(random.randint(3,5), count)):  # сколько будем заменять
+                template = ReplaceNth(template, 'RANDKEYWORD###', 'BOSKEYWORD###', random.randint(1, count))  # заменяем случайный кейворд на кейворд страницы
         '''Быстрый процессинг макросов регекспами, часть 2'''
         template = self.rxPost0.sub(self.ProcessMacrosRegexPost, template)
         return template
         
     def GeneratePage(self, template, keywordPage):
+        self.flag1 = False
         try:
             '''Формируем страницу'''
             self.keywordPage = keywordPage
+            self.currentCircleNumber = 0  # текущее кольцо для внутренней линковки
             pageContents = self.ProcessTemplate(template)
+            self.flag1 = True
             pageContents = self.PostprocessTemplate(pageContents)
-            pageFileName = self._KeywordToUrl(keywordPage)
+            self.flag1 = False
+            pageFileName = self._GetKeywordUrl(keywordPage)
             self.doorway.AddPage(pageFileName, pageContents)
             
             '''Добавляем в список страниц'''
-            link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, self._Capitalize(keywordPage, ''))
+            anchor = self._Capitalize(self._GetLinkAnchor(keywordPage), '')
+            link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, anchor)
             if keywordPage != 'sitemap':
                 self.pageLinksList.append(link)
             else:
@@ -306,7 +362,6 @@ class Doorgen(object):
         '''Инициализация'''
         dateTimeStart = datetime.datetime.now()
         self.filesCache = {}
-        self.keywordsUrlDict = {}
         self.keywordsLowerDict = {}
         self.keywordsUpperDict = {}
         self.keywordsTitleDict = {}
@@ -319,6 +374,22 @@ class Doorgen(object):
         self.keywordDoor = self.keywordsListShort[0]
         self.netLinksList = [item.strip() for item in netLinksList]
         self.pageLinksList = []
+        
+        '''Формируем URL'ы страниц дора ...'''
+        self.keywordPage = ''
+        self.keywordsUrlDict = {}
+        for keywordPage in self.keywordsListShort:
+            url = self._KeywordToUrl(keywordPage)
+            self.keywordsUrlDict[keywordPage] = url
+        self.keywordsUrlDict['sitemap'] = self._KeywordToUrl('sitemap')  # в словарь урлов добавляем карту сайта
+        
+        '''... и их кольца'''
+        keywordsCirclesCount = 3  # число колец страниц
+        self.keywordsCirclesList = []  # непосредственно кольца в виде списков
+        keywordsList = self.keywordsListShort[1:]  # из списка страниц удаляем главную, она не войдет в кольца
+        for _ in range(keywordsCirclesCount):
+            random.shuffle(keywordsList)
+            self.keywordsCirclesList.append(keywordsList[:])
         
         '''Начинаем создание дора'''
         self.doorway = Doorway(url)
@@ -336,7 +407,7 @@ class Doorgen(object):
         sitemapXml += '<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         for keyword in self.keywordsListShort:
             sitemapXml += '  <url>\n'
-            sitemapXml += '    <loc>%s</loc>\n' % (url + self._KeywordToUrl(keyword))
+            sitemapXml += '    <loc>%s</loc>\n' % (url + self._GetKeywordUrl(keyword))
             sitemapXml += '    <lastmod>%s</lastmod>\n' % datetime.date.today().strftime('%Y-%m-%d')
             sitemapXml += '    <changefreq>weekly</changefreq>\n'
             sitemapXml += '    <priority>0.5</priority>\n'
@@ -351,13 +422,13 @@ class Doorgen(object):
         return self.doorway
 
 if __name__ == '__main__':
-    templatesPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates'
-    textPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates\texts'
+    templatesPath = r'D:\Miscellaneous\Lodger6\workspace\doorscenter\src\doorscenter\doorsagents\doorgen\templates'
+    textPath = r'D:\Miscellaneous\Lodger6\workspace\doorscenter\src\doorscenter\doorsagents\doorgen\templates\texts'
     snippetsPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\snippets'
-    keywordsList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\keywords.txt', 'r', 'cp1251', 'ignore').readlines()
-    netLinksList = codecs.open(r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
+    keywordsList = codecs.open(r'D:\Miscellaneous\Lodger6\111\keywords.txt', 'r', 'cp1251', 'ignore').readlines()
+    netLinksList = codecs.open(r'D:\Miscellaneous\Lodger6\111\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 800, 'http://oneshop.info/123')
-    doorway.SaveToFile(r'C:\Temp\door.tgz')
-    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 20, 'http://oneshop.info/123')
+    doorway.SaveToFile(r'D:\Miscellaneous\Lodger6\111\door.tgz')
+    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
