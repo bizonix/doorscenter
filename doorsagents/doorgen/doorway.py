@@ -73,9 +73,11 @@ Disallow: /*/js/'''
     
     def InitTemplate(self, templatePath):
         '''Добавляем к дорвею содержимое папки шаблона'''
+        excludeList = ['.htaccess', 'dp_sitemap.html', 'index.html', 'robots.txt']
         if not self.closed:
             for fileName in os.listdir(templatePath):
-                self.tarFiles[0].add(os.path.join(templatePath, fileName), arcname=fileName)
+                if fileName not in excludeList:
+                    self.tarFiles[0].add(os.path.join(templatePath, fileName), arcname=fileName)
         '''Добавляем стандартные файлы'''
         self.AddPage('.htaccess', self.htaccessContents)
         self.AddPage('robots.txt', self.robotsContents)

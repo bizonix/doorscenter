@@ -4,7 +4,7 @@ from common import FindMacros, ReplaceNth
 from doorway import Doorway
 from django.template.defaultfilters import slugify
 
-pageUrlTemplate = '[[{BOSKEYWORDSLUG}|page{RAND(1,10000)}|str{RAND(1,10000)}|article-{RAND(100,500)}|{BOSKEYWORDSLUG}-{RAND(1,100)}]]'
+pageUrlTemplate = '[[{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RAND(1,100)}|page{RAND(1,10000)}|str{RAND(1,10000)}|article{RAND(100,500)}]]'
 anchorTemplate = '[[{BOSKEYWORD}|{RANDKEYWORD} {BOSKEYWORD}|{BOSKEYWORD} {RANDKEYWORD}]]'
 
 class Doorgen(object):
@@ -37,9 +37,9 @@ class Doorgen(object):
             'RANDLINKURL':self.GetRandomIntLinkUrl, 'RANDMYLINK':self.GetRandomNetLink, 'DOR_HOST':self.GetDorHost, 
             'RANDTEXTLINE':self.GetRandomTextLine, 'SNIPPET':self.GetRandomSnippet, 'VARIATION':self.GetVariation, 
             'INDEXLINK':self.GetIndexLink, 'SITEMAPLINK':self.GetSitemapLink, 'ALLLINK':self.GetSitemapLinks, 
-            'BOSKEYWORDSLUG':self.GetPageKeywordSlug, 
+            'DOORKEYWORDSLUG':self.GetMainKeywordSlug, 'BOSKEYWORDSLUG':self.GetPageKeywordSlug, 'RANDKEYWORDSLUG':self.GetRandomKeywordSlug, 
             }
-        self.macrosDictSequent = {  # эти макросы меняем последовательно при основном проходе. макросы используют результаты работы друг друга
+        self.macrosDictSequent = {  # эти макросы меняем последовательно при основном проходе. макросы используют результаты работы друг друга. ниже это можно отключить
             'RAND':self.GetRandomNumber, 'COUNTRAND':self.GetLastRandomNumber, 
             }
         self.macrosDictPost = {  # меняем макросы регекспами на пост-процессинге
@@ -49,6 +49,16 @@ class Doorgen(object):
         '''ВНИМАНИЕ: здесь отключается последовательная обработка макросов для существенного ускорения работы'''
         self.macrosDictMain.update(self.macrosDictSequent)
         self.macrosDictSequent.clear()
+    
+    def _KeywordToSlug(self, keyword):
+        '''Преобразование кея в форму, допустимую для URL'''
+        slug = ''
+        for c in keyword:
+            if c in self.validChars:
+                slug += c
+            elif c in self.conversionDict:
+                slug += self.conversionDict[c]
+        return slugify(slug)
     
     def _KeywordToUrl(self, keyword):
         '''Преобразование кея в URL по шаблону из настроек'''
@@ -132,6 +142,10 @@ class Doorgen(object):
         kind = macrosName[:-11]
         return self._Capitalize(keyword, kind)
     
+    def GetMainKeywordSlug(self, macrosName, macrosArgsList):
+        '''Преобразуем главный кейворд в форму, допустимую для URL'''
+        return self._KeywordToSlug(self.keywordDoor)
+    
     def GetPageKeyword(self, macrosName, macrosArgsList):
         '''Кейворд страницы'''
         keyword = self.keywordPage
@@ -140,19 +154,18 @@ class Doorgen(object):
     
     def GetPageKeywordSlug(self, macrosName, macrosArgsList):
         '''Преобразуем кейворд страницы в форму, допустимую для URL'''
-        url = ''
-        for c in self.keywordPage:
-            if c in self.validChars:
-                url += c
-            elif c in self.conversionDict:
-                url += self.conversionDict[c]
-        return slugify(url)
+        return self._KeywordToSlug(self.keywordPage)
     
     def GetRandomKeyword(self, macrosName, macrosArgsList):
         '''Случайный кейворд'''
         keyword = random.choice(self.keywordsListFull)
         kind = macrosName[:-11]
         return self._Capitalize(keyword, kind)
+    
+    def GetRandomKeywordSlug(self, macrosName, macrosArgsList):
+        '''Преобразуем случайный кейворд в форму, допустимую для URL'''
+        keyword = random.choice(self.keywordsListFull)
+        return self._KeywordToSlug(keyword)
     
     def GetRandomNumber(self, macrosName, macrosArgsList):
         '''Случайное число'''
@@ -422,13 +435,13 @@ class Doorgen(object):
         return self.doorway
 
 if __name__ == '__main__':
-    templatesPath = r'D:\Miscellaneous\Lodger6\workspace\doorscenter\src\doorscenter\doorsagents\doorgen\templates'
-    textPath = r'D:\Miscellaneous\Lodger6\workspace\doorscenter\src\doorscenter\doorsagents\doorgen\templates\texts'
+    templatesPath = r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates'
+    textPath = r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\templates\texts'
     snippetsPath = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\snippets'
-    keywordsList = codecs.open(r'D:\Miscellaneous\Lodger6\111\keywords.txt', 'r', 'cp1251', 'ignore').readlines()
-    netLinksList = codecs.open(r'D:\Miscellaneous\Lodger6\111\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
+    keywordsList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\keywords.txt', 'r', 'cp1251', 'ignore').readlines()
+    netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 20, 'http://oneshop.info/123')
-    doorway.SaveToFile(r'D:\Miscellaneous\Lodger6\111\door.tgz')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 50, 'http://oneshop.info/123')
+    doorway.SaveToFile(r'c:\Temp\door.tgz')
     #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
