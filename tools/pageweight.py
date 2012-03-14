@@ -120,11 +120,11 @@ class Pages(object):
         self.AddLink(page1, page2, anchor)
         self.AddLink(page2, page1, anchor)
         
-    def Analyze(self):
+    def Analyze(self, sortBy = 'weight', maxResults = 50):
         '''Рассчитываем page weight'''
         print('Calculating page weights ...')
-        for _ in range(int(len(self.pagesInternal) * 0.2)):  # удаляем часть страниц, типа нет в индексе
-            self.pagesInternal.remove(random.sample(self.pagesInternal, 1)[0])
+        '''for _ in range(int(len(self.pagesInternal) * 0.2)):  # удаляем часть страниц, типа нет в индексе
+            self.pagesInternal.remove(random.sample(self.pagesInternal, 1)[0])'''
         method = 2
         iterations = 10
         for _ in range(iterations):  # цикл по итерациям
@@ -135,17 +135,18 @@ class Pages(object):
             for page in self.pagesInternal:  # нормализация веса
                 page.NormalizeWeight(method, maxWeight)
         '''Результаты'''
-        print('')
-        print('Internal pages:')
-        #pagesInternalSorted = sorted(self.pagesInternal, key=lambda item: item.weight, reverse=True)
-        pagesInternalSorted = sorted(self.pagesInternal, key=lambda item: item.url, reverse=False)
-        for page in pagesInternalSorted[:50]:
+        print('Internal pages results:')
+        if sortBy == 'weight':
+            pagesInternalSorted = sorted(self.pagesInternal, key=lambda item: item.weight, reverse=True)
+        elif sortBy == 'url':
+            pagesInternalSorted = sorted(self.pagesInternal, key=lambda item: item.url, reverse=False)
+        for page in pagesInternalSorted[:maxResults]:
             print('/{0:<50} - in: {1:>3}; out: {2:>3}; outex: {3:>2}; weight: {4:>6.2f}'.format(page.url.replace(self.baseUrl, ''), len(page.linksInternalIn), len(page.linksInternalOut), len(page.linksExternalOut), page.weight))
-        print('')
-        print('External pages:')
+        '''print('')
+        print('External pages results:')
         pagesExternalSorted = sorted(self.pagesExternal, key=lambda item: len(item.linksInternalIn), reverse=True)
-        for page in pagesExternalSorted[:50]:
-            print('{0:<80} - in: {1:>3}'.format(page.url, len(page.linksInternalIn)))
+        for page in pagesExternalSorted[:maxResults]:
+            print('{0:<80} - in: {1:>3}'.format(page.url, len(page.linksInternalIn)))'''
 
     def Generate(self):
         '''Создаем структуру страниц вручную'''
@@ -193,9 +194,9 @@ class Site(object):
     
     def __init__(self, baseUrl, localFolder):
         '''Инициализация'''
+        if baseUrl[-1] != '/':
+            baseUrl += '/'
         self.baseUrl = baseUrl
-        if self.baseUrl[-1] != '/':
-            self.baseUrl += '/'
         self.localFolder = localFolder
         self.pages = Pages(baseUrl)
         
@@ -203,19 +204,21 @@ class Site(object):
         '''Приводим URL к нормальному виду'''
         url = url.lower().strip()
         if url[0] in ['\'', '"'] and url[-1] in ['\'', '"']:
-            url = url[1:-1]
+            url = url[1:-1].strip()
         if url.find('#') >= 0:
-            url = url[:url.find('#')]
+            url = url[:url.find('#')].strip()
         if url.find('?') >= 0:
-            url = url[:url.find('?')]
+            url = url[:url.find('?')].strip()
+        if url == '':
+            return url
         if url.find('http://') < 0:
             url = self.baseUrl + url
-        indexPages = ['index.html']
+        indexPages = ['index.html', 'index.htm', 'index.php']
         for indexPage in indexPages:
             if url.endswith('/' + indexPage):
-                url = url[:-len(indexPage)]
+                url = url[:-len(indexPage)].strip()
                 break
-        return url.strip()
+        return url
         
     def DownloadBySitemap(self):  # не доделано
         '''Скачиваем по XML карте сайта'''
@@ -256,15 +259,13 @@ class Site(object):
                 linkPage = self.pages.GetOrCreatePage(linkUrl)
                 self.pages.AddLink(page, linkPage, linkAnchor)
                 linkUrlsProcessed.add(linkUrl)
+        print('Internal pages: %d. External pages: %d.' % (len(self.pages.pagesInternal), len(self.pages.pagesExternal)))
         return self.pages
     
 if __name__ == '__main__':
-    #site = Site('http://fastfreedating.info/', r'C:\Temp\wget\datingwater.info')
-    #site = Site('http://www.davidheaven.com/', r'C:\Temp\wget\www.davidheaven.com')
+    site = Site('http://oneshop.info/123', r'C:\Temp\door')
     #site.DownloadBySitemap()
-    #site = Site('http://www.alonsoracing.com/', r'C:\Temp\wget\www.alonsoracing.com')
-    #site.DownloadBySitemap()
-    #pages = site.Load()
-    pages = Pages('http://test.com/')
-    pages.Generate()
-    pages.Analyze()
+    pages = site.Load()
+    #pages = Pages('http://test.com/')
+    #pages.Generate()
+    pages.Analyze('weight', 300)
