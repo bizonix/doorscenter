@@ -205,7 +205,7 @@ class Doorgen(object):
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
-        if self.keywordPage == self.keywordDoor:  # с индекса на себя ссылку не ставим
+        if self.keywordPage != 'sitemap':  # макрос работает только на странице карты
             return ''
         url = 'index' + self.pageExtension
         anchor = self._Capitalize(self._GetLinkAnchor(self.keywordDoor), 'A')
@@ -346,11 +346,11 @@ class Doorgen(object):
         return template
         
     def GeneratePage(self, template, keywordPage):
-        self.flag1 = False
+        self.currentCircleNumber = 0  # сбрасываем номер текущего кольца для внутренней линковки
+        self.flag1 = False  # флаг необходимости замены рандомных кеев на кеи страниц
         try:
             '''Формируем страницу'''
             self.keywordPage = keywordPage
-            self.currentCircleNumber = 0  # текущее кольцо для внутренней линковки
             pageContents = self.ProcessTemplate(template)
             self.flag1 = True
             pageContents = self.PostprocessTemplate(pageContents)
@@ -368,7 +368,7 @@ class Doorgen(object):
         except Exception as error:
             print('Error at "%s": %s' % (keywordPage, error))
 
-    def Generate(self, keywordsList, netLinksList, template, pagesCount, url):
+    def Generate(self, keywordsList, netLinksList, template, pagesCount, url, chunks = 10):
         '''Генерируем дор'''
         templatePath = os.path.join(self.templatesPath, template)
         
@@ -405,7 +405,7 @@ class Doorgen(object):
             self.keywordsCirclesList.append(keywordsList[:])
         
         '''Начинаем создание дора'''
-        self.doorway = Doorway(url)
+        self.doorway = Doorway(url, chunks)
         self.doorway.InitTemplate(templatePath)
         
         '''Формируем страницы дора и карту сайта в HTML'''
@@ -442,6 +442,6 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 50, 'http://oneshop.info/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 300, 'http://oneshop.info/123', 1)
     doorway.SaveToFile(r'c:\Temp\door.tgz')
     #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')

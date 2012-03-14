@@ -40,10 +40,10 @@ class Uploader(threading.Thread):
 class Doorway(object):
     '''Дорвей'''
     
-    def __init__(self, url):
+    def __init__(self, url, chunks = 10):
         '''Инициализация'''
         self.url = url
-        self.chunks = 10
+        self.chunks = chunks
         '''Создаем файлы в памяти'''
         self.tarFilesObjects = []
         self.tarFiles = []
