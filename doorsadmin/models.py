@@ -490,7 +490,7 @@ class Net(BaseNet):
     netPlan = models.ForeignKey('NetPlan', verbose_name='Net Plan', null=True, blank=True, on_delete=models.SET_NULL)
     class Meta:
         verbose_name = 'Net'
-        verbose_name_plural = 'I.3.a Nets - [act]'
+        verbose_name_plural = 'I.2.1 Nets - [act]'
     def GetDoorsCount(self):
         return ReplaceZero(self.domain_set.annotate(x=Count('doorway')).aggregate(xx=Sum('x'))['xx'])
     GetDoorsCount.short_description = 'Doors'
@@ -636,13 +636,6 @@ class Net(BaseNet):
             self.GenerateDoorways(n)
         super(Net, self).save(*args, **kwargs)
 
-class NetDescription(Net):
-    '''Класс для отображения еще одной строки в админке'''
-    class Meta:
-        verbose_name = 'Net Description'
-        verbose_name_plural = 'I.3.b Net Descriptions'
-        proxy = True
-
 class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     '''Набор ключевых слов'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
@@ -651,7 +644,7 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     keywordsCount = models.FloatField('Keys Count, k.', null=True, blank=True)
     class Meta:
         verbose_name = 'Keywords Set'
-        verbose_name_plural = 'I.4 Keywords Sets - [act]'
+        verbose_name_plural = 'I.3 Keywords Sets - [act]'
     def GetLocalFolder(self):
         s = self.localFolder
         s = s.replace('/home/admin/public_html/searchpro.name/web/doorscenter/doorsadmin/keywords/', '/')
@@ -715,7 +708,7 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     localFolder = models.CharField('Local Folder', max_length=200, default='')
     class Meta:
         verbose_name = 'Template'
-        verbose_name_plural = 'I.5 Templates - [act]'
+        verbose_name_plural = 'I.4 Templates - [act]'
     def __unicode__(self):
         return self.localFolder
     def GetDoorsCount(self):
@@ -761,7 +754,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     phrasesCount = models.IntegerField('Count', null=True, blank=True)
     class Meta:
         verbose_name = 'Snippets Set'
-        verbose_name_plural = 'I.6 Snippets Sets - [act, managed]'
+        verbose_name_plural = 'I.5 Snippets Sets - [act, managed]'
     def GetDateLastParsedAgo(self):
         return PrettyDate(self.dateLastParsed)
     GetDateLastParsedAgo.short_description = 'Last Parsed'
@@ -1501,6 +1494,6 @@ class RedirectType(models.Model):
     fileName = models.CharField('File Name', max_length=50)
     class Meta:
         verbose_name = 'Redirect Type'
-        verbose_name_plural = 'IV.4 Redirect Types'
+        verbose_name_plural = 'V.1 # Redirect Types'
     def __unicode__(self):
         return self.fileName

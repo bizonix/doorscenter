@@ -63,7 +63,7 @@ class BaseAdminSimple(BaseAdmin):
 '''Реальные классы'''
 
 class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'GetStopWordsCount', 'tdsId', 'redirect', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'GetStopWordsCount', 'redirect', 'tdsId', 'GetNetsCount', 'GetKeywordsSetsCount', 'GetTemplatesCount', 'GetSnippetsSetsCount', 'GetXrumerBasesSpamCount', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['language', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
@@ -75,8 +75,30 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
     list_per_page = 100
 
+class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['niche', 'active', 'stateSimple']
+    ordering = ['description']
+    fieldsets = [
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
+        ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
+        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    list_per_page = 100
+    actions = ['GenerateNets']
+    def GenerateNets(self, request, queryset):
+        '''Генерируем одну сеть по плану сеток'''
+        processed = 0
+        for netPlan in queryset:
+            processed += netPlan.GenerateNets(1)
+        self.message_user(request, "%s generated." % GetMessageBit(processed))
+    GenerateNets.short_description = "a. Generate a net"
+
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     search_fields = ['description']
@@ -146,38 +168,6 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s checked." % GetMessageBit(processed))
     UpdateBackLinksCount.short_description = "f. Check backlinks"
-
-class NetDescriptionAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'niche', 'template', 'makeSpam', 'GetDomainsCount', 'GetDoorsCount', 'GetPagesCount', 'remarks', 'dateAdded')
-    list_filter = ['niche', 'active', 'stateSimple']
-    ordering = ['description']
-    fieldsets = [
-        (None, {'fields': ['description']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['expanded']}),
-    ]
-    list_per_page = 100
-
-class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['niche', 'active', 'stateSimple']
-    ordering = ['description']
-    fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
-        ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
-        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
-        ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
-    ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    list_per_page = 100
-    actions = ['GenerateNets']
-    def GenerateNets(self, request, queryset):
-        '''Генерируем одну сеть по плану сеток'''
-        processed = 0
-        for netPlan in queryset:
-            processed += netPlan.GenerateNets(1)
-        self.message_user(request, "%s generated." % GetMessageBit(processed))
-    GenerateNets.short_description = "a. Generate a net"
 
 class KeywordsSetAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'niche', 'GetLocalFolder', 'encoding', 'keywordsCount', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
@@ -465,9 +455,8 @@ class RedirectTypeAdmin(BaseAdmin):
     ]
 
 admin.site.register(Niche, NicheAdmin)
-admin.site.register(Net, NetAdmin)
-admin.site.register(NetDescription, NetDescriptionAdmin)
 admin.site.register(NetPlan, NetPlanAdmin)
+admin.site.register(Net, NetAdmin)
 admin.site.register(KeywordsSet, KeywordsSetAdmin)
 admin.site.register(Template, TemplateAdmin)
 admin.site.register(SnippetsSet, SnippetsSetAdmin)
