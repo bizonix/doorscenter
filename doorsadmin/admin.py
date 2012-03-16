@@ -68,7 +68,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     fieldsets = [
         (None, {'fields': ['description', 'language', 'stopwordsList', 'active']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
+        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -83,7 +83,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
+        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -164,7 +164,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     fieldsets = [
         (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
+        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -220,6 +220,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS', 'autoSubdomains'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
         ('Net properties', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
         ('Bulk add domains', {'fields': [('bulkAddDomains')], 'classes': ['expanded']}),
+        ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -280,7 +281,6 @@ class DoorwayAdmin(BaseAdminManaged):
     fieldsets = [
         (None, {'fields': [('niche'), ('keywordsSet', 'template'), ('domain', 'domainSub', 'domainFolder'), ('pagesCount', 'doorLinksCount', 'spamLinksCount', 'makeSpam')]}),
         ('Lists', {'fields': ['keywordsList', 'netLinksList'], 'classes': ['expanded']}),
-        ('Trackers', {'fields': [('tdsId', 'redirect', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
@@ -457,6 +457,13 @@ class ReportAdmin(BaseAdmin):
         (None, {'fields': ['description', ('host', 'database'), ('user', 'password'), 'sql']}),
     ]
 
+class RedirectTypeAdmin(BaseAdmin):
+    list_display = ('pk', 'description', 'fileName')
+    ordering = ['fileName']
+    fieldsets = [
+        (None, {'fields': ['description', 'fileName']}),
+    ]
+
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(Net, NetAdmin)
 admin.site.register(NetDescription, NetDescriptionAdmin)
@@ -480,3 +487,4 @@ admin.site.register(XrumerBaseRaw, XrumerBaseRawAdmin)
 admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Report, ReportAdmin)
+admin.site.register(RedirectType, RedirectTypeAdmin)

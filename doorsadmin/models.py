@@ -115,10 +115,11 @@ class BaseDoorObjectActivatable(models.Model):
         abstract = True
 
 class BaseDoorObjectTrackable(models.Model):
-    '''Объекты, по которым нужно отслеживать статистику'''
-    tdsId = models.IntegerField('Tds', null=True, blank=True)
-    redirect = models.BooleanField('Redir.', default=False)
-    redirectDelay = models.IntegerField('Redir.delay', default=7, blank=True)
+    '''Объекты, на которых настраивается редирект на TDS ("trackable" - устаревшее название)'''
+    tdsId = models.IntegerField('Tds ID', null=True, blank=True)
+    redirect = models.BooleanField('Redirect', default=False)
+    redirectType = models.ForeignKey('RedirectType', verbose_name='Redirect type', null=True, blank=True, on_delete=models.SET_NULL)
+    redirectDelay = models.IntegerField('Redirect delay', default=30, blank=True)
     class Meta:
         abstract = True
 
@@ -250,7 +251,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Тематика доров'''
     language = models.CharField('Lang.', max_length=50, choices=languages)
     stopwordsList = models.TextField('Stop Words', default='', blank=True)
-    tdsSchemes = models.CharField('TDS Schemes', max_length=200, default='', blank=True)
     class Meta:
         verbose_name = 'Niche'
         verbose_name_plural = 'I.1 # Niches - [act]'
@@ -784,7 +784,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
             EventLog('error', 'Too few snippets found: %d' % self.phrasesCount, self)
         super(SnippetsSet, self).SetTaskDetails(data)
 
-class Domain(BaseDoorObject, BaseDoorObjectActivatable):
+class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable):
     '''Домен'''
     name = models.CharField('Domain Name', max_length=200, unique=True)
     net = models.ForeignKey('Net', verbose_name='Net', null=True, blank=True, on_delete=models.SET_NULL)
@@ -959,7 +959,7 @@ def DomainOnDelete(sender, **kwargs):
         pass
 pre_delete.connect(DomainOnDelete, sender=Domain, weak=False)
 
-class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
+class Doorway(BaseDoorObject, BaseDoorObjectManaged):
     '''Дорвей'''
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
@@ -1036,7 +1036,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
                 'domainSub': self.domainSub, 
                 'domainFolder': self.domainFolder,
                 'netLinksList': EncodeListForAgent(self.netLinksList),
-                'tdsId': self.tdsId,
+                'tdsId': GetFirstObject([self.domain.tdsId, self.domain.net.tdsId, self.niche.tdsId]),
                 'piwikId': 0,
                 'documentRoot': self.domain.GetDocumentRoot(), 
                 'ftpHost': self.domain.ipAddress.address, 
@@ -1087,11 +1087,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectManaged):
         '''Если нет ссылок сетки, то генерируем'''
         if self.netLinksList == '':
             self.netLinksList = self.domain.GetNetLinksList(self)
-        '''Если не указаны tracking fields, то заполняем по сети и нише (приоритет: net, niche).'''
-        try:
-            self.tdsId = GetFirstObject([self.tdsId, self.domain.net.tdsId, self.niche.tdsId])
-        except Exception:
-            pass
         '''Если не указаны параметры домена, то пытаемся занять корень. Если не получается,
         то придумываем новую папку по названию первого кея из списка'''
         if (self.domainSub == '') and (self.domainFolder == ''):
@@ -1499,3 +1494,13 @@ class Report(models.Model):
         return str(results)
     GetReport.short_description = 'Report'
     GetReport.allow_tags = True
+
+class RedirectType(models.Model):
+    '''Тип редиректа на TDS'''
+    description = models.CharField('Description', max_length=200, default='', blank=True)
+    fileName = models.CharField('File Name', max_length=50)
+    class Meta:
+        verbose_name = 'Redirect Type'
+        verbose_name_plural = 'IV.4 Redirect Types'
+    def __unicode__(self):
+        return self.fileName
