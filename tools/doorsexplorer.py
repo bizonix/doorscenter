@@ -9,6 +9,8 @@ from xml.etree import ElementTree
 - возраст домена
 - индекс в гугле
 - ссылки по гуглу
+- наличие robots.txt
+--- если есть, вывести его содержание
 - наличие sitemap.xml, sitemap.html, map.html
 - если есть sitemap.xml, то:
 --- число страниц

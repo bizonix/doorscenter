@@ -4,8 +4,10 @@ from common import FindMacros, ReplaceNth
 from doorway import Doorway
 from django.template.defaultfilters import slugify
 
-pageUrlTemplate = '[[{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RAND(1,100)}|page{RAND(1,10000)}|str{RAND(1,10000)}|article{RAND(100,500)}]]'
+pageUrlTemplate = '[[{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RANDKEYWORDSLUG}|{BOSKEYWORDSLUG}-{RAND(1,100)}|page{RAND(1,10000)}|article{RAND(100,500)}]]'
 anchorTemplate = '[[{BOSKEYWORD}|{RANDKEYWORD} {BOSKEYWORD}|{BOSKEYWORD} {RANDKEYWORD}]]'
+
+SITEMAP_KEYWORD = 'sitemap'
 
 class Doorgen(object):
     '''Дорген'''
@@ -64,7 +66,7 @@ class Doorgen(object):
         '''Преобразование кея в URL по шаблону из настроек'''
         if keyword == self.keywordDoor:
             return 'index' + self.pageExtension
-        elif keyword == 'sitemap':
+        elif keyword == SITEMAP_KEYWORD:
             return 'sitemap' + self.pageExtension
         keywordPage = self.keywordPage  # подменяем кей текущей страницы
         self.keywordPage = keyword  # ...
@@ -148,12 +150,16 @@ class Doorgen(object):
     
     def GetPageKeyword(self, macrosName, macrosArgsList):
         '''Кейворд страницы'''
+        if self.keywordPage == SITEMAP_KEYWORD:  # на карте возвращаем случайный кей
+            return self.GetRandomKeyword(macrosName, macrosArgsList)
         keyword = self.keywordPage
         kind = macrosName[:-10]
         return self._Capitalize(keyword, kind)
     
     def GetPageKeywordSlug(self, macrosName, macrosArgsList):
         '''Преобразуем кейворд страницы в форму, допустимую для URL'''
+        if self.keywordPage == SITEMAP_KEYWORD:  # на карте возвращаем случайный кей
+            return self.GetRandomKeywordSlug(macrosName, macrosArgsList)
         return self._KeywordToSlug(self.keywordPage)
     
     def GetRandomKeyword(self, macrosName, macrosArgsList):
@@ -205,7 +211,7 @@ class Doorgen(object):
     
     def GetIndexLink(self, macrosName, macrosArgsList):
         '''Анкор на индекс'''
-        if self.keywordPage != 'sitemap':  # макрос работает только на странице карты
+        if self.keywordPage != SITEMAP_KEYWORD:  # макрос работает только на странице карты
             return ''
         url = 'index' + self.pageExtension
         anchor = self._Capitalize(self._GetLinkAnchor(self.keywordDoor), 'A')
@@ -221,7 +227,7 @@ class Doorgen(object):
     
     def GetSitemapLinks(self, macrosName, macrosArgsList):
         '''Анкоры на все страницы дора для карты сайта'''
-        if self.keywordPage != 'sitemap':  # макрос работает только на странице карты
+        if self.keywordPage != SITEMAP_KEYWORD:  # макрос работает только на странице карты
             return ''
         result = ''
         for keyword in self.keywordsListShort:
@@ -361,7 +367,7 @@ class Doorgen(object):
             '''Добавляем в список страниц'''
             anchor = self._Capitalize(self._GetLinkAnchor(keywordPage), '')
             link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, anchor)
-            if keywordPage != 'sitemap':
+            if keywordPage != SITEMAP_KEYWORD:
                 self.pageLinksList.append(link)
             else:
                 self.pageLinksList.insert(1, link)
@@ -392,9 +398,8 @@ class Doorgen(object):
         self.keywordPage = ''
         self.keywordsUrlDict = {}
         for keywordPage in self.keywordsListShort:
-            url = self._KeywordToUrl(keywordPage)
-            self.keywordsUrlDict[keywordPage] = url
-        self.keywordsUrlDict['sitemap'] = self._KeywordToUrl('sitemap')  # в словарь урлов добавляем карту сайта
+            self.keywordsUrlDict[keywordPage] = self._KeywordToUrl(keywordPage)
+        self.keywordsUrlDict[SITEMAP_KEYWORD] = self._KeywordToUrl(SITEMAP_KEYWORD)  # в словарь урлов добавляем карту сайта
         
         '''... и их кольца'''
         keywordsCirclesCount = 3  # число колец страниц
@@ -413,7 +418,7 @@ class Doorgen(object):
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
         sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'))
-        self.GeneratePage(sitemapTemplateContents, 'sitemap')
+        self.GeneratePage(sitemapTemplateContents, SITEMAP_KEYWORD)
         
         '''Карта сайта в XML'''
         sitemapXml = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -442,6 +447,6 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 300, 'http://oneshop.info/123', 1)
-    doorway.SaveToFile(r'c:\Temp\door.tgz')
-    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 300, 'http://oneshop.info/123', 10)
+    #doorway.SaveToFile(r'c:\Temp\door.tgz')
+    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
