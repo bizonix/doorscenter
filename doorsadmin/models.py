@@ -667,27 +667,27 @@ class KeywordsSet(BaseDoorObject, BaseDoorObjectActivatable):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetTrafficLastDay(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastDay')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastDay')
     GetTrafficLastDay.short_description = 'Traf/d'
     GetTrafficLastDay.allow_tags = True
     def GetTrafficLastMonth(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastMonth')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastMonth')
     GetTrafficLastMonth.short_description = 'Traf/m'
     GetTrafficLastMonth.allow_tags = True
     def GetTrafficLastYear(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastYear')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastYear')
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastDay')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastMonth')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastYear')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
     def GenerateKeywordsList(self, count, maxCompetition = -1):
@@ -727,27 +727,27 @@ class Template(BaseDoorObject, BaseDoorObjectActivatable):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetTrafficLastDay(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastDay')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastDay')
     GetTrafficLastDay.short_description = 'Traf/d'
     GetTrafficLastDay.allow_tags = True
     def GetTrafficLastMonth(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastMonth')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastMonth')
     GetTrafficLastMonth.short_description = 'Traf/m'
     GetTrafficLastMonth.allow_tags = True
     def GetTrafficLastYear(self):
-        return GetFieldCounter(self.doorway_set, 'trafficLastYear')
+        return GetFieldCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastYear')
     GetTrafficLastYear.short_description = 'Traf/y'
     GetTrafficLastYear.allow_tags = True
     def GetTrafficLastDayRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastDay')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastDay')
     GetTrafficLastDayRelative.short_description = 'Traf/d'
     GetTrafficLastDayRelative.allow_tags = True
     def GetTrafficLastMonthRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastMonth')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastMonth')
     GetTrafficLastMonthRelative.short_description = 'Traf/m'
     GetTrafficLastMonthRelative.allow_tags = True
     def GetTrafficLastYearRelative(self):
-        return GetRelativeTrafficCounter(self.doorway_set, 'trafficLastYear')
+        return GetRelativeTrafficCounter(self.doorway_set.filter(Q(domainSub=''), Q(domainFolder='/')), 'trafficLastYear')
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
 
