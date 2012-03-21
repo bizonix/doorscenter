@@ -102,6 +102,13 @@ Disallow: /*/js/'''
             with open(fileName.replace('.tgz', '%d.tgz' % n), 'wb') as fd:
                 fd.write(self.tarFilesObjects[n].read())
     
+    def SaveToFolder(self, folderName):
+        '''Сохраняем дорвей в папку'''
+        self._Close()
+        for n in range(self.chunks):
+            self.tarFilesObjects[n].seek(0)
+            tarfile.open('', 'r', fileobj=self.tarFilesObjects[n]).extractall(folderName)
+    
     def UploadToFTP(self, host, login, password, remotePath):
         '''Загружаем архив с дорвеем на FTP и распаковываем там'''
         dateTimeStart = datetime.datetime.now()

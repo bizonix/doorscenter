@@ -1,5 +1,5 @@
 # coding=utf8
-import os, random, string, re, codecs, datetime, urlparse
+import os, sys, random, string, re, codecs, datetime, urlparse
 from common import FindMacros, ReplaceNth
 from doorway import Doorway
 from django.template.defaultfilters import slugify
@@ -338,6 +338,40 @@ class Doorgen(object):
         template = template.replace('[[', '{VARIATION(').replace(']]', ')}')
         return template
     
+    def PreprocessTemplateInclude(self, template):
+        '''Препроцессинг макросов INCLUDE в шаблоне страницы. Используется для сокращения объема страниц дора'''
+        while True:
+            '''Находим очередной макрос INCLUDE'''
+            templateBefore, _, macrosName, _, template = FindMacros(template, 'INCLUDE')
+            if macrosName == '':
+                break
+            body, _, rest = template.partition('{/INCLUDE}')
+            if (body.find('{INCLUDE') >= 0) or (body.find('{FOR') >= 0) or (body.find('<?php') >= 0):
+                sys.exit('Error: {INCLUDE}, {FOR} or "<?php" inside of an {INCLUDE} macros.')
+            template = templateBefore
+            '''Обрабатываем макрос'''
+            self.includeFunctionsCount += 1
+            functionName = 'F%d' % self.includeFunctionsCount
+            self.includeContents += '<?php function %s($args) { echo <<<Z\n' % functionName
+            if self.includeFunctionsCount == 1:
+                template += '<?php include "%s" ?>' % self.includeFileName
+            template += '<?php %s(array(0' % functionName
+            argumentsCount = 0
+            '''Обрабатываем внутренности макроса'''
+            while True:
+                bodyBefore, macrosFull, _, _, body = FindMacros(body)
+                if macrosFull == '':
+                    self.includeContents += body
+                    break
+                argumentsCount += 1
+                template += '\n,<<<Z\n%s\nZ' % macrosFull
+                self.includeContents += bodyBefore + '{$args[%d]}' % argumentsCount
+            template += '\n)); ?>\n'
+            self.includeContents += '\nZ\n; } ?>\n'
+            '''Обрабатываем продолжение'''
+            template += self.PreprocessTemplateInclude(rest)
+        return template
+    
     def PostprocessTemplate(self, template):
         '''Пост-процессинг страницы'''
         if template.find('###') < 0:
@@ -387,6 +421,9 @@ class Doorgen(object):
         self.keywordsCapitDict = {}
         self.lastRandomNumber = 0;
         self.macrosUnknown = set()
+        self.includeFileName = 'doorway-include.php'
+        self.includeContents = ''
+        self.includeFunctionsCount = 0
 
         self.keywordsListFull = [item.strip() for item in keywordsList]
         self.keywordsListShort = self.keywordsListFull[:pagesCount]
@@ -413,10 +450,15 @@ class Doorgen(object):
         self.doorway = Doorway(url, chunks)
         self.doorway.InitTemplate(templatePath)
         
-        '''Формируем страницы дора и карту сайта в HTML'''
+        '''Формируем страницы дора'''
         indexTemplateContents = self._GetFileContents(os.path.join(templatePath, 'index.html'))
+        indexTemplateContents = self.PreprocessTemplateInclude(indexTemplateContents)
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
+        if self.includeContents != '':
+            self.doorway.AddPage(self.includeFileName, self.includeContents)
+        
+        '''Карта сайта в HTML'''
         sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'))
         self.GeneratePage(sitemapTemplateContents, SITEMAP_KEYWORD)
         
@@ -447,6 +489,8 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 300, 'http://oneshop.info/123', 10)
-    #doorway.SaveToFile(r'c:\Temp\door.tgz')
-    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 30, 'http://oneshop.info/123', 10)
+    doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door2')
+    #doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en-mod', 30, 'http://oneshop.info/123', 10)
+    #doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door3')
+    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
