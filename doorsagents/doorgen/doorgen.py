@@ -491,6 +491,6 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en-mod', 30, 'http://oneshop.info/123', 10)
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 30, 'http://oneshop.info/123', 10)
     #doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door2')
     doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
