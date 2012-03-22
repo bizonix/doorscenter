@@ -1,7 +1,8 @@
 # coding=utf8
 
 def FindMacros(source, macrosName = ''):
-    '''Находим очередной макрос'''
+    '''Находим очередной макрос. Note: находит также переменные PHP, обрамленные 
+    фигурными скобками'''
     if source.find('{' + macrosName) >= 0:
         before, _, x = source.partition('{' + macrosName)
         macrosArgsList = []

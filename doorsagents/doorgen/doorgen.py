@@ -260,8 +260,8 @@ class Doorgen(object):
             elif macrosName in self.macrosDictPost.keys():  # макросы для пост-процессинга помечаем по-другому
                 return '###' + macrosName + '###'
             else:
-                self.macrosUnknown.add(macrosFull)  # неизвестные макросы собираем
-                return ''
+                self.macrosUnknown.add(macrosFull)  # неизвестные макросы собираем ...
+                return macrosFull  # ... и оставляем их как есть
         except Exception as error:
             print(error)
             return ''
@@ -274,8 +274,8 @@ class Doorgen(object):
             if macrosName in self.macrosDictPost:
                 return self.ProcessTemplate(self.macrosDictPost[macrosName](macrosName, []))
             else:
-                self.macrosUnknown.add(macrosFull)
-                return ''
+                self.macrosUnknown.add(macrosFull)  # неизвестные макросы собираем ...
+                return macrosFull  # ... и оставляем их как есть
         except Exception as error:
             print(error)
             return ''
@@ -288,7 +288,7 @@ class Doorgen(object):
             templateBefore, _, macrosName, macrosArgsList, template = FindMacros(template, macrosToProcess)
             if macrosName != '':
                 macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
-                macrosNameEnd = '{' + macrosName.replace('FOR', 'ENDFOR') + '}'
+                macrosNameEnd = '{' + macrosName.replace('FOR', '/FOR') + '}'
                 macrosCounter = '{I' + macrosName.replace('FOR', '') + '}'
                 body, _, rest = template.partition(macrosNameEnd)
                 template = self.ProcessTemplate(templateBefore)
@@ -321,8 +321,8 @@ class Doorgen(object):
                 macrosArgsList = [self.ProcessTemplate(item) for item in macrosArgsList]
                 result += templateBefore + self.ProcessTemplate(self.macrosDictSequent[macrosName](macrosName, macrosArgsList))
             else:
-                self.macrosUnknown.add(macrosFull)
-                result += templateBefore
+                self.macrosUnknown.add(macrosFull)  # неизвестные макросы собираем ...
+                result += templateBefore + macrosFull  # ... и оставляем их как есть
     
     def PreprocessTemplate(self, template):
         '''Препроцессинг шаблона страницы'''
@@ -335,11 +335,14 @@ class Doorgen(object):
         template = template.replace('{RAND_URL}', '{RANDLINKURL}')
         template = template.replace('{INDEX}', '{INDEXLINK}')
         template = template.replace('{PIWIK}', '')
+        template = template.replace('{ENDFOR', '{/FOR')
         template = template.replace('[[', '{VARIATION(').replace(']]', ')}')
+        template = self.PreprocessTemplateInclude(template)
         return template
-    
+
     def PreprocessTemplateInclude(self, template):
-        '''Препроцессинг макросов INCLUDE в шаблоне страницы. Используется для сокращения объема страниц дора'''
+        '''Препроцессинг макросов INCLUDE в шаблоне страницы. 
+        Используется для сокращения объема страниц дора'''
         while True:
             '''Находим очередной макрос INCLUDE'''
             templateBefore, _, macrosName, _, template = FindMacros(template, 'INCLUDE')
@@ -421,7 +424,7 @@ class Doorgen(object):
         self.keywordsCapitDict = {}
         self.lastRandomNumber = 0;
         self.macrosUnknown = set()
-        self.includeFileName = 'doorway-include.php'
+        self.includeFileName = 'include.php'
         self.includeContents = ''
         self.includeFunctionsCount = 0
 
@@ -452,11 +455,8 @@ class Doorgen(object):
         
         '''Формируем страницы дора'''
         indexTemplateContents = self._GetFileContents(os.path.join(templatePath, 'index.html'))
-        indexTemplateContents = self.PreprocessTemplateInclude(indexTemplateContents)
         for keywordPage in self.keywordsListShort:
             self.GeneratePage(indexTemplateContents, keywordPage)
-        if self.includeContents != '':
-            self.doorway.AddPage(self.includeFileName, self.includeContents)
         
         '''Карта сайта в HTML'''
         sitemapTemplateContents = self._GetFileContents(os.path.join(templatePath, 'dp_sitemap.html'))
@@ -475,9 +475,11 @@ class Doorgen(object):
         sitemapXml += '</urlset>'
         self.doorway.AddPage('sitemap.xml', sitemapXml)
         
+        '''Страница с INCLUDE'''
+        if self.includeContents != '':
+            self.doorway.AddPage(self.includeFileName, self.includeContents)
+
         '''Отчет о проделанной работе'''
-        if len(self.macrosUnknown) > 0:
-            print('Unknown macros (%d): %s.' % (len(self.macrosUnknown), ', '.join(list(self.macrosUnknown))))
         print('Generated in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
         return self.doorway
 
@@ -489,8 +491,6 @@ if __name__ == '__main__':
     netLinksList = codecs.open(r'c:\Users\sasch\workspace\doorscenter\src\doorsagents\doorgen\netlinks.txt', 'r', 'cp1251', 'ignore').readlines()
     
     doorgen = Doorgen(templatesPath, textPath, snippetsPath)
-    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en', 30, 'http://oneshop.info/123', 10)
-    doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door2')
-    #doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en-mod', 30, 'http://oneshop.info/123', 10)
-    #doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door3')
-    #doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
+    doorway = doorgen.Generate(keywordsList, netLinksList, 'mamba-en-mod', 30, 'http://oneshop.info/123', 10)
+    #doorway.SaveToFolder(r'c:\Program Files (x86)\Apache Software Foundation\Apache2.2 VC9\htdocs\door2')
+    doorway.UploadToFTP('searchpro.name', 'defaultx', 'n5kh9yLm', '/public_html/oneshop.info/web/123')
