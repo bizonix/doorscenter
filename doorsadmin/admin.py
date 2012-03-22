@@ -203,7 +203,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'GetDateExpires', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'host', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
@@ -215,7 +215,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
-    actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset']
+    actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset', 'Prolongate']
     def UpdateSECount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -263,6 +263,14 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s reset." % GetMessageBit(processed))
     Reset.short_description = "e. Reset domains"
+    def Prolongate(self, request, queryset):
+        '''Продляем регистрацию доменов'''
+        processed = 0
+        for domain in queryset:
+            domain.Prolongate()
+            processed += 1
+        self.message_user(request, "%s prolongated." % GetMessageBit(processed))
+    Prolongate.short_description = "f. Prolongate"
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'GetNet', 'template', 'keywordsSet', 'pagesCount', 'GetLinksCount', 'makeSpam', 'GetUrl', 'trafficLastDay', 'trafficLastMonth', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')

@@ -880,6 +880,17 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     GetBackLinksCountDate.short_description = 'Backs Date'
     GetBackLinksCountDate.allow_tags = True
     GetBackLinksCountDate.admin_order_field = 'backLinksCountDate'
+    def GetDateExpires(self):
+        '''Дата истечения регистрации с подсветкой'''
+        if self.dateExpires < datetime.date.today():
+            return '<font color="silver">%s</font>' % self.dateExpires
+        elif self.dateExpires < datetime.date.today() + datetime.timedelta(30):
+            return '<font color="red">%s</font>' % self.dateExpires
+        else:
+            return self.dateExpires
+    GetDateExpires.short_description = 'Expires'
+    GetDateExpires.allow_tags = True
+    GetDateExpires.admin_order_field = 'dateExpires'
     def UpdateBackLinksCount(self):
         '''Проверяем back links'''
         self.backLinksCount = yahoo.GetBackLinks(self.name)
@@ -900,6 +911,10 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
         self.niche = None
         self.net = None
         self.active = True
+        self.save()
+    def Prolongate(self):
+        '''Продляем регистрацию домена'''
+        self.dateExpires = self.dateExpires + datetime.timedelta(365)
         self.save()
     def save(self, *args, **kwargs):
         '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
