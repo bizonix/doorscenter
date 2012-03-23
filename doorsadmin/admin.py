@@ -203,7 +203,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'GetDateExpires', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'host', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'GetDateExpires', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'host', 'group', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
