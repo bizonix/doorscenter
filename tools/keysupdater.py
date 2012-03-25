@@ -63,13 +63,14 @@ class KeywordsGetter(object):
 class KeywordsUpdater(object):
     '''Апдейт набора кейвордов'''
     
-    def __init__(self, updateKeywordsFolder, newKeywordsFolder):
+    def __init__(self, updateKeywordsFolder, listKeywordsFolder, newKeywordsFolder):
         '''Инициализация'''
         self.updateKeywordsFolder = updateKeywordsFolder
+        self.listKeywordsFolder = listKeywordsFolder
         self.newKeywordsFolder = newKeywordsFolder
         self.tempFileName = os.path.join(self.newKeywordsFolder, 'temp.txt')
-        self.blackListFileName = os.path.join(self.updateKeywordsFolder, 'black-list.txt')
-        self.whiteListFileName = os.path.join(self.updateKeywordsFolder, 'white-list.txt')
+        self.blackListFileName = os.path.join(self.listKeywordsFolder, 'black-list.txt')
+        self.whiteListFileName = os.path.join(self.listKeywordsFolder, 'white-list.txt')
         
     def Update(self):
         '''Непосредственно апдейт'''
@@ -125,7 +126,7 @@ class KeywordsUpdater(object):
         
 if __name__ == '__main__':
     #KeywordsGetter(r'c:\Temp\7').GetFromTDS([17, 43])
-    KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-chat', r'c:\Temp\7').Update()
+    KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-chat', r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords', r'c:\Temp\7').Update()
 
 
 ''' Этапы парсинга:
