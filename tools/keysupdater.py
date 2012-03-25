@@ -25,16 +25,15 @@ II. Обработка и апдейт кейвордов.
 class KeywordsGetter(object):
     '''Получение кейвордов'''
     
-    def __init__(self, folderName, code):
+    def __init__(self, folderName):
         '''Инициализация'''
         self.folderName = folderName
-        self.code = code
         
-    def _GetFileName(self, sourceType):
+    def _GetFileName(self, code, sourceType):
         '''Формируем имя файла'''
-        return os.path.join(self.folderName, '%s-%s.txt' % (self.code, sourceType))
+        return os.path.join(self.folderName, '%s-%s.txt' % (code, sourceType))
         
-    def GetFromTDS(self, schemesList, limit = 0):
+    def GetFromTDS(self, schemesList, code, limit = 0):
         '''Получение кейвордов с TDS по номерам схем'''
         print('Getting new keywords from TDS ...')
         dateTimeStart = datetime.datetime.now()
@@ -51,7 +50,7 @@ class KeywordsGetter(object):
                     results = cursor.fetchall()
                     keywords = [item[0].strip().lower() for item in results if item[0].strip() != '']
                     print('Keywords got: %d' % len(keywords))
-                    open(self._GetFileName('tds'), 'w').write('\n'.join(keywords))
+                    open(self._GetFileName(code, 'tds'), 'w').write('\n'.join(keywords))
                 except Exception as error:
                     print('Error: %s' % error)
                 cursor.close()
@@ -88,7 +87,7 @@ class KeywordsUpdater(object):
         
         '''Чистим новые кейворды по черному и белому спискам'''
         validChars = "%s%s " % (string.ascii_letters, string.digits)
-        kwk = kwk8.Kwk8Keys(self.tempFileName).Basic(True, True, validChars).Duplicates()
+        kwk = kwk8.Kwk8Keys(self.tempFileName).Basic(True, True).Duplicates()
         print('New keywords count: %d' % kwk.Count())
         if os.path.exists(self.blackListFileName):
             kwk.DeleteByFile(self.blackListFileName)
@@ -96,7 +95,7 @@ class KeywordsUpdater(object):
         if os.path.exists(self.whiteListFileName):
             kwk.SelectByFile(self.whiteListFileName)
             print('New keywords count after white list: %d' % kwk.Count())
-        kwk.Save()
+        kwk.Basic(True, True, validChars).Duplicates().Save()
         
         '''Читаем главные кейворды из основной папки и сортируем их по приоритету.
         Получаем отсортированный список кортежей из кейворда и имени файла'''
@@ -130,8 +129,8 @@ class KeywordsUpdater(object):
         print('Done in %d sec.' % ((datetime.datetime.now() - dateTimeStart).seconds))
         
 if __name__ == '__main__':
-    KeywordsGetter(r'c:\Temp\7', 'dating').GetFromTDS([17, 43], 100)
-    #KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-new', r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords', r'c:\Temp\7', 'dating').Update()
+    #KeywordsGetter(r'c:\Temp\7').GetFromTDS([17, 43], 'dating')
+    KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-chat', r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords', r'c:\Temp\7', 'dating').Update()
 
 
 ''' Этапы парсинга:
