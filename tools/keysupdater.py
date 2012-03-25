@@ -1,10 +1,134 @@
 # coding=utf8
-import os, sys, operator, kwk8
-from keysupdaterlib import adultWords, blackWords
+import os, glob, datetime, operator, MySQLdb, kwk8
 
-''' Автоматический парсинг кейвордов
+''' Автоматический апдейт кейвордов
 
-  Этапы парсинга:
+I. Получение кейвордов.
+
+1. Получаем кейворды с TDS. На входе - номера схем, на выходе - файл в заданной папке.
+2. (По желанию) В ту же папку помещаются вручную полученные кейворды.
+
+II. Обработка и апдейт кейвордов.
+
+1. Кейводры из всех файлов в рабочей папке смешиваются.
+2. Удаление дублей и чистка по блэк-листу.
+3. (По желанию) Фильтрация по адалт-листу.
+4. Из целевой папки читаются кейворды файлов и сортируются по их весу.
+5. Цикл по кейвордам файлов:
+5.1. Выборка из новых кейвордов по кейворду файла.
+5.2. Удаление по предыдущим кейвордам файлов.
+5.2. Апдейт файла с удалением дублей.
+
+'''
+
+class KeywordsGetter(object):
+    '''Получение кейвордов'''
+    
+    def __init__(self, folderName):
+        '''Инициализация'''
+        self.folderName = folderName
+        
+    def _GetFileName(self, sourceType):
+        '''Формируем имя файла'''
+        return os.path.join(self.folderName, sourceType + '.txt')
+        
+    def GetFromTDS(self, schemesList, limit = 0):
+        '''Получение кейвордов с TDS по номерам схем'''
+        print('Getting new keywords from TDS ...')
+        dateTimeStart = datetime.datetime.now()
+        schemesList = [str(item) for item in schemesList]
+        sql = 'select distinct `query` from `stats` where `sid` in (' + ','.join(schemesList) + ')'
+        if limit > 0:
+            sql += ' limit 0, %d' % limit
+        try:
+            db = MySQLdb.connect('searchpro.name', 'tds', 'T34c1r1M', 'tds')
+            try:
+                cursor = db.cursor()
+                try:
+                    cursor.execute(sql)
+                    results = cursor.fetchall()
+                    keywords = [item[0].strip().lower() for item in results if item[0].strip() != '']
+                    print('Keywords got: %d' % len(keywords))
+                    open(self._GetFileName('tds'), 'w').write('\n'.join(keywords))
+                except Exception as error:
+                    print('Error: %s' % error)
+                cursor.close()
+            except Exception as error:
+                print('Error: %s' % error)
+            db.close()
+        except Exception as error:
+            print('Error: %s' % error)
+        print('Done in %d sec.' % ((datetime.datetime.now() - dateTimeStart).seconds))
+
+class KeywordsUpdater(object):
+    '''Апдейт набора кейвордов'''
+    
+    def __init__(self, updateKeywordsFolder, newKeywordsFolder):
+        '''Инициализация'''
+        self.updateKeywordsFolder = updateKeywordsFolder
+        self.newKeywordsFolder = newKeywordsFolder
+        self.tempFileName = os.path.join(self.newKeywordsFolder, 'temp.txt')
+        self.blackListFileName = os.path.join(self.updateKeywordsFolder, 'black-list.txt')
+        self.whiteListFileName = os.path.join(self.updateKeywordsFolder, 'white-list.txt')
+        
+    def Update(self):
+        '''Непосредственно апдейт'''
+        '''Объединяем кейворды из папки с новыми кейвордами'''
+        print('Joining new keywords ...')
+        dateTimeStart = datetime.datetime.now()
+        newKeywords = []
+        for fileName in glob.glob(os.path.join(self.newKeywordsFolder, '*.txt')):
+            if fileName != self.tempFileName:
+                newKeywords.extend(open(fileName).readlines())
+        open(self.tempFileName, 'w').writelines(newKeywords)
+        
+        '''Чистим новые кейворды по черному и белому спискам'''
+        kwk = kwk8.Kwk8Keys(self.tempFileName).Basic().Duplicates()
+        print('New keywords count: %d' % kwk.Count())
+        if os.path.exists(self.blackListFileName):
+            kwk.DeleteByFile(self.blackListFileName)
+            print('New keywords count after black list: %d' % kwk.Count())
+        if os.path.exists(self.whiteListFileName):
+            kwk.SelectByFile(self.whiteListFileName)
+            print('New keywords count after white list: %d' % kwk.Count())
+        kwk.Save()
+        
+        '''Читаем главные кейворды из основной папки и сортируем их по приоритету.
+        Получаем отсортированный список кортежей из кейворда и имени файла'''
+        mainKeywords = sorted(glob.glob(os.path.join(self.updateKeywordsFolder, '[*.txt')), reverse = True)  # находим файлы и сортируем их
+        mainKeywords = [(os.path.basename(item).replace('.txt', ''), item) for item in mainKeywords]  # убираем путь и расширение
+        mainKeywords = [(item[0][item[0].find(']') + 1:], item[1]) for item in mainKeywords]  # убираем вес
+        joinKeywords = [(item[0], item[1]) for item in mainKeywords if item[0].find('join') == 0]  # находим файл с "прочими" кейвордами
+        mainKeywords = [(item[0], item[1]) for item in mainKeywords if item[0].find('join') < 0]  # удаляем из списка главных кейвордов файл с "прочими" кейвордами
+        
+        '''Апдейт файлов с главными кейвордами'''
+        processedKeywords = []
+        for mainKeyword, mainKeywordFileName in mainKeywords:
+            kwkMain = kwk8.Kwk8Keys(mainKeywordFileName)
+            mainCountOld = kwkMain.Count()
+            kwkNew = kwk8.Kwk8Keys(self.tempFileName).SelectByList([mainKeyword]).DeleteByList(processedKeywords)
+            mainCountNew = kwkMain.Extend(kwkNew.Items()).Duplicates().Save().Count()
+            print('- %s: %d added' % (mainKeyword, mainCountNew - mainCountOld))
+            processedKeywords.append(mainKeyword)
+        
+        '''Обрабатываем оставшиеся кейворды'''
+        if len(joinKeywords) > 0:
+            joinKeywordsFileName = joinKeywords[0][1]
+            kwkJoin = kwk8.Kwk8Keys(joinKeywordsFileName)
+            joinCountOld = kwkJoin.Count()
+            kwkNew = kwk8.Kwk8Keys(self.tempFileName).DeleteByList(processedKeywords)
+            joinCountNew = kwkJoin.Extend(kwkNew.Items()).Duplicates().Save().Count()
+            print('- join: %d added' % (joinCountNew - joinCountOld))
+        
+        '''Результаты'''
+        print('Done in %d sec.' % ((datetime.datetime.now() - dateTimeStart).seconds))
+        
+if __name__ == '__main__':
+    #KeywordsGetter(r'c:\Temp\7').GetFromTDS([17, 43])
+    KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-chat', r'c:\Temp\7').Update()
+
+
+''' Этапы парсинга:
 
 I. Постановка задачи.
 I.1. Определяем главный кейворд.
@@ -32,40 +156,41 @@ IV.2. Расстановка весов для файлов.
 
 '''
 
-'''Находим словоформы кейворда'''
-'''
-mainKeyword = 'chat'
-keys2 = {}
-for item in keys:
-    for item2 in item.split(' '):
-        if item2.find(mainKeyword) >= 0:
-            if item2 not in keys2:
-                keys2[item2] = 0
-            keys2[item2] += 1
-sorted_keys2 = sorted(keys2.iteritems(), key=operator.itemgetter(1))
-print(sorted_keys2)
-for item in sorted_keys2:
-    print(item)
-#keys2 = sorted(list(set(keys2)))
-#print('\n'.join(keys2))
-print('---')
-print(len(keys2))
-sys.exit(0)'''
+def GetWordForms(keys, mainKey):
+    '''Находим словоформы кейворда'''
+    keys2 = {}
+    for item in keys:
+        for item2 in item.split(' '):
+            if item2.find(mainKey) >= 0:
+                if item2 not in keys2:
+                    keys2[item2] = 0
+                keys2[item2] += 1
+    sorted_keys2 = sorted(keys2.iteritems(), key=operator.itemgetter(1))
+    print(sorted_keys2)
+    for item in sorted_keys2:
+        print(item)
+    print('---')
+    print(len(keys2))
 
-'''Объединяем кейворды из всех файлов в каталоге, удаляем дубли и сохраняем в один файл'''
-keysPath = r'c:\Work\keys2\chat1'
-keys = []
-for fileName in os.listdir(keysPath):
-    for item in open(os.path.join(keysPath, fileName)):
-        keys.append(item.strip().replace('"', '').replace('+', ''))
-keys = list(set(keys))
-with open(os.path.join(keysPath, '..', 'chat-all.txt'), 'w') as fd:
-    fd.write('\n'.join(keys))
-print(len(keys))
-
-'''Чистим по блэк-листу'''
-kwk8.Kwk8Keys(os.path.join(r'c:\Work\keys2', 'chat-all.txt'), True).DeleteByList(blackWords.split('\n')).Save(os.path.join(r'c:\Work\keys2', 'chat-clear.txt'))
-
-'''Выбираем по адалт-листу'''
-kwk8.Kwk8Keys(os.path.join(r'c:\Work\keys2', 'chat-clear.txt'), True).SelectByList(adultWords.split('\n')).Save(os.path.join(r'c:\Work\keys2', 'chat-adult.txt'))
-
+def SimplifyWordsList(words):
+    '''Сокращение списка кейвордов за счет вхождений.
+    Также выводится список кейвордов, оканчивающихся на "s".'''
+    wordsList = words.split('\n')
+    wordsList = [item.strip().lower() for item in wordsList]
+    wordsListLengthOld = len(wordsList)
+    wordsListNew = []
+    for item in wordsList:
+        found = False
+        if item.endswith('s'):
+            print('s: %s' % item)
+        for item2 in wordsList:
+            if (item.find(item2) >= 0) and (item != item2) and (item != '') and (item2 != ''):
+                found = True
+                print('%s - %s' % (item, item2))
+                break
+        if not found:
+            wordsListNew.append(item)
+    wordsList = sorted(list(set(wordsListNew)))
+    print('\n'.join(wordsList))
+    print('---')
+    print('List length: %d => %d.' % (wordsListLengthOld, len(wordsList)))
