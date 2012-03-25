@@ -80,15 +80,26 @@ class Kwk8:
         '''Вспомогательная функция, используется при сортировке'''
         return len(self._ProcessLine(line))
         
-    def Basic(self, makeLowerCase=False):
+    def Basic(self, makeLowerCase=False, stripSpaces=False, allowedChars=''):
         '''Базовая чистка кеев'''
         self._Print('Basic processing...')
         self._TimeStart()
-        if not makeLowerCase:
-            self.lines = [x.strip() + '\n' for x in self.lines]
-        else:
-            self.lines = [x.strip().lower() + '\n' for x in self.lines]
+        rxStripSpaces = re.compile(r'\s+')
+        if allowedChars != '':
+            rxAllowedChars = re.compile(r'[^' + re.escape(allowedChars) + ']')
+        newLines = []
+        for line in self.lines:
+            line = line.strip()
+            if makeLowerCase:
+                line = line.lower()
+            if stripSpaces:
+                line = rxStripSpaces.sub(' ', line)
+            if allowedChars != '':
+                line = rxAllowedChars.sub('', line).strip()
+            if line != '':
+                newLines.append(line + '\n')
         self._Print('- done %s' % self._TimeFinish())
+        self.lines = newLines
         return self
     
     def Sort(self, mode = 'alpha'):

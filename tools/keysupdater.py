@@ -1,5 +1,5 @@
 # coding=utf8
-import os, glob, datetime, operator, MySQLdb, kwk8
+import os, sys, glob, datetime, operator, string, MySQLdb, kwk8
 
 ''' Автоматический апдейт кейвордов
 
@@ -13,24 +13,26 @@ II. Обработка и апдейт кейвордов.
 1. Кейводры из всех файлов в рабочей папке смешиваются.
 2. Удаление дублей и чистка по блэк-листу.
 3. (По желанию) Фильтрация по адалт-листу.
-4. Из целевой папки читаются кейворды файлов и сортируются по их весу.
-5. Цикл по кейвордам файлов:
-5.1. Выборка из новых кейвордов по кейворду файла.
-5.2. Удаление по предыдущим кейвордам файлов.
-5.2. Апдейт файла с удалением дублей.
+4. Базовая чистка: оставляем только разрешенные символы [a-z ] и удаляем лишние пробелы.
+5. Из целевой папки читаются кейворды файлов и сортируются по их весу.
+6. Цикл по кейвордам файлов:
+6.1. Выборка из новых кейвордов по кейворду файла.
+6.2. Удаление по предыдущим кейвордам файлов.
+6.2. Апдейт файла с удалением дублей.
 
 '''
 
 class KeywordsGetter(object):
     '''Получение кейвордов'''
     
-    def __init__(self, folderName):
+    def __init__(self, folderName, code):
         '''Инициализация'''
         self.folderName = folderName
+        self.code = code
         
     def _GetFileName(self, sourceType):
         '''Формируем имя файла'''
-        return os.path.join(self.folderName, sourceType + '.txt')
+        return os.path.join(self.folderName, '%s-%s.txt' % (self.code, sourceType))
         
     def GetFromTDS(self, schemesList, limit = 0):
         '''Получение кейвордов с TDS по номерам схем'''
@@ -63,12 +65,13 @@ class KeywordsGetter(object):
 class KeywordsUpdater(object):
     '''Апдейт набора кейвордов'''
     
-    def __init__(self, updateKeywordsFolder, listKeywordsFolder, newKeywordsFolder):
+    def __init__(self, updateKeywordsFolder, listKeywordsFolder, newKeywordsFolder, code):
         '''Инициализация'''
         self.updateKeywordsFolder = updateKeywordsFolder
         self.listKeywordsFolder = listKeywordsFolder
         self.newKeywordsFolder = newKeywordsFolder
-        self.tempFileName = os.path.join(self.newKeywordsFolder, 'temp.txt')
+        self.code = code
+        self.tempFileName = os.path.join(self.newKeywordsFolder, '%s-temp.txt' % self.code)
         self.blackListFileName = os.path.join(self.listKeywordsFolder, 'black-list.txt')
         self.whiteListFileName = os.path.join(self.listKeywordsFolder, 'white-list.txt')
         
@@ -78,13 +81,14 @@ class KeywordsUpdater(object):
         print('Joining new keywords ...')
         dateTimeStart = datetime.datetime.now()
         newKeywords = []
-        for fileName in glob.glob(os.path.join(self.newKeywordsFolder, '*.txt')):
+        for fileName in glob.glob(os.path.join(self.newKeywordsFolder, '%s-*.txt' % self.code)):
             if fileName != self.tempFileName:
                 newKeywords.extend(open(fileName).readlines())
         open(self.tempFileName, 'w').writelines(newKeywords)
         
         '''Чистим новые кейворды по черному и белому спискам'''
-        kwk = kwk8.Kwk8Keys(self.tempFileName).Basic().Duplicates()
+        validChars = "%s%s " % (string.ascii_letters, string.digits)
+        kwk = kwk8.Kwk8Keys(self.tempFileName).Basic(True, True, validChars).Duplicates()
         print('New keywords count: %d' % kwk.Count())
         if os.path.exists(self.blackListFileName):
             kwk.DeleteByFile(self.blackListFileName)
@@ -122,11 +126,12 @@ class KeywordsUpdater(object):
             print('- join: %d added' % (joinCountNew - joinCountOld))
         
         '''Результаты'''
+        os.unlink(self.tempFileName)
         print('Done in %d sec.' % ((datetime.datetime.now() - dateTimeStart).seconds))
         
 if __name__ == '__main__':
-    #KeywordsGetter(r'c:\Temp\7').GetFromTDS([17, 43])
-    KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-chat', r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords', r'c:\Temp\7').Update()
+    KeywordsGetter(r'c:\Temp\7', 'dating').GetFromTDS([17, 43], 100)
+    #KeywordsUpdater(r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords\adult-new', r'c:\Users\sasch\workspace\doorscenter\src\doorsadmin\keywords', r'c:\Temp\7', 'dating').Update()
 
 
 ''' Этапы парсинга:
