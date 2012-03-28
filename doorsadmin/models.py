@@ -500,7 +500,7 @@ class Net(BaseNet):
     GetPagesCount.short_description = 'Pages'
     GetPagesCount.allow_tags = True
     def GetDomainsCount(self):
-        return '%d/%d' % (self.domain_set.count(), self.GetNetSize())
+        return '%s/%d' % (GetCounter(self.domain_set, {'active': True}), self.GetNetSize())
     GetDomainsCount.short_description = 'Domains'
     GetDomainsCount.allow_tags = True
     def GetIndexCount(self):
