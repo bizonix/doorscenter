@@ -127,7 +127,7 @@ def Parse(xrumerFolder, startTopics, parseTimeout, baseNumber):
     queue.join()
     
     '''Приводим базу к индексу'''
-    kwk8.Kwk8Links(baseFileName).PostProcessing().Save(baseFileName)
+    kwk8.Kwk8Links(baseFileName).PostProcessing().Save()
     print('Done')
 
 if __name__ == '__main__':
