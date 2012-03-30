@@ -168,13 +168,13 @@ TimeRange=''' + spamTimeout + '''
     
     def _Settings(self):
         '''Настройки'''
-        self.appFolder = 'C:\\Work\\xrumer7010'
+        self.appFolder = 'C:\\Work\\xrumer7012'
         self.appFolderControl1 = 'C:\\Work\\control1'
         self.appFolderControl2 = 'C:\\Work\\control2'
         self.appApplication = os.path.join(self.appFolder, 'xpymep.exe')
         self.appApplicationControl1 = os.path.join(self.appFolderControl1, 'control.exe')
         self.appApplicationControl2 = os.path.join(self.appFolderControl2, 'control.exe')
-        self.appCaption = 'XRumer 7.0.10 Elite, Copyright BotmasterRu.Com, Support ICQ 876975, Administration e-mail botmaster@bk.ru'
+        self.appCaption = 'XRumer 7.0.12 Elite, Copyright BotmasterRu.Com, Support Jabber xrumer@jabber.ru, Administration e-mail botmaster@bk.ru'
         self.appCaptionControl = 'Control of permanent running'
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         
