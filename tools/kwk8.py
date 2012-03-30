@@ -244,11 +244,29 @@ class Kwk8Links(Kwk8):
         return line
     
     def PostProcessing(self):
-        '''Пост-обработка ссылок'''
+        '''Пост-обработка ссылок с фильтрацией'''
         self._Print('Post processing...')
         self._TimeStart()
-        self.lines = [self._PostProcessLine(line) for line in self.lines]
-        self._Print('- done %s' % self._TimeFinish())
+        newLines = []
+        for line in self.lines:
+            x = self._ProcessLine(line)
+            isGood = True
+            level = x.count('.') + 1
+            if (level <= 1) or (level >= 4):  # удаляем домены 1 и 4 и более уровней
+                isGood = False
+            else:
+                zone1 = x.split('.')[-1]
+                if zone1 in ['cc', 'tk']:  # удаляем фридомены
+                    isGood = False
+                else:
+                    zone2 = x.split('.')[-2]
+                    if (level == 3) and (len(zone2) > 3):  # удаляем домены 3-го уровня
+                        isGood = False
+            if isGood:
+                newLines.append(self._PostProcessLine(line))
+        if self.Count() != 0:
+            self._Print('- %d lines (%.2f%%) %s' % (len(newLines), len(newLines) * 100.0 / self.Count(), self._TimeFinish()))
+        self.lines = newLines
         return self
     
 def ProcessKeys(inPathKeywords, outPathKeywords, pathStopwords = None):
@@ -267,4 +285,5 @@ if __name__ == '__main__':
     #ProcessKeys('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out1.txt', '/home/sasch/temp/list/list1_stop.txt')
     #ProcessLinks('/home/sasch/temp/list/list1.txt', '/home/sasch/temp/list/list1_out2.txt')
     #ProcessSnippets('/home/sasch/temp/list/text.txt', '/home/sasch/temp/list/text-out.txt', '/home/sasch/temp/list/stopwords.txt')
+    Kwk8Links(r'c:\Work\links\LinksList id266a.txt', True).PostProcessing().Save(r'c:\Work\links\LinksList id266b.txt')
     pass
