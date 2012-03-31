@@ -430,14 +430,14 @@ class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
     ResetNamesAndNew.short_description = "3a. Reset names and mark as new"
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'type', 'description', 'host', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'type', 'description', 'host', 'ipAddress', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['active', 'stateSimple']
     fieldsets = [
-        (None, {'fields': ['description', ('type', 'host'), 'params', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
+        (None, {'fields': ['description', ('type', 'host', 'ipAddress'), 'params', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['currentTask', 'dateLastPing', 'lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['currentTask', 'dateLastPing', 'ipAddress', 'lastError', 'dateAdded', 'dateChanged']
 
 class EventAdmin(BaseAdmin):
     list_display = ('pk', 'date', 'type', 'object', 'text')

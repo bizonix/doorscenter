@@ -12,6 +12,7 @@ def get(request, agentId):
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
+        agent.ipAddress = request.META['REMOTE_ADDR']
         agent.stateSimple = 'ok'
         agent.save()
         transaction.commit()
@@ -53,6 +54,7 @@ def update(request, agentId):
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
+        agent.ipAddress = request.META['REMOTE_ADDR']
         agent.stateSimple = 'ok'
         agent.save()
         transaction.commit()
@@ -96,6 +98,7 @@ def ping(request, agentId):
     try:
         '''Пишем дату пинга'''
         agent.dateLastPing = datetime.datetime.now()
+        agent.ipAddress = request.META['REMOTE_ADDR']
         agent.stateSimple = 'ok'
         agent.save()
         transaction.commit()

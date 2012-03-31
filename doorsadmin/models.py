@@ -1407,6 +1407,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     host = models.ForeignKey('Host', verbose_name='Host', null=True, blank=True)
     currentTask = models.CharField('Current Task', max_length=200, default='', blank=True)
     dateLastPing = models.DateTimeField('Last Ping', null=True, blank=True)
+    ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
     interval = models.IntegerField('Warning, h.', null=True, default=3)
     params = models.TextField('Parameters', default='', blank=True)
     class Meta:
