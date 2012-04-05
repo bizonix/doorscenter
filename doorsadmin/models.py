@@ -786,6 +786,7 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     registrator = models.CharField('Registrator', max_length=200, default='', blank=True)
     dateRegistered = models.DateField('Registered', default=datetime.date.today, null=True, blank=True)
     dateExpires = models.DateField('Expires', default=NextYearDate, null=True, blank=True)
+    dateBan = models.DateField('Banned', null=True, blank=True)
     ipAddress = models.ForeignKey('IPAddress', verbose_name='IP Address', null=True)
     nameServer1 = models.CharField('NS 1', max_length=200, default='', blank=True)
     nameServer2 = models.CharField('NS 2', max_length=200, default='', blank=True)
@@ -795,6 +796,8 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
+    drop = models.BooleanField('Is drop', default=False, blank=True)
+    banned = models.BooleanField('Banned', default=False, blank=True)
     indexCount = models.IntegerField('Index', null=True, blank=True)
     indexCountDate = models.DateTimeField('Index Date', null=True, blank=True)
     backLinksCount = models.IntegerField('Backs', null=True, blank=True)
@@ -944,7 +947,8 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
                                               nameServer1=self.nameServer1, 
                                               nameServer2=self.nameServer2, 
                                               useOwnDNS=self.useOwnDNS, 
-                                              group=self.group)
+                                              group=self.group,
+                                              drop=self.drop)
                         domain.save()
                     except Exception as error:
                         #EventLog('error', 'Cannot add additional domain "%s"' % domainName, self, error)

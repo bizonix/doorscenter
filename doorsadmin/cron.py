@@ -103,8 +103,9 @@ def UpdateIndexCount():
         if (indexCountNew == 0) and (indexCountOld > 0):
             bannedDomains.append(domain.name)
             domain.active = False
+            domain.banned = True
+            domain.dateBan = datetime.date.today()
             domain.stateSimple = 'error'
-            domain.lastError = 'banned'
             domain.save()
     if len(bannedDomains) > 0:
         EventLog('error', 'Domains banned: %s.' % ', '.join(bannedDomains))

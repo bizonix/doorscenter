@@ -204,17 +204,17 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_display = ('pk', 'GetDomainUrl', 'group', 'host', 'niche', 'net', 'makeSpam', 'GetDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'GetDateExpires', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['niche', 'net', 'host', 'group', 'active', 'stateSimple']
+    list_filter = ['niche', 'net', 'host', 'group', 'banned', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
-        (None, {'fields': [('name'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS', 'autoSubdomains'), ('dateRegistered', 'dateExpires'), ('active', 'makeSpam')]}),
+        (None, {'fields': [('name', 'drop'), ('host', 'ipAddress'), ('niche', 'net', 'group'), ('nameServer1', 'nameServer2', 'useOwnDNS', 'autoSubdomains'), ('dateRegistered', 'dateExpires', 'dateBan'), ('active', 'makeSpam')]}),
         ('Net properties', {'fields': [('linkedDomains')], 'classes': ['expanded']}),
         ('Bulk add domains', {'fields': [('bulkAddDomains')], 'classes': ['expanded']}),
         ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
-    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+    readonly_fields = ['dateBan', 'lastError', 'dateAdded', 'dateChanged']
     actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset', 'Prolongate']
     def UpdateSECount(self, request, queryset):
         '''Проверяем индекс в гугле'''
