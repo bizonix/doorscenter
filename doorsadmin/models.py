@@ -470,6 +470,10 @@ class NetPlan(BaseNet):
                                      domainsPerDay=self.domainsPerDay,
                                      doorsPerDay=self.doorsPerDay,
                                      dateStart=datetime.date.today(),
+                                     tdsId=self.tdsId,
+                                     redirect=self.redirect,
+                                     redirectType=self.redirectType,
+                                     redirectDelay=self.redirectDelay,
                                      netPlan=self)
             net.save()
             count -= 1

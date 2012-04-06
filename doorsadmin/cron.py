@@ -1,7 +1,7 @@
 # coding=utf8
 from django.db.models import Max, Q
 from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
-import datetime
+import datetime, random
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
@@ -19,12 +19,15 @@ def CronDaily():
 
 def Helper():
     '''Запуск из командной строки'''
-    '''UpdateIndexCount()'''
-    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-        niche.GenerateSpamTasksMultiple()
-    '''Net.objects.get(pk=269).AddDomains()'''
-    '''with open('/home/admin/tmp/domains.txt') as fd:
-        addDomains = ''.join(fd.readlines())'''
+    host = Host.objects.get(pk=8)
+    ipAddress = IPAddress.objects.get(pk=random.randint(14, 18))
+    domainsFileName = r'/home/admin/searchpro.name/doorscenter/domains.txt'
+    for domainName in open(domainsFileName).readlines():
+        domainName = domainName.strip()
+        if domainName != '':
+            print(domainName)
+            domainGroup = domainName.split('.')[1]
+            Domain.objects.create(name=domainName, group=domainGroup, host=host, ipAddress=ipAddress).save()
     pass
 
 def ExpandNets():
