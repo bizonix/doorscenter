@@ -6,7 +6,7 @@ import datetime, random
 def CronHourly():
     '''Функция вызывается по расписанию'''
     RenewSnippets()
-    RenewBasesSpam()
+    #RenewBasesSpam()  # пока спамим по базе Z, перегенерация баз R не нужна
     ResumeAfterReg()
     UpdateIndexCount()
     CheckAgentsActivity()
