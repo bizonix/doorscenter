@@ -16,7 +16,6 @@ class SnippetsAgent(agent.BaseAgent):
         self.snippets = Snippets()
         self.snippets.Parse(self.currentTask['keywordsList'], self.currentTask['language'])
         self._Done()
-        self._Cron()
         return True
     
     def _ActionOff(self):
