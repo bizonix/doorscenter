@@ -18,24 +18,30 @@ class Uploader(threading.Thread):
 
     def run(self):
         self.queue.get()
-        ftp = ftplib.FTP(self.host, self.login, self.password)
-        '''Пытаемся создать папку и установить нужные права'''
-        if self.makeInit:
-            try:
-                ftp.mkd(self.remotePath)
-            except Exception as error:
-                pass
-            try:
-                ftp.sendcmd('SITE CHMOD 02775 ' + self.remotePath)
-            except Exception as error:
-                pass
-        '''Отправляем файл'''
         try:
-            ftp.storbinary('STOR ' + self.remotePath + '/' + self.fileName, self.fileObj)
+            ftp = ftplib.FTP(self.host, self.login, self.password)
+            '''Пытаемся создать папку и установить нужные права'''
+            if self.makeInit:
+                try:
+                    ftp.mkd(self.remotePath)
+                except Exception as error:
+                    pass
+                try:
+                    ftp.sendcmd('SITE CHMOD 02775 ' + self.remotePath)
+                except Exception as error:
+                    pass
+            '''Отправляем файл'''
+            try:
+                ftp.storbinary('STOR ' + self.remotePath + '/' + self.fileName, self.fileObj)
+                self.queue.task_done()
+            except Exception as error:
+                print(error)
+            try:
+                ftp.quit()
+            except Exception as error:
+                print(error)
         except Exception as error:
             print(error)
-        ftp.quit()
-        self.queue.task_done()
 
 class Doorway(object):
     '''Дорвей'''
