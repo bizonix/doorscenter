@@ -1,7 +1,11 @@
 # coding=utf8
 from django.db.models import Max, Q
 from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
-import datetime, random
+import os, sys, datetime, random
+
+def IsConsoleAvailable():
+    '''Запущен ли скрипт из консоли'''
+    return os.isatty(sys.stdout.fileno())
 
 def CronHourly():
     '''Функция вызывается по расписанию'''
@@ -52,9 +56,11 @@ def ExpandNets():
             doorwaysLimitActual, linksLimitActual = net.GenerateDoorways(None, None, doorwaysLimitActual, linksLimitActual)
         if (doorwaysLimitActual <= 0) or (linksLimitActual <= 0):
             break
-    EventLog('info', 'Domains limit: %d/%d' % (domainsLimitBase - domainsLimitActual, domainsLimitBase))
-    EventLog('info', 'Doorways limit: %d/%d' % (doorwaysLimitBase - doorwaysLimitActual, doorwaysLimitBase))
-    EventLog('info', 'Links limit: %d/%d' % (linksLimitBase - linksLimitActual, linksLimitBase))
+    results = 'Domains limit: %d/%d. Doorways limit: %d/%d. Links limit: %d/%d.' % (domainsLimitBase - domainsLimitActual, domainsLimitBase, doorwaysLimitBase - doorwaysLimitActual, doorwaysLimitBase, linksLimitBase - linksLimitActual, linksLimitBase)
+    if IsConsoleAvailable():
+        print(results)
+    else:
+        EventLog('info', results)
 
 def RenewSnippets():
     '''Перегенерируем сниппеты'''
