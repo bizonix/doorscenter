@@ -33,7 +33,6 @@ class Uploader(threading.Thread):
             '''Отправляем файл'''
             try:
                 ftp.storbinary('STOR ' + self.remotePath + '/' + self.fileName, self.fileObj)
-                self.queue.task_done()
             except Exception as error:
                 print(error)
             try:
@@ -42,6 +41,7 @@ class Uploader(threading.Thread):
                 print(error)
         except Exception as error:
             print(error)
+        self.queue.task_done()
 
 class Doorway(object):
     '''Дорвей'''

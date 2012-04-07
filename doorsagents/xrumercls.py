@@ -179,7 +179,7 @@ class XrumerHelperSpamTask(XrumerHelper):
             self.agent._CreateSettings('none', '', 'post-reply', 'LinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
     
     def ActionOff(self):
-        '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
+        '''Копируем анкоры и фильтруем базу R от неуспешных'''
         self.linker.AddSpamAnchorsFile()
         if self.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
