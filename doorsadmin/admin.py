@@ -430,10 +430,10 @@ class XrumerBaseRawAdmin(BaseAdminActivatable, BaseAdminManaged):
     ResetNamesAndNew.short_description = "3a. Reset names and mark as new"
 
 class AgentAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'type', 'description', 'host', 'ipAddress', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'active', 'stateSimple', 'dateAdded')
-    list_filter = ['active', 'stateSimple']
+    list_display = ('pk', 'type', 'description', 'host', 'ipAddress', 'currentTask', 'GetTasksState', 'GetDateLastPingAgo', 'interval', 'used', 'active', 'stateSimple', 'dateAdded')
+    list_filter = ['used', 'active', 'stateSimple']
     fieldsets = [
-        (None, {'fields': ['description', ('type', 'host', 'ipAddress'), 'params', ('currentTask', 'dateLastPing', 'interval'), 'active']}),
+        (None, {'fields': ['description', ('type', 'host', 'ipAddress'), 'params', ('currentTask', 'dateLastPing', 'interval', 'used'), 'active']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]

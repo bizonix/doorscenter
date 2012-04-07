@@ -1436,6 +1436,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
     ipAddress = models.IPAddressField('IP Address', null=True, blank=True)
     interval = models.IntegerField('Warning, h.', null=True, default=3)
     params = models.TextField('Parameters', default='', blank=True)
+    used = models.BooleanField('Used', default=True)
     class Meta:
         verbose_name = 'Agent'
         verbose_name_plural = 'IV.1 # Agents - [act]'
