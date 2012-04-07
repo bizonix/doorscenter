@@ -75,6 +75,10 @@ def NextYearDate():
     '''Сегодняшняя дата плюс год'''
     return datetime.date.today() + datetime.timedelta(365)
 
+def MaxDoorsCount():
+    '''Максимальное число доров на домене'''
+    return random.randint(3, 7)
+
 def NextBaseNumber():
     '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseProfiles.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
@@ -798,6 +802,7 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     autoSubdomains = models.BooleanField('Auto subdomains', default=True, blank=True)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
+    maxDoorsCount = models.IntegerField('Max Doors', default=MaxDoorsCount, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     drop = models.BooleanField('Is drop', default=False, blank=True)
@@ -818,6 +823,10 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
         return '<a href="http://%s" style="color: black;">%s</a>' % (self.name, self.name)
     GetDomainUrl.short_description = 'Domain Name'
     GetDomainUrl.allow_tags = True
+    def GetMaxDoorsCount(self):
+        return GetCounter(self.doorway_set, {'stateManaged': 'done'}) + '/%d' % self.maxDoorsCount
+    GetMaxDoorsCount.short_description = 'Doors'
+    GetMaxDoorsCount.allow_tags = True
     def GetDoorsCount(self):
         return GetCounter(self.doorway_set, {'stateManaged': 'done'})
     GetDoorsCount.short_description = 'Doors'
@@ -838,6 +847,11 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     def IsRootFree(self):
         '''Свободен ли корень домена?'''
         return self.IsPathAvailable('', '/')
+    def IsIndexed(self):
+        '''Домен не в бане'''
+        return not self.banned
+    IsIndexed.short_description = 'Ind.'
+    IsIndexed.boolean = True
     def GetNetLinksList(self, doorwayToExclude):
         '''Ссылки для перелинковки'''
         linksList = []
@@ -1124,6 +1138,10 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
         '''Если у домена не указана ниша, то устанавливаем ее'''
         if self.domain.niche == None:
             self.domain.niche = self.niche
+            self.domain.save()
+        '''Если число доров на домене превысило максимально допустимое, делаем его неактивным'''
+        if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
+            self.domain.active = False
             self.domain.save()
         '''Если не указан желаемый агент, берем из шаблона'''
         if (self.agent == None) and (self.template != None):
