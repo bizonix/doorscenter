@@ -1457,7 +1457,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         '''Событие апдейта задачи'''
         try:
             if self.type == 'doorgen':
-                '''Генерируем задания для спама'''  
+                '''Генерируем задания для спама'''
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
                     # def GenerateSpamTasks():
                     for niche in Niche.objects.filter(active=True).order_by('pk').all():

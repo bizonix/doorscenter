@@ -24,7 +24,7 @@ print('*** common .com (%d) ***' % len(names))
 print('\n'.join(names))
 print('')
 
-names = GenDomainNamesPast('.info', 10)
+names = GenDomainNamesPast('.info', 25)
 print('*** common .info (%d) ***' % len(names))
 print('\n'.join(names))
 print('')
