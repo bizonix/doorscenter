@@ -25,7 +25,7 @@ names.insert(4, '---')
 print('\n'.join(names))
 print('')
 
-names = GenDomainNamesPast('.info', 25)
+names = GenDomainNamesPast('.info', 20)
 print('*** common .info (%d) ***' % len(names))
 names.insert(11, '---')
 print('\n'.join(names))
