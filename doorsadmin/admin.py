@@ -76,7 +76,7 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'doorsPerDay', 'minPagesCount', 'maxPagesCount', 'doorsPerDay', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
