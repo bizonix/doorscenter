@@ -21,11 +21,13 @@ def GenDomainNamesPast(zone, count, niche = None):
 
 names = GenDomainNamesPast('.com', 10)
 print('*** common .com (%d) ***' % len(names))
+names.insert(4, '---')
 print('\n'.join(names))
 print('')
 
 names = GenDomainNamesPast('.info', 10)
 print('*** common .info (%d) ***' % len(names))
+names.insert(11, '---')
 print('\n'.join(names))
 print('')
 
