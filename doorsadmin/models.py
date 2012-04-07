@@ -353,8 +353,8 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 if obj.IsRootFree():
                     return obj 
             return Domain.objects.filter(Q(active=True), (Q(niche=self) | Q(niche=None))).order_by('?')[:1].get()
-        except Exception as error:
-            EventLog('error', 'Cannot find a domain', self, error)
+        except Exception:
+            pass
     def GenerateKeywordsList(self, count):
         '''Сгенерировать набор ключевых слов по теме'''
         try:
@@ -550,8 +550,8 @@ class Net(BaseNet):
                 if obj.IsRootFree():
                     return obj
             return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
-        except Exception as error:
-            EventLog('error', 'Cannot find a domain', self, error)
+        except Exception:
+            pass
     def AddDomains(self, count = None, domainsLimit = 999, linksLimit = 999):
         '''Добавление доменов в сетку. Аргументы: 
         count - сколько доменов присоединять, 
