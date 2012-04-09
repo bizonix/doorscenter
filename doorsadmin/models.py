@@ -77,7 +77,7 @@ def NextYearDate():
 
 def MaxDoorsCount():
     '''Максимальное число доров на домене'''
-    return random.randint(3, 7)
+    return random.randint(3, 5)
 
 def NextBaseNumber():
     '''Следующий номер базы'''
@@ -427,8 +427,10 @@ class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable
     niche = models.ForeignKey('Niche', verbose_name='Niche', null=True)
     template = models.ForeignKey('Template', verbose_name='Template', null=True, blank=True)
     keywordsSet = models.ForeignKey('KeywordsSet', verbose_name='Kwrds Set', null=True, blank=True)
-    minPagesCount = models.IntegerField('Pgs1', null=True, default=500)
-    maxPagesCount = models.IntegerField('Pgs2', null=True, default=900)
+    minDoorsCount = models.IntegerField('Doors 1', null=True, default=3)
+    maxDoorsCount = models.IntegerField('Doors 2', null=True, default=5)
+    minPagesCount = models.IntegerField('Pages 1', null=True, default=500)
+    maxPagesCount = models.IntegerField('Pages 2', null=True, default=900)
     settings = models.TextField('Settings', default='#gen', blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     domainGroup = models.CharField('Dmn.grp.', max_length=50, default='', blank=True)
@@ -466,6 +468,8 @@ class NetPlan(BaseNet):
                                      niche=self.niche,
                                      template=self.template,
                                      keywordsSet=self.keywordsSet,
+                                     minDoorsCount=self.minDoorsCount,
+                                     maxDoorsCount=self.maxDoorsCount,
                                      minPagesCount=self.minPagesCount,
                                      maxPagesCount=self.maxPagesCount,
                                      settings=self.settings,
@@ -575,6 +579,7 @@ class Net(BaseNet):
                     domain.linkedDomains.add(netDomains[int(n) - 1])
                 domain.net = self
                 domain.niche = self.niche
+                domain.maxDoorsCount = random.randint(self.minDoorsCount, self.maxDoorsCount)
                 domain.save()
                 count -= 1
                 domainsLimit -= 1

@@ -76,11 +76,11 @@ class NicheAdmin(BaseAdminSimple, BaseAdminActivatable):
     list_per_page = 100
 
 class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'doorsPerDay', 'minPagesCount', 'maxPagesCount', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetNetsCount', 'domainsPerDay', 'doorsPerDay', 'minDoorsCount', 'maxDoorsCount', 'minPagesCount', 'maxPagesCount', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minDoorsCount', 'maxDoorsCount', 'minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'generateNetsNow')]}),
         ('Schedule', {'fields': [('netsCount', 'dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
         ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
@@ -103,7 +103,7 @@ class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
     ordering = ['description']
     search_fields = ['description']
     fieldsets = [
-        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
+        (None, {'fields': [('description', 'domainGroup'), ('niche', 'keywordsSet', 'template'), ('minDoorsCount', 'maxDoorsCount', 'minPagesCount', 'maxPagesCount'), 'settings', ('active', 'makeSpam', 'addDomainsNow', 'generateDoorsNow')]}),
         ('Schedule', {'fields': [('dateStart', 'dateEnd', 'domainsPerDay', 'doorsPerDay')], 'classes': ['expanded']}),
         ('TDS', {'fields': [('tdsId', 'redirect', 'redirectType', 'redirectDelay')], 'classes': ['expanded']}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
