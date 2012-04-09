@@ -207,7 +207,7 @@ class BaseAgent(object):
         
     def _KillApp(self, imageName):
         '''Принудительное завершение работы приложения'''
-        os.system('taskkill /im %s /t /f' % imageName)
+        os.system('taskkill /im %s /f >nul 2>&1' % imageName)
         
     def _ActionOn(self):
         '''Выполнение полученного задания. Абстрактный метод'''
