@@ -151,6 +151,10 @@ class XrumerHelperSpamTask(XrumerHelper):
         if 'baseZ' in agent.currentTask:
             agent.currentTask['baseType'] = 'ZLinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseZ'])
+            agent.currentTask['nickName'] = agent.currentTask['nickNameRandom']
+            agent.currentTask['realName'] = agent.currentTask['realNameRandom']
+            agent.currentTask['password'] = agent.currentTask['passwordRandom']
+            agent.currentTask['emailAddress'] = agent.currentTask['emailAddressRandom']
         if 'baseL' in agent.currentTask:
             agent.currentTask['baseType'] = 'LinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseL'])
