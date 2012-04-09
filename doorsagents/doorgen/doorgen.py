@@ -403,7 +403,7 @@ class Doorgen(object):
             
             '''Добавляем в список страниц'''
             anchor = self._Capitalize(self._GetLinkAnchor(keywordPage), '')
-            link = '<a href="http://%s/%s">%s</a>' % (self.doorway.url, pageFileName, anchor)
+            link = '<a href="%s/%s">%s</a>' % (self.doorway.url, pageFileName, anchor)
             if keywordPage != SITEMAP_KEYWORD:
                 self.pageLinksList.append(link)
             else:

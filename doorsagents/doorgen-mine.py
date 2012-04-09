@@ -5,7 +5,7 @@ from doorgen.doorgen import Doorgen
 class DoorgenMineAgent(agent.BaseAgent):
     ''' Параметры (см. методы GetTaskDetails и SetTaskDetails):
     Входные: keywordsList, keywordsListAdd, templateFolder, domain, domainSub, domainFolder, 
-    netLinksList, tdsId, documentRoot, ftpLogin, ftpPassword, ftpPort.
+    netLinksList, tdsId, documentRoot, ftpHost, ftpLogin, ftpPassword, ftpPort.
     Выходные: doorLinksList.
     
     Параметр domainFolder всегда должен начинаться на прямой слэш.
@@ -49,7 +49,7 @@ class DoorgenMineAgent(agent.BaseAgent):
         keywordsList = self.currentTask['keywordsList'][:]
         keywordsList.extend(self.currentTask['keywordsListAdd'])
         self.doorway = self.doorgen.Generate(keywordsList, self.currentTask['netLinksList'], self.currentTask['templateFolder'], len(self.currentTask['keywordsList']), self.doorwayUrl)
-        self.doorway.UploadToFTP(self.currentTask['domain'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
+        self.doorway.UploadToFTP(self.currentTask['ftpHost'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
         self._Done()
         self._Cron()
         return True

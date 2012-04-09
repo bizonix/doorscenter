@@ -151,6 +151,10 @@ class XrumerHelperSpamTask(XrumerHelper):
         if 'baseZ' in agent.currentTask:
             agent.currentTask['baseType'] = 'ZLinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseZ'])
+            agent.currentTask['nickName'] = agent.currentTask['nickNameRandom']
+            agent.currentTask['realName'] = agent.currentTask['realNameRandom']
+            agent.currentTask['password'] = agent.currentTask['passwordRandom']
+            agent.currentTask['emailAddress'] = agent.currentTask['emailAddressRandom']
         if 'baseL' in agent.currentTask:
             agent.currentTask['baseType'] = 'LinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseL'])
@@ -179,7 +183,7 @@ class XrumerHelperSpamTask(XrumerHelper):
             self.agent._CreateSettings('none', '', 'post-reply', 'LinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
     
     def ActionOff(self):
-        '''Копируем анкоры и фильтруем базу R или Z от неуспешных'''
+        '''Копируем анкоры и фильтруем базу R от неуспешных'''
         self.linker.AddSpamAnchorsFile()
         if self.currentTask['baseType'] == 'RLinksList':
             self._FilterBase(self.agent.baseMainRFile)
