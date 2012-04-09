@@ -1,5 +1,5 @@
 # coding=utf8
-import os, shutil, datetime, time, codecs, kwk8, agent, common, win32gui
+import os, codecs, kwk8, agent, common
 from xrumercls import *
 from xml.sax.saxutils import escape
 
@@ -174,8 +174,6 @@ TimeRange=''' + spamTimeout + '''
         self.appApplication = os.path.join(self.appFolder, 'xpymep.exe')
         self.appApplicationControl1 = os.path.join(self.appFolderControl1, 'control.exe')
         self.appApplicationControl2 = os.path.join(self.appFolderControl2, 'control.exe')
-        self.appCaption = 'XRumer 7.0.12 Elite, Copyright BotmasterRu.Com, Support Jabber xrumer@jabber.ru, Administration e-mail botmaster@bk.ru'
-        self.appCaptionControl = 'Control of permanent running'
         self.doneScript = 'C:\\Work\\doorscenter\\doorsagents\\xrumer-done.bat'
         
         '''Создание классов-хелперов'''
@@ -212,12 +210,6 @@ TimeRange=''' + spamTimeout + '''
         self.logAnchors = self.logFileTemplate % 'Anchors'
         self.logLastURL = self.logFileTemplate % 'LastURL'
         
-    def _CloseApp(self, appCaption):
-        '''Закрытие приложения под Windows по заголовку окна'''
-        p = win32gui.FindWindow(None, appCaption)
-        win32gui.SendMessage(p, 0x10, 0, 0)
-        time.sleep(1)
-    
     def _CountLinks(self, paramName, logFile, description):
         '''Считаем ссылки'''
         self.currentTask[paramName] = 0
@@ -249,9 +241,8 @@ TimeRange=''' + spamTimeout + '''
     def _ActionOff(self):
         self._Settings()
         '''Закрытие приложений'''
-        self._CloseApp(self.appCaptionControl)
-        self._CloseApp(self.appCaptionControl)
-        self._CloseApp(self.appCaption)
+        self._KillApp('control.exe')
+        self._KillApp('xpymep.exe')
         '''Вызываем хэлпер'''
         self.helper.ActionOff()
         '''Выходные параметры'''

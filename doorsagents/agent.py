@@ -1,9 +1,5 @@
 # coding=utf8
 import os, sys, urllib, pickle, subprocess, datetime, base64
-try:  # импорт требуется только на Windows
-    from win32com.client import GetObject
-except ImportError:
-    pass
 
 '''Для реализации агента требуется создать модуль с классом, унаследованным от 
 BaseAgent, и переопределить в нем методы _ActionOn() и _ActionOff(). 
@@ -66,17 +62,6 @@ class BaseAgent(object):
     
     def _IsHeavyLoad(self):
         '''Отключено по причине неактуальности'''
-        return False
-        '''Есть ли в процессах тяжелые задачи'''
-        try:
-            heavyProcessesList = ['AGGRESSDoorgen.exe', 'xpymep.exe']
-            processesList = GetObject('winmgmts:').InstancesOf('Win32_Process')
-            processesNames = [process.Properties_('Name').Value.lower() for process in processesList]
-            for processName in heavyProcessesList:
-                if processName.lower() in processesNames:
-                    return True
-        except Exception:
-            pass
         return False
         
     def _GetNextTask(self):
@@ -219,6 +204,10 @@ class BaseAgent(object):
         агрументом командной строки "done".'''
         #subprocess.Popen('start ' + path, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
         subprocess.Popen(path, stdin=None, stdout=None, stderr=None)
+        
+    def _KillApp(self, imageName):
+        '''Принудительное завершение работы приложения'''
+        os.system('taskkill /im %s /t /f' % imageName)
         
     def _ActionOn(self):
         '''Выполнение полученного задания. Абстрактный метод'''
