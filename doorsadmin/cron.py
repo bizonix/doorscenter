@@ -109,14 +109,14 @@ def UpdateIndexCount():
         domain.UpdateIndexCount()
         indexCountNew = domain.indexCount
         if (indexCountNew == 0) and (indexCountOld > 0):
-            bannedDomains.append(domain.name)
+            bannedDomains.append('"%s": %s, %s, %d days, %d uniques' % (domain.name, domain.niche.description, domain.net.description, (datetime.date.today() - domain.dateRegistered).days, domain.trafficLastMonth))
             domain.active = False
             domain.banned = True
             domain.dateBan = datetime.date.today()
             domain.stateSimple = 'error'
             domain.save()
     if len(bannedDomains) > 0:
-        EventLog('error', 'Domains banned: %s.' % ', '.join(bannedDomains))
+        EventLog('error', 'Domains banned: %s.' % '; '.join(bannedDomains))
     
 def CheckOwnershipTk():
     '''Проверяем .tk на отбор'''
