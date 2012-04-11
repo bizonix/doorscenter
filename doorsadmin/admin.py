@@ -98,7 +98,7 @@ class NetPlanAdmin(BaseAdminSimple, BaseAdminActivatable):
     GenerateNets.short_description = "a. Generate a net"
 
 class NetAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'description', 'domainGroup', 'niche', 'template', 'redirect', 'tdsId', 'makeSpam', 'GetDomainsCount', 'domainsPerDay', 'doorsPerDay', 'GetDoorsCount', 'GetPagesCount', 'GetIndexCount', 'GetTrafficLastDay', 'GetTrafficLastMonth', 'GetTrafficLastDayRelative', 'GetTrafficLastMonthRelative', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'active', 'stateSimple']
     ordering = ['description']
     search_fields = ['description']
@@ -203,7 +203,7 @@ class SnippetsSetAdmin(BaseAdminActivatable, BaseAdminManaged):
     readonly_fields = ['dateLastParsed', 'lastError', 'dateAdded', 'dateChanged']
 
 class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
-    list_display = ('pk', 'GetDomainUrl', 'group', 'host', 'niche', 'net', 'makeSpam', 'GetMaxDoorsCount', 'GetPagesCount', 'trafficLastDay', 'trafficLastMonth', 'GetIndexCount', 'GetIndexCountDate', 'GetBackLinksCount', 'GetBackLinksCountDate', 'GetDateExpires', 'IsIndexed', 'active', 'stateSimple', 'dateAdded')
+    list_display = ('pk', 'GetDomainUrl', 'group', 'host', 'niche', 'net', 'makeSpam', 'GetMaxDoorsCount', 'GetPagesCount', 'GetIndexCount', 'GetIndexCountDate', 'trafficLastDay', 'trafficLastMonth', 'GetDateExpires', 'IsIndexed', 'active', 'stateSimple', 'dateAdded')
     list_filter = ['niche', 'net', 'host', 'group', 'banned', 'active', 'stateSimple']
     search_fields = ['name']
     fieldsets = [
