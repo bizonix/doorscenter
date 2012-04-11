@@ -870,7 +870,11 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
         for domain in self.linkedDomains.filter(pk__lt=self.pk).order_by('pk').all():
             for doorway in domain.doorway_set.filter(stateManaged='done').order_by('pk').all():
                 linksList.extend(doorway.GetDoorLinksList().split('\n'))
-        return '\n'.join(MakeListUnique(linksList))
+        '''Уникализируем, перемешиваем и ограничиваем количество'''
+        linksList = MakeListUnique(linksList)
+        random.shuffle(linksList)
+        linksList = linksList[:random.randint(200, 300)]
+        return '\n'.join(linksList)
     def GetIndexCount(self):
         '''Ссылка для проверки индекса по гуглу'''
         if self.indexCount:
