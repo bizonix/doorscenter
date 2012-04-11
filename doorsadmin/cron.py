@@ -37,7 +37,7 @@ def Helper():
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
     xrumersCount = 2  # настройка: количество хрумеров
-    avgSpamTaskDuration = 12  # настройка: средняя продолжительность прогона по базе R, минут
+    avgSpamTaskDuration = 6  # настройка: средняя продолжительность прогона по базе R, минут
     avgSpamLinksPerTask = 12  # настройка: среднее количество ссылок в задании на спам
     linksLimitBase = int(xrumersCount * 1440 * 0.9 / avgSpamTaskDuration * avgSpamLinksPerTask)  # максимум ссылок, которые можно проспамить за сутки
     domainsLimitBase = 999  # настройка: лимит расхода доменов в сутки
@@ -57,10 +57,9 @@ def ExpandNets():
         if (doorwaysLimitActual <= 0) or (linksLimitActual <= 0):
             break
     results = 'Domains limit: %d/%d. Doorways limit: %d/%d. Links limit: %d/%d.' % (domainsLimitBase - domainsLimitActual, domainsLimitBase, doorwaysLimitBase - doorwaysLimitActual, doorwaysLimitBase, linksLimitBase - linksLimitActual, linksLimitBase)
+    EventLog('info', results)
     if IsConsoleAvailable():
         print(results)
-    else:
-        EventLog('info', results)
 
 def RenewSnippets():
     '''Перегенерируем сниппеты'''
