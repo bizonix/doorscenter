@@ -424,7 +424,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
         '''Генерация заданий для спама по профилям'''
         try:
             spamLinks = list(self.GetSpamProfileLinks().order_by('?').all())
-            print('%s: %d' % (self, len(spamLinks)))
             while len(spamLinks) > 0:
                 linksList = []
                 spamTask = SpamProfileTask.objects.create()
@@ -443,7 +442,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 return
         except Exception as error:
             EventLog('error', 'Error in GenerateSpamProfileTasks', self, error)
-            print(error)
 
 class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Базовый класс для сетки и плана сеток'''
@@ -1287,7 +1285,7 @@ class SpamProfileTask(BaseDoorObject, BaseDoorObjectSpammable):
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseRaw.GetTaskDetailsCommon()
-        result['keywordsList'] = self.xrumerBaseSpam.niche.GenerateKeywordsList(5000)
+        result['keywordsList'] = self.xrumerBaseRaw.niche.GenerateKeywordsList(5000)
         result['homePage'] = self.homePage
         result['signature'] = self.signature
         return result
