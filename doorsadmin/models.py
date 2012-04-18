@@ -424,7 +424,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 linksList = []
                 spamTask = SpamProfileTask.objects.create()
                 spamTask.xrumerBaseRaw = XrumerBaseRaw.objects.get(baseNumber=401)  # номер базы профилей
-                for _ in range(min(len(spamLinks), 2)):  # по сколько доров спамить за проход
+                for _ in range(min(len(spamLinks), 1)):  # по сколько доров спамить за проход
                     spamLink = spamLinks.pop()
                     DoorLink.objects.filter(doorway=spamLink.doorway).update(makeSpam=False)  # этот дор больше не спамим
                     linksList.append(spamLink.url.replace('index.html', ''))
