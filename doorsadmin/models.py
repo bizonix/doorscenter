@@ -83,10 +83,6 @@ def NextBaseNumber():
     '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
-def GenerateRandomEmail():
-    '''Генерируем случайный адрес почты'''
-    return emailCommonLogin.replace('@gmail.com', '+%s@gmail.com' % GenerateRandomWord())
-
 '''Abstract models'''
 
 class BaseDoorObject(models.Model):
@@ -239,7 +235,7 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
         if self.password == '':
             self.password = GenerateRandomWord()
         if self.emailAddress == '':
-            self.emailAddress = GenerateRandomEmail()
+            self.emailAddress = emailCommonLogin.replace('@gmail.com', '+#gennick[%s]@gmail.com' % GenerateRandomWord().upper())
         '''Если не надо предварительно регистрироваться, снимаем галочку'''
         if self.stateSimple == 'new':
             self.registerRun = self.creationType.find('reg') >= 0
