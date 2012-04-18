@@ -1115,8 +1115,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
             anchor = x.groups()[1]
             '''Создаем ссылки'''
             DoorLink.objects.create(url=url, anchor=anchor, doorway=self, makeSpam=(n < self.spamLinksCount)).save()
-            if url.endswith('/index.html'):
-                DoorLink.objects.create(url=url.replace('/index.html', '/sitemap.html'), anchor=anchor, doorway=self, makeSpam=True).save()
             n += 1
         '''Проверяем дор на тошноту'''
         if self.domainSub == '':

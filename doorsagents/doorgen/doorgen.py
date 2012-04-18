@@ -450,7 +450,7 @@ class Doorgen(object):
             self.keywordsCirclesList.append(keywordsList[:])
         
         '''Начинаем создание дора'''
-        self.doorway = Doorway(url, chunks)
+        self.doorway = Doorway(url, self.keywordDoor, chunks)
         self.doorway.InitTemplate(templatePath)
         
         '''Формируем страницы дора'''

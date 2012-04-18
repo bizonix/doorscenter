@@ -1,5 +1,5 @@
 # coding=utf8
-import os, io, tarfile, cStringIO, ftplib, urllib, datetime, random, threading, Queue
+import os, io, tarfile, cStringIO, ftplib, urllib, urllib2, datetime, random, threading, Queue
 
 class Uploader(threading.Thread):
     '''Загрузка на FTP в потоке'''
@@ -46,9 +46,10 @@ class Uploader(threading.Thread):
 class Doorway(object):
     '''Дорвей'''
     
-    def __init__(self, url, chunks = 10):
+    def __init__(self, url, title, chunks = 10):
         '''Инициализация'''
         self.url = url
+        self.title = title
         self.chunks = chunks
         '''Создаем файлы в памяти'''
         self.tarFilesObjects = []
@@ -137,3 +138,24 @@ Disallow: /*/js/'''
         except Exception as error:
             print(error)
         print('Uploaded in %d sec.' % (datetime.datetime.now() - dateTimeStart).seconds)
+
+    def GooglePing(self):
+        '''Пинг гугла'''
+        try:
+            pingXml = '''<?xml version="1.0"?>
+<methodCall>
+    <methodName>weblogUpdates.ping</methodName>
+    <params>
+        <param>
+            <value>%s</value>
+        </param>
+        <param>
+            <value>%s</value>
+        </param>
+    </params>
+</methodCall>''' % (self.title, self.url)
+            request = urllib2.Request('http://blogsearch.google.com/ping/RPC2')
+            request.add_header('User-Agent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)')
+            urllib2.urlopen(request, pingXml).read()
+        except Exception as error:
+            print(error)

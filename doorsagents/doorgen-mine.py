@@ -50,6 +50,7 @@ class DoorgenMineAgent(agent.BaseAgent):
         keywordsList.extend(self.currentTask['keywordsListAdd'])
         self.doorway = self.doorgen.Generate(keywordsList, self.currentTask['netLinksList'], self.currentTask['templateFolder'], len(self.currentTask['keywordsList']), self.doorwayUrl)
         self.doorway.UploadToFTP(self.currentTask['ftpHost'], self.currentTask['ftpLogin'], self.currentTask['ftpPassword'], self.remoteFolder)
+        self.doorway.GooglePing()
         self._Done()
         self._Cron()
         return True
