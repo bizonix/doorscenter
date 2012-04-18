@@ -22,6 +22,7 @@ class XrumerHelper(object):
         self.snippetsFileEsc = escape(os.path.join(snippetsFolder, self.currentTask['snippetsFile']))
         self.anchorsFileEsc = escape(self.linker.GetSpamAnchorsFile())
         self.profilesFileEsc = escape(self.linker.GetProfilesFile())
+        self.randomizeNames = False
     
     def _WriteKeywords(self):
         '''Пишем кейворды'''
@@ -151,17 +152,11 @@ class XrumerHelperSpamTask(XrumerHelper):
         if 'baseZ' in agent.currentTask:
             agent.currentTask['baseType'] = 'ZLinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseZ'])
-            agent.currentTask['nickName'] = agent.currentTask['nickNameRandom']
-            agent.currentTask['realName'] = agent.currentTask['realNameRandom']
-            agent.currentTask['password'] = agent.currentTask['passwordRandom']
-            agent.currentTask['emailAddress'] = agent.currentTask['emailAddressRandom']
         if 'baseL' in agent.currentTask:
             agent.currentTask['baseType'] = 'LinksList'
             agent.currentTask['baseNumberMain'] = int(agent.currentTask['baseL'])
-            agent.currentTask['nickName'] = agent.currentTask['nickNameRandom']
-            agent.currentTask['realName'] = agent.currentTask['realNameRandom']
-            agent.currentTask['password'] = agent.currentTask['passwordRandom']
-            agent.currentTask['emailAddress'] = agent.currentTask['emailAddressRandom']
+        if 'randomizeNames' in agent.currentTask:
+            self.randomizeNames = True
         super(XrumerHelperSpamTask, self).__init__(agent)
         
     def GetProjectName(self):
@@ -178,9 +173,9 @@ class XrumerHelperSpamTask(XrumerHelper):
         if self.currentTask['baseType'] == 'RLinksList':
             self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
         elif self.currentTask['baseType'] == 'ZLinksList':
-            self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
+            self.agent._CreateSettings('none', '', 'post', 'ZLinksList', 160, projSubject, projBody)
         else:
-            self.agent._CreateSettings('none', '', 'post-reply', 'LinksList', 160, projSubject, projBody, '', '', random.randint(1, 999))
+            self.agent._CreateSettings('none', '', 'post-reply', 'LinksList', 160, projSubject, projBody)
     
     def ActionOff(self):
         '''Копируем анкоры и фильтруем базу R от неуспешных'''
@@ -191,6 +186,28 @@ class XrumerHelperSpamTask(XrumerHelper):
             self.agent._CountLinks('baseLinksCount', self.agent.baseMainZFile, 'base')
         else:
             self.agent._CountLinks('baseLinksCount', self.agent.baseMainFile, 'base')
+
+class XrumerHelperSpamProfileTask(XrumerHelper):
+    '''Задание для спама по профилям'''
+    
+    def __init__(self, agent):
+        '''Обработка параметров агента'''
+        super(XrumerHelperSpamProfileTask, self).__init__(agent)
+        self.randomizeNames = True  # профили регистрируем всегда от рандомных пользователей
+
+    def GetProjectName(self):
+        return 'ProjectP%d' % self.currentTask['id']
+    
+    def ActionOn(self):
+        self.agent._DeleteLog(self.agent.logAnchors)
+        self.agent._DeleteLog(self.agent.logProfiles)
+        '''Создаем настройки'''
+        self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.currentTask['homePage'], self.currentTask['signature'])
+    
+    def ActionOff(self):
+        '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
+        #self._FilterBase(self.agent.baseMainFile)
+        self.linker.AddProfilesFile()
 
 class XrumerHelperBaseDoors(XrumerHelper):
     '''Доры на форумах'''
@@ -227,34 +244,10 @@ class XrumerHelperBaseDoors(XrumerHelper):
             '''Пишем кейворды'''
             self._WriteKeywords()
             '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody, '', '', random.randint(0, 19))
+            self.agent._CreateSettings('from-registered', '', 'reply', 'RLinksList', 160, projSubject, projBody)
             
     def ActionOff(self):
         '''Копируем анкоры, фильтруем базу R от неуспешных и удаляем базу, которую копировали ранее'''
         self.linker.AddDoorsAnchorsFile()
         self._FilterBase(self.agent.baseMainRFile)
         self._DeleteBase(self.agent.baseMainFile) 
-
-class XrumerHelperBaseProfiles(XrumerHelper):
-    '''Профили'''
-    
-    def GetProjectName(self):
-        return 'ProjectP%d' % self.currentTask['id']
-    
-    def ActionOn(self):
-        self.agent._DeleteLog(self.agent.logAnchors)
-        self.agent._DeleteLog(self.agent.logProfiles)
-        if self.registerRun:
-            '''Копируем исходную базу в целевую'''
-            self._CopyBase(self.agent.baseSourceFile, self.agent.baseMainFile)
-            '''Создаем настройки'''
-            self.agent._CreateSettings('register-only', '', 'post', 'LinksList', 100, 'none', 'none', '', '')
-        else:
-            '''Создаем настройки'''
-            self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.currentTask['homePage'], self.currentTask['signature'])
-    
-    def ActionOff(self):
-        '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
-        self._FilterBase(self.agent.baseMainFile)
-        if not self.registerRun:
-            self.linker.AddProfilesFile()

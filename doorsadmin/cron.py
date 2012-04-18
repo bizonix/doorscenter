@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db.models import Max, Q
-from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, XrumerBaseProfiles, Agent, Event, EventLog
+from doorsadmin.models import Niche, Net, Domain, Host, IPAddress, SnippetsSet, XrumerBaseSpam, XrumerBaseDoors, Agent, Event, EventLog
 import os, sys, datetime, random
 
 def IsConsoleAvailable():
@@ -83,7 +83,6 @@ def ResumeAfterReg():
     '''Заново создаем базы и профили после регистрации'''
     _ResumeAfterRegEntity(XrumerBaseSpam)
     _ResumeAfterRegEntity(XrumerBaseDoors)
-    _ResumeAfterRegEntity(XrumerBaseProfiles)
 
 def _ResumeAfterRegEntity(entity):
     '''То же самое по заданному типу'''
@@ -103,7 +102,8 @@ def UpdateIndexCount():
         return
     '''Апдейтим индекс'''
     bannedDomains = []
-    domains = Domain.objects.filter(Q(active=True), Q(stateSimple='ok')).order_by('indexCountDate', 'pk').all()
+    dt = datetime.datetime.now() - datetime.timedelta(5)  # не проверяем индекс у доменов младше 5 дней
+    domains = Domain.objects.filter(Q(active=True), Q(stateSimple='ok'), Q(dateAdded__lt=dt)).order_by('indexCountDate', 'pk').all()
     for domain in domains[:50]:  # настройка: по сколько доменов проверять
         indexCountOld = domain.indexCount
         domain.UpdateIndexCount()

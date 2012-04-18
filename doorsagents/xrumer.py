@@ -1,5 +1,5 @@
 # coding=utf8
-import os, codecs, kwk8, agent, common
+import os, codecs, random, kwk8, agent, common
 from xrumercls import *
 from xml.sax.saxutils import escape
 
@@ -34,9 +34,7 @@ class XrumerAgent(agent.BaseAgent):
             password += str(addon)
         return password
     
-    def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount,  
-                       projSubject, projBody, projHomePage = '', projSignature = '', 
-                       nameAddon = 0):
+    def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount, projSubject, projBody, projHomePage = '', projSignature = ''):
         '''Создаем настройки'''
         configFile = os.path.join(self.appFolder, 'config.ini')
         settingsFile = os.path.join(self.appFolder, 'xuser.ini')
@@ -109,7 +107,12 @@ class XrumerAgent(agent.BaseAgent):
   </Schedule1>
 </body>
 ''')
-            
+        
+        '''Рандомизация имен'''
+        nameAddon = 0
+        if self.helper.randomizeNames:
+            nameAddon = random.randint(1, 999999)
+        
         '''Проект'''
         with codecs.open(projectFile, 'w', 'utf8') as fd:
             fd.write('''<?xml version="1.0" encoding="UTF-8"?>
@@ -183,10 +186,10 @@ TimeRange=''' + spamTimeout + '''
             self.helper = XrumerHelperBaseSpam(self)
         elif self.currentTask['type'] == 'SpamTask':
             self.helper = XrumerHelperSpamTask(self)
+        elif self.currentTask['type'] == 'SpamProfileTask':
+            self.helper = XrumerHelperSpamProfileTask(self)
         elif self.currentTask['type'] == 'XrumerBaseDoors':
             self.helper = XrumerHelperBaseDoors(self)
-        elif self.currentTask['type'] == 'XrumerBaseProfiles':
-            self.helper = XrumerHelperBaseProfiles(self)
         
         '''Базы'''
         self.appLinksFolder = os.path.join(self.appFolder, 'Links')

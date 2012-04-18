@@ -66,10 +66,10 @@ def GetObjectByTaskType(taskType):
         return XrumerBaseSpam
     elif taskType == 'SpamTask':
         return SpamTask
+    elif taskType == 'SpamProfileTask':
+        return SpamProfileTask
     elif taskType == 'XrumerBaseDoors':
         return XrumerBaseDoors
-    elif taskType == 'XrumerBaseProfiles':
-        return XrumerBaseProfiles
 
 def NextYearDate():
     '''Сегодняшняя дата плюс год'''
@@ -81,7 +81,7 @@ def MaxDoorsCount():
 
 def NextBaseNumber():
     '''Следующий номер базы'''
-    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseProfiles.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
+    return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
 def GenerateRandomEmail():
     '''Генерируем случайный адрес почты'''
@@ -214,10 +214,6 @@ class BaseXrumerBase(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectSp
                 'realName': self.realName, 
                 'password': self.password, 
                 'emailAddress': self.emailAddress, 
-                'nickNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
-                'realNameRandom': '#gennick[%s]' % GenerateRandomWord().upper(), 
-                'passwordRandom': GenerateRandomWord(), 
-                'emailAddressRandom': GenerateRandomEmail(), 
                 'emailPassword': emailCommonPassword, 
                 'emailLogin': emailCommonLogin, 
                 'emailPopServer': emailCommonPopServer, 
@@ -364,11 +360,14 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     def GetSpamLinks(self):
         '''Ссылки по этой нише, которые надо спамить'''
         return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+    def GetSpamProfileLinks(self):
+        '''Ссылки по этой нише, которые надо спамить по профилям'''
+        return DoorLink.objects.filter(Q(url__endswith='/index.html'), Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
     def GetSpamDomainLinks(self, domain):
-        '''Ссылки по домену, которые надо спамить'''
+        '''Ссылки по домену, которые надо спамить по базе R'''
         return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
     def _CreateSpamTask(self, xrumerBaseSpam, linksList):
-        '''Создаем задание на спам'''
+        '''Создаем задание на спам по базе R'''
         if len(linksList) == 0:
             return
         spamTask = SpamTask.objects.create(xrumerBaseSpam=xrumerBaseSpam)
@@ -380,7 +379,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             doorLink.save()
             #print("- (%d) %s" % (pk, doorLink.url))
     def GenerateSpamTasksMultiple(self):
-        '''Генерация заданий сразу в несколько баз'''
+        '''Генерация заданий сразу в несколько баз R'''
         try:
             '''Генерируем в несколько проходов, для максимального распределения ссылок'''
             for _ in range(3):
@@ -421,6 +420,30 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             #        self._CreateSpamTask(xrumerBaseSpam, linksLists[n])
         except Exception as error:
             EventLog('error', 'Error in GenerateSpamTasksMultiple', self, error)
+    def GenerateSpamProfileTasks(self):
+        '''Генерация заданий для спама по профилям'''
+        try:
+            spamLinks = list(self.GetSpamProfileLinks().order_by('?').all())
+            print('%s: %d' % (self, len(spamLinks)))
+            while len(spamLinks) > 0:
+                linksList = []
+                spamTask = SpamProfileTask.objects.create()
+                spamTask.xrumerBaseRaw = XrumerBaseRaw.objects.get(baseNumber=401)  # номер базы профилей
+                for _ in range(min(len(spamLinks), 2)):  # по сколько доров спамить за проход
+                    spamLink = spamLinks.pop()
+                    DoorLink.objects.filter(doorway=spamLink.doorway).update(makeSpam=False)  # этот дор больше не спамим
+                    linksList.append(spamLink.url.replace('index.html', ''))
+                if len(linksList) == 1:
+                    homePage = linksList[0]
+                else:
+                    homePage = '{' + '|'.join(linksList) + '}'
+                spamTask.homePage = homePage
+                spamTask.signature = ''
+                spamTask.save()
+                return
+        except Exception as error:
+            EventLog('error', 'Error in GenerateSpamProfileTasks', self, error)
+            print(error)
 
 class BaseNet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
     '''Базовый класс для сетки и плана сеток'''
@@ -1215,7 +1238,7 @@ class XrumerBaseSpam(BaseXrumerBase):
         super(XrumerBaseSpam, self).SetTaskDetails(data)
 
 class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
-    '''Задание на спам'''
+    '''Задание на спам по базе R'''
     xrumerBaseSpam = models.ForeignKey('XrumerBaseSpam', verbose_name='Base Spam', null=True)
     class Meta:
         verbose_name = 'Spam Task'
@@ -1249,13 +1272,36 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             self.xrumerBaseSpam.save()
         super(SpamTask, self).SetTaskDetails(data)
 
+class SpamProfileTask(BaseDoorObject, BaseDoorObjectSpammable):
+    '''Задание на спам по профилям'''
+    xrumerBaseRaw = models.ForeignKey('XrumerBaseRaw', verbose_name='Base Profile', null=True)
+    homePage = models.CharField('Home page', max_length=250, default='', blank=True)
+    signature = models.CharField('Signature', max_length=250, default='', blank=True)
+    class Meta:
+        verbose_name = 'Spam Profile Task'
+        verbose_name_plural = 'II.4 Spam Profile Tasks - [large, managed]'
+    @classmethod
+    def GetTasksList(self, agent):
+        '''Получение списка задач для агента'''
+        return SpamProfileTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        result = self.xrumerBaseRaw.GetTaskDetailsCommon()
+        result['keywordsList'] = self.xrumerBaseSpam.niche.GenerateKeywordsList(5000)
+        result['homePage'] = self.homePage
+        result['signature'] = self.signature
+        return result
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        super(SpamProfileTask, self).SetTaskDetails(data)
+
 class XrumerBaseDoors(BaseXrumerBase):
     '''База R для доров на форумах'''
     body = models.TextField('Body', default='', blank=True)
     runCount = models.IntegerField('Run Count', default=100, null=True, blank=True)
     class Meta:
         verbose_name = 'Xrumer Base Doors'
-        verbose_name_plural = 'II.4 Xrumer Bases Doors - [act, managed]'
+        verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
@@ -1273,34 +1319,6 @@ class XrumerBaseDoors(BaseXrumerBase):
             self.save()
             data['state'] = 'new'
         super(XrumerBaseDoors, self).SetTaskDetails(data)
-
-class XrumerBaseProfiles(BaseXrumerBase):
-    '''База профилей'''
-    homePage = models.CharField('Home page', max_length=200, default='', blank=True)
-    signature = models.CharField('Signature', max_length=200, default='', blank=True)
-    class Meta:
-        verbose_name = 'Xrumer Base Profiles'
-        verbose_name_plural = 'II.5 Xrumer Bases Profiles - [act, managed]'
-    @classmethod
-    def GetTasksList(self, agent):
-        '''Получение списка задач для агента'''
-        return XrumerBaseProfiles.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
-    def GetTaskDetails(self):
-        '''Подготовка данных для работы агента'''
-        result = self.GetTaskDetailsCommon()
-        result['homePage'] = self.homePage
-        result['signature'] = self.signature
-        return result
-    def SetTaskDetails(self, data):
-        '''Обработка данных агента'''
-        super(XrumerBaseProfiles, self).SetTaskDetails(data)
-    def save(self, *args, **kwargs):
-        if self.stateSimple == 'new':
-            self.creationType = 'reg + post'
-        if self.stateManaged == 'new' and self.registerRun == False and self.homePage == '':
-            self.stateManaged = 'done'
-            self.registerRun = True
-        super(XrumerBaseProfiles, self).save(*args, **kwargs)
 
 class Host(BaseDoorObject):
     '''Сервер, VPS или хостинг'''
@@ -1456,7 +1474,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         elif self.type == 'doorgen':
             return [Doorway]
         elif self.type == 'xrumer':
-            return [XrumerBaseRaw, XrumerBaseProfiles, XrumerBaseSpam, SpamTask, XrumerBaseDoors]
+            return [XrumerBaseRaw, XrumerBaseSpam, SpamTask, SpamProfileTask, XrumerBaseDoors]
     def AppendParams(self, data):
         '''Добавляем параметры агента в задание'''
         for param in self.params.split('\n'):
@@ -1471,7 +1489,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
                     # def GenerateSpamTasks():
                     for niche in Niche.objects.filter(active=True).order_by('pk').all():
-                        niche.GenerateSpamTasksMultiple()
+                        niche.GenerateSpamProfileTasks()
+                        #niche.GenerateSpamTasksMultiple()
         except Exception as error:
             EventLog('error', 'Error in "OnUpdate"', self, error)
     def GetDateLastPingAgo(self):
