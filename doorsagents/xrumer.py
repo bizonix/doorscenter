@@ -22,17 +22,11 @@ class XrumerAgent(agent.BaseAgent):
             except Exception as error:
                 print('Cannot remove log: %s' % error)
     
-    def _ModifyName(self, name, addon):
+    def _ModifyName(self, name):
         '''Изменяем имя для рассылки от разных пользователей'''
-        if addon != 0:
-            name = name.replace(']', '%d]' % addon)
+        if self.helper.randomizeNames:
+            name = name.replace('[', '[%d' % random.randint(1, 999999))
         return name
-    
-    def _ModifyPassword(self, password, addon):
-        '''Изменяем пароль для рассылки от разных пользователей'''
-        if addon != 0:
-            password += str(addon)
-        return password
     
     def _CreateSettings(self, settings1, settings2, settings3, settings4, threadsCount, projSubject, projBody, projHomePage = '', projSignature = ''):
         '''Создаем настройки'''
@@ -108,21 +102,16 @@ class XrumerAgent(agent.BaseAgent):
 </body>
 ''')
         
-        '''Рандомизация имен'''
-        nameAddon = 0
-        if self.helper.randomizeNames:
-            nameAddon = random.randint(1, 999999)
-        
         '''Проект'''
         with codecs.open(projectFile, 'w', 'utf8') as fd:
             fd.write('''<?xml version="1.0" encoding="UTF-8"?>
 <XRumerProject>
   <PrimarySection>
     <ProjectName>''' + escape(self.projectName) + '''</ProjectName>
-    <NickName>''' + escape(self._ModifyName(self.currentTask['nickName'], nameAddon)) + '''</NickName>
-    <RealName>''' + escape(self._ModifyName(self.currentTask['realName'], nameAddon)) + '''</RealName>
-    <Password>''' + escape(self._ModifyPassword(self.currentTask['password'], nameAddon)) + '''</Password>
-    <EmailAddress>''' + escape(self._ModifyName(self.currentTask['emailAddress'], nameAddon)) + '''</EmailAddress>
+    <NickName>''' + escape(self._ModifyName(self.currentTask['nickName'])) + '''</NickName>
+    <RealName>''' + escape(self._ModifyName(self.currentTask['realName'])) + '''</RealName>
+    <Password>''' + escape(self.currentTask['password']) + '''</Password>
+    <EmailAddress>''' + escape(self._ModifyName(self.currentTask['emailAddress'])) + '''</EmailAddress>
     <EmailPassword>''' + escape(self.currentTask['emailPassword']) + '''</EmailPassword>
     <EmailLogin>''' + escape(self.currentTask['emailLogin']) + '''</EmailLogin>
     <EmailPOP>''' + escape(self.currentTask['emailPopServer']) + '''</EmailPOP>
