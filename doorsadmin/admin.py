@@ -340,6 +340,7 @@ class SpamTaskAdmin(BaseAdminManaged):
 class SpamProfileTaskAdmin(BaseAdminManaged):
     list_display = ('pk', 'xrumerBaseRaw', 'homePage', 'profilesCount', 'registeredAccountsCount', 'successCount', 'halfSuccessCount', 'failsCount', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
     list_filter = ['stateManaged', 'priority']
+    search_fields = ['homePage', 'signature']
     fieldsets = [
         (None, {'fields': [('xrumerBaseRaw'), 'homePage', 'signature', ('profilesCount', 'registeredAccountsCount', 'successCount', 'halfSuccessCount', 'failsCount')]}),
         ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
