@@ -8,7 +8,7 @@ from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import KeywordToUrl, FindShortKeyword, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, GetRelativeTrafficCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 from doorsadmin.locations import GetRandomLocation
-import datetime, random, os, re, MySQLdb, keywords, google, yahoo, nausea
+import datetime, random, os, re, MySQLdb, keywords, google, yahoo
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
 stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
@@ -424,7 +424,7 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 linksList = []
                 spamTask = SpamProfileTask.objects.create()
                 spamTask.xrumerBaseRaw = XrumerBaseRaw.objects.get(baseNumber=401)  # номер базы профилей
-                for _ in range(min(len(spamLinks), 1)):  # по сколько доров спамить за проход
+                for _ in range(min(len(spamLinks), 3)):  # по сколько доров спамить за проход
                     spamLink = spamLinks.pop()
                     DoorLink.objects.filter(doorway=spamLink.doorway).update(makeSpam=False)  # этот дор больше не спамим
                     linksList.append(spamLink.url.replace('index.html', ''))
@@ -1116,14 +1116,6 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
             '''Создаем ссылки'''
             DoorLink.objects.create(url=url, anchor=anchor, doorway=self, makeSpam=(n < self.spamLinksCount)).save()
             n += 1
-        '''Проверяем дор на тошноту'''
-        if self.domainSub == '':
-            isGood, details = nausea.Analyze('http://%s%s' % (self.domain.name, self.domainFolder), True)
-        else:
-            isGood, details = nausea.Analyze('http://%s.%s%s' % (self.domainSub, self.domain.name, self.domainFolder), True)
-        if not isGood:
-            EventLog('warning', details)
-            #send_mail('Doors Administration', details, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
         super(Doorway, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
         '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
