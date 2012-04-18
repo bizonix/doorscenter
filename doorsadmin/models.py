@@ -1184,6 +1184,7 @@ class DoorLink(models.Model):
     anchor = models.CharField('Anchor', max_length=1000, default='')
     doorway = models.ForeignKey('Doorway', verbose_name='Doorway')
     spamTask = models.ForeignKey('SpamTask', verbose_name='Spam Task', null=True, blank=True, on_delete=models.SET_NULL)
+    #spamProfileTask = models.ForeignKey('SpamProfileTask', verbose_name='Spam Profile Task', null=True, blank=True, on_delete=models.SET_NULL)  # пока не вводим этот атрибут за ненадобностью
     makeSpam = models.BooleanField('Sp.', default=True)
     class Meta:
         verbose_name = 'Door Link'

@@ -199,10 +199,16 @@ class XrumerHelperSpamProfileTask(XrumerHelper):
         return 'ProjectP%d' % self.currentTask['id']
     
     def ActionOn(self):
+        '''Содержимое проекта'''
+        projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
+        projBody = r'#file_links[x:\foo.txt,1,N]'
+        projHomePage = self.currentTask['homePage'], 
+        projSignature = self.currentTask['signature']
+        '''Создаем настройки'''
+        self.agent._CreateSettings('register-only', 'edit-profile', 'post', 'LinksList', 110, projSubject, projBody, projHomePage, projSignature)
+        '''Удаляем логи'''
         self.agent._DeleteLog(self.agent.logAnchors)
         self.agent._DeleteLog(self.agent.logProfiles)
-        '''Создаем настройки'''
-        self.agent._CreateSettings('from-registered', 'edit-profile', 'post', 'LinksList', 100, 'none', r'#file_links[x:\foo.txt,1,N]', self.currentTask['homePage'], self.currentTask['signature'])
     
     def ActionOff(self):
         '''Фильтруем базу от неуспешных и копируем профили для последующего спама'''
