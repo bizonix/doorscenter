@@ -63,7 +63,7 @@ class XrumerAgent(agent.BaseAgent):
         config[0] = '%s\n' % self.projectName
         config[2] = '%d\n' % self.currentTask['baseNumberMain']
         config[3] = '%d\n' % threadsCount
-        config[5] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')  # использовать прокси (socks)
+        config[5] = 'OFF\n'  # использовать прокси (socks)
         config[8] = 'ON\n'  # автопродолжение
         config[9] = '%s\n' % ('ON' if settings1 == 'register-only' else 'OFF')
         config[11] = '%s\n' % ('0' if settings4 == 'LinksList' else ('3' if settings4 == 'RLinksList' else ('1')))
