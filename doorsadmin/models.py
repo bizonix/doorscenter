@@ -435,7 +435,6 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
                 spamTask.homePage = homePage
                 spamTask.signature = ''
                 spamTask.save()
-                return
         except Exception as error:
             EventLog('error', 'Error in GenerateSpamProfileTasks', self, error)
 
