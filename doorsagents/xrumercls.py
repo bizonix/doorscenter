@@ -202,7 +202,7 @@ class XrumerHelperSpamProfileTask(XrumerHelper):
         '''Содержимое проекта'''
         projSubject = '#file_links[%s,1,N]' % (self.keywordsFileEsc)
         projBody = r'#file_links[x:\foo.txt,1,N]'
-        projHomePage = self.currentTask['homePage'], 
+        projHomePage = self.currentTask['homePage']
         projSignature = self.currentTask['signature']
         '''Создаем настройки'''
         self.agent._CreateSettings('register-only', 'edit-profile', 'post', 'LinksList', 110, projSubject, projBody, projHomePage, projSignature)
