@@ -48,12 +48,6 @@ def EventLog(type, text, object=None, addErrorMessage=None):
         if type == 'error':
             send_mail('Doors Administration', text + ' ' + objectName, 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
 
-def ObjectLog(object, changeMessage):
-    '''Запись в историю объекта'''
-    LogEntry.objects.log_action(user_id = 2, content_type_id = ContentType.objects.get_for_model(object).pk,
-        object_id = object.pk, object_repr = force_unicode(object), action_flag = ADDITION, 
-        change_message = changeMessage)
-
 def GetObjectByTaskType(taskType):
     '''Преобразуем имя класса в класс. Только классы-очереди для агентов'''
     if taskType == 'SnippetsSet':
@@ -793,7 +787,7 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+        return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'localFile': self.localFile, 
@@ -1078,7 +1072,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')
+        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
@@ -1210,7 +1204,7 @@ class XrumerBaseSpam(BaseXrumerBase):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1242,7 +1236,7 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+        return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseSpam.GetTaskDetailsCommon()
@@ -1269,7 +1263,7 @@ class SpamProfileTask(BaseDoorObject, BaseDoorObjectSpammable):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return SpamProfileTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+        return SpamProfileTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseRaw.GetTaskDetailsCommon()
@@ -1291,7 +1285,7 @@ class XrumerBaseDoors(BaseXrumerBase):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')
+        return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1426,7 +1420,7 @@ class XrumerBaseRaw(BaseXrumerBase):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')
+        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1569,7 +1563,7 @@ class TestQueue(BaseDoorObject, BaseDoorObjectManaged):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return TestQueue.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+        return TestQueue.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:4]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'paramIn': self.paramIn})

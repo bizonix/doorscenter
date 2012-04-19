@@ -12,9 +12,10 @@ class TestAgent(agent.BaseAgent):
         
     def _ActionOn(self):
         self._Settings()
-        time.sleep(random.randint(1, 3))
+        time.sleep(1)
         print(self.currentTask['paramIn'])
         self._Done()
+        #self._Cron()
         return True
     
     def _ActionOff(self):

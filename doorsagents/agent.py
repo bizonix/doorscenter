@@ -1,32 +1,26 @@
 # coding=utf8
 import os, sys, urllib, pickle, subprocess, datetime, base64
 
-'''Для реализации агента требуется создать модуль с классом, унаследованным от 
-BaseAgent, и переопределить в нем методы _ActionOn() и _ActionOff(). 
+'''Для реализации агента требуется создать модуль с классом, унаследованным от BaseAgent, и переопределить в нем методы _ActionOn() и _ActionOff(). 
 
-В первом методе надо устанавливать параметры контролируемого приложения и 
-запускать его. В втором методе надо получать данные работы приложения. Данные 
-для работы необходимо получать из/записывать в словарь self.currentTask. В 
-целях уменьшения трафика и ускорения работы, из ответа можно удалять большие 
-входные данные. 
-
-В конце модуля должны быть следующие строки:
+В первом методе надо устанавливать параметры контролируемого приложения и запускать его. В втором методе надо получать данные работы приложения. Данные 
+для работы необходимо получать из/записывать в словарь self.currentTask. В целях уменьшения трафика и ускорения работы, из ответа можно удалять большие 
+входные данные. В конце модуля должны быть следующие строки:
 
 if __name__ == '__main__':
-    agent = YourAgent('http://127.0.0.1:8000/doorsadmin', 1)
+    agent = YourAgent('http://127.0.0.1:8000/doorsadmin')
 
-, где надо указать URL ЦА и номер агента в ЦА.
+, где надо указать URL ЦА. Номер агента в ЦА указывается в файле [AgentName]Number.
 
-Передача параметров в/из агента:
-Список входных/выходных параметров см. в методах агента GetTaskDetails и 
-SetTaskDetails. Все строки должны передаваться в кодировке win-1251. Списки 
-строк должны передаваться в виде list of strings, в конце строк не должно быть 
-переводов строки. Ссылки передаются в формате html.
+   Передача параметров в/из агента:
 
-Настройка: 
+Список входных/выходных параметров см. в методах агента GetTaskDetails и SetTaskDetails. Все строки должны передаваться в кодировке win-1251. Списки 
+строк должны передаваться в виде list of strings, в конце строк не должно быть переводов строки. Ссылки передаются в формате html.
+
+   Настройка: 
+
 1. Поставить на cron выполение скрипта "python26.exe youragent.py cron".
-2. По завершении работы контролируемое приложение должно вызыват скрипт 
-"python26.exe youragent.py done".    
+2. По завершении работы контролируемое приложение должно вызыват скрипт "python26.exe youragent.py done".    
 '''
 
 class BaseAgent(object):
@@ -34,18 +28,18 @@ class BaseAgent(object):
     
     def __init__(self, adminUrl):
         '''Конструктор'''
+        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
+
         self.agentNumberFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'Number'
         self.currentTaskFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'CurrentTask'
-        self.maintenanceFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'Maintenance'
+        self.tasksQueueInFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'TasksQueueIn'
+        self.tasksQueueOutFileName = os.path.dirname(os.path.abspath(__file__)) + '/' + self.__class__.__name__ + 'TasksQueueOut'
 
         self.adminUrl = adminUrl
         self.agentId = int(open(self.agentNumberFileName).read().strip())
         self.actionUrl = r'%s/agents/%d/' % (self.adminUrl, self.agentId)
         
-        sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
-        
-        self.currentTask = None
-        self._LoadCurrentTaskData()
+        self._LoadLocalData()
         self._ProcessCommandLine()
     
     def _ProcessCommandLine(self):
@@ -56,128 +50,135 @@ class BaseAgent(object):
             elif sys.argv[1] == 'done':
                 self._Done()            
     
-    def _IsMaintenanceMode(self):
-        '''Режим поддержки'''
-        return os.path.isfile(self.maintenanceFileName)
-    
-    def _IsHeavyLoad(self):
-        '''Отключено по причине неактуальности'''
-        return False
-        
-    def _GetNextTask(self):
-        '''Получить задание из очереди ЦА'''
-        try:
-            fd = urllib.urlopen(self.actionUrl + 'get')
-            self.currentTask = pickle.loads(base64.b64decode(fd.read()))
-            fd.close()
-        except Exception as error:
-            self.currentTask = None
-            print('Error in _GetNextTask: %s' % error)
-        self._SaveCurrentTaskData()
-    
-    def _ReportTask(self):
-        '''Сообщить в ЦА о завершении текущего задания.
-        state: done, error'''
-        result = False
-        try:
-            data = urllib.urlencode({'data': base64.b64encode(pickle.dumps(self.currentTask))})
-            fd = urllib.urlopen(self.actionUrl + 'update', data)
-            reply = fd.read()
-            fd.close()
-            result = (reply == 'ok')
-            print('Send data reply: %s' % reply)
-        except Exception as error:
-            print('Error in _ReportTask: %s' % error)
-        if result:
-            self.currentTask = None
-        else:
-            self.currentTask['reportError'] = True
-        self._SaveCurrentTaskData()
-    
-    def _ReportPing(self):
-        '''Сделать пинг в случае, если не можем начать выполнение задания
-        из-за загрузки сервера'''
-        try:
-            urllib.urlopen(self.actionUrl + 'ping').close()
-        except Exception as error:
-            print('Error in _ReportPing: %s' % error)
-    
-    def _LoadCurrentTaskData(self):
-        '''Получить данные о текущем задании из локального хранилища'''
+    def _LoadLocalData(self):
+        '''Получить текущие данные из локального хранилища'''
         self.currentTask = None
+        self.tasksQueueIn = []
+        self.tasksQueueOut = []
         try:
             if os.path.isfile(self.currentTaskFileName):
-                with open(self.currentTaskFileName, 'r') as fd:
+                with open(self.currentTaskFileName) as fd:
                     self.currentTask = pickle.load(fd)
+            if os.path.isfile(self.tasksQueueInFileName):
+                with open(self.tasksQueueInFileName) as fd:
+                    self.tasksQueueIn = pickle.load(fd)
+            if os.path.isfile(self.tasksQueueOutFileName):
+                with open(self.tasksQueueOutFileName) as fd:
+                    self.tasksQueueOut = pickle.load(fd)
         except Exception as error:
-            print('Error in _LoadCurrentTaskData: %s' % error)
+            print('Error in _LoadLocalData: %s' % error)
     
-    def _SaveCurrentTaskData(self):
-        '''Записать данные о текущем задании в локальное хранилище'''
+    def _SaveLocalData(self):
+        '''Записать текущие данные в локальное хранилище'''
         result = False
         try:
             with open(self.currentTaskFileName, 'w') as fd:
                 pickle.dump(self.currentTask, fd)
+            with open(self.tasksQueueInFileName, 'w') as fd:
+                pickle.dump(self.tasksQueueIn, fd)
+            with open(self.tasksQueueOutFileName, 'w') as fd:
+                pickle.dump(self.tasksQueueOut, fd)
             result = True
         except Exception as error:
-            print('Error in _SaveCurrentTaskData: %s' % error)
+            print('Error in _SaveLocalData: %s' % error)
         return result
     
-    def _GetCurrentTaskId(self):
-        '''Идентификатор текущего задания'''
-        taskId = None
+    def _GetNextTask(self):
+        '''Получить задание из локального списка, либо из очереди ЦА'''
         try:
-            taskId = self.currentTask['id']
+            if not self._HasQueuedTasks():
+                sys.stdout.write('- getting data ... ')
+                fd = urllib.urlopen(self.actionUrl + 'get')
+                self.tasksQueueIn = pickle.loads(base64.b64decode(fd.read()))
+                self.tasksQueueOut = []
+                fd.close()
+                print('done')
+            if self._HasQueuedTasks():
+                self.currentTask = self.tasksQueueIn.pop(0)
         except Exception as error:
-            print('Error in _GetCurrentTaskId: %s' % error)
-        return taskId
+            self.currentTask = None
+            print('Error in _GetNextTask: %s' % error)
+        self._SaveLocalData()
+    
+    def _ReportTask(self):
+        '''Записать информацию о завершении текущего задания в локальный список. По завершении очереди 
+        сообщить в ЦА . state: done, error'''
+        try:
+            if self._HasTask():
+                self.tasksQueueOut.append(self.currentTask)
+            self.currentTask = None
+            if not self._HasQueuedTasks():
+                sys.stdout.write('- sending data ... ')
+                data = urllib.urlencode({'data': base64.b64encode(pickle.dumps(self.tasksQueueOut))})
+                fd = urllib.urlopen(self.actionUrl + 'update', data)
+                reply = fd.read()
+                fd.close()
+                print(reply)
+                if reply == 'ok':
+                    self.tasksQueueOut = []
+                else:
+                    self.currentTask = {'reportError': True}
+        except Exception as error:
+            print('Error in _ReportTask: %s' % error)
+            self.currentTask = {'reportError': True}
+        self._SaveLocalData()
+    
+    def _GetCurrentTaskId(self):
+        '''Получить идентификатор текущего задания'''
+        try:
+            return self.currentTask['id']
+        except Exception:
+            return None
     
     def _SetCurrentTaskState(self, state, error):
-        '''Состояние текущего задания'''
+        '''Задать состояние текущего задания'''
         try:
             self.currentTask['state'] = state
             self.currentTask['error'] = error
         except Exception as error:
             print('Error in _SetCurrentTaskState: %s' % error)
     
-    def _HasReportError(self):
-        '''Есть ли неудачно отправленный отчет?'''
-        return 'reportError' in self.currentTask
+    def _HasQueuedTasks(self):
+        '''Есть ли задания в локальной очереди?'''
+        try:
+            return len(self.tasksQueueIn) > 0
+        except Exception:
+            return False
     
     def _HasTask(self):
         '''Есть ли выполняющееся задание?'''
-        return self.currentTask != None
+        return (self.currentTask != None) and not self._HasReportError()
+    
+    def _HasReportError(self):
+        '''Есть ли неудачно отправленный отчет?'''
+        try:
+            return 'reportError' in self.currentTask
+        except Exception:
+            return False
     
     def _Cron(self):
         '''Метод вызывается по cron'''
         dts = datetime.datetime.now().strftime('%d.%m.%y %H:%M')
-        if not self._IsMaintenanceMode():
-            if not self._HasTask():
-                if not self._IsHeavyLoad():
-                    self._GetNextTask()
-                    if self._HasTask():
-                        print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
-                        try:
-                            self.currentTask['timeStart'] = datetime.datetime.now()
-                            self._SaveCurrentTaskData()
-                            self._ActionOn()
-                        except Exception as error:
-                            print('Error: %s' % error)
-                            self._SetCurrentTaskState('error', str(error))
-                            self._ReportTask()
-                    else:
-                        print('%s - No tasks found' % dts)
-                else:
-                    print('%s - Heavy load detected' % dts)
-                    self._ReportPing()
-            else:
-                if self._HasReportError():
-                    print('%s - Reporting again task #%s' % (dts, self._GetCurrentTaskId()))
+        if self._HasReportError():
+            print('%s - Reporting again last tasks queue' % (dts))
+            self._ReportTask()
+        if not self._HasTask() and not self._HasReportError():
+            self._GetNextTask()
+            if self._HasTask():
+                print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
+                try:
+                    self.currentTask['timeStart'] = datetime.datetime.now()
+                    self.currentTask['runTime'] = 0
+                    self._SaveLocalData()
+                    self._ActionOn()
+                except Exception as error:
+                    print('Error: %s' % error)
+                    self._SetCurrentTaskState('error', str(error))
                     self._ReportTask()
-                else:
-                    print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
-        else:
-            print('%s - Maintenance mode' % dts)
+            else:
+                print('%s - No tasks found' % dts)
+        elif self._HasTask():
+            print('%s - Task #%s is currently running' % (dts, self._GetCurrentTaskId()))
 
     def _Done(self):
         '''Текущее задание выполнено'''
@@ -186,7 +187,7 @@ class BaseAgent(object):
             print('%s - Finishing task #%s' % (dts, self._GetCurrentTaskId()))
             try:
                 self.currentTask['runTime'] = (datetime.datetime.now() - self.currentTask['timeStart']).seconds
-                self._SaveCurrentTaskData()
+                self._SaveLocalData()
                 if self._ActionOff():
                     self._SetCurrentTaskState('done', '')
                 else:
@@ -199,10 +200,8 @@ class BaseAgent(object):
             print('%s - No task is currently running' % dts)
     
     def _RunApp(self, path):
-        '''Запускаем приложение и не ждем завершения. 
-        По завершении наше приложение должно вызвать этот же скрипт с 
+        '''Запускаем приложение и не ждем завершения. По завершении наше приложение должно вызвать этот же скрипт с 
         агрументом командной строки "done".'''
-        #subprocess.Popen('start ' + path, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
         subprocess.Popen(path, stdin=None, stdout=None, stderr=None)
         
     def _KillApp(self, imageName):
@@ -216,6 +215,3 @@ class BaseAgent(object):
     def _ActionOff(self):
         '''Выполнение полученного задания. Абстрактный метод'''
         return True
-    
-if __name__ == '__main__':
-    agent = SomeAgent('http://127.0.0.1:8000/doorsadmin')
