@@ -1,1 +1,0 @@
-python2.6 /home/admin/searchpro.name/doorscenter/doorsagents/doorgen-next.py cron
