@@ -115,6 +115,10 @@ def UpdateIndexCount():
             domain.dateBan = datetime.date.today()
             domain.stateSimple = 'error'
             domain.save()
+        elif (indexCountNew > 0) and (domain.banned):
+            domain.banned = False
+            domain.dateBan = None
+            domain.save()
     if len(bannedDomains) > 0:
         EventLog('error', 'Domains banned (%d): %s.' % (len(bannedDomains), '; '.join(bannedDomains)))
     
