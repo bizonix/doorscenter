@@ -15,7 +15,7 @@ stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
 stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
 languages = (('en', 'en'), ('ru', 'ru'))
 encodings = (('cp1251', 'cp1251'), ('utf-8', 'utf-8'))
-agentTypes = (('doorgen', 'doorgen'), ('snippets', 'snippets'), ('xrumer', 'xrumer'))
+agentTypes = (('doorgen', 'doorgen'), ('snippets', 'snippets'), ('xrumer', 'xrumer'), ('test', 'test'))
 hostTypes = (('free', 'free'), ('shared', 'shared'), ('vps', 'vps'), ('dedicated', 'dedicated'))
 hostControlPanelTypes = (('none', 'none'), ('ispconfig', 'isp config'), ('ispmanager', 'isp manager'), ('directadmin', 'direct admin'), ('cpanel', 'cpanel'))
 templateTypes = (('classic', 'classic'), ('ddl', 'ddl'))
@@ -70,6 +70,8 @@ def GetObjectByTaskType(taskType):
         return SpamProfileTask
     elif taskType == 'XrumerBaseDoors':
         return XrumerBaseDoors
+    elif taskType == 'TestQueue':
+        return TestQueue
 
 def NextYearDate():
     '''Сегодняшняя дата плюс год'''
@@ -1459,6 +1461,8 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             return [Doorway]
         elif self.type == 'xrumer':
             return [XrumerBaseRaw, XrumerBaseSpam, SpamTask, SpamProfileTask, XrumerBaseDoors]
+        elif self.type == 'test':
+            return [TestQueue]
     def AppendParams(self, data):
         '''Добавляем параметры агента в задание'''
         for param in self.params.split('\n'):
@@ -1552,3 +1556,28 @@ class RedirectType(models.Model):
         verbose_name_plural = 'V.1 # Redirect Types'
     def __unicode__(self):
         return self.fileName
+
+class TestQueue(BaseDoorObject, BaseDoorObjectManaged):
+    '''Тестовая очередь для тестового агента'''
+    paramIn = models.CharField('Input', max_length=200, default='', blank=True)
+    paramOut = models.CharField('Output', max_length=200, default='', blank=True)
+    class Meta:
+        verbose_name = 'Test Queue Item'
+        verbose_name_plural = 'X.1 # Test Queue - [managed]'
+    def __unicode__(self):
+        return self.paramIn
+    @classmethod
+    def GetTasksList(self, agent):
+        '''Получение списка задач для агента'''
+        return TestQueue.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')
+    def GetTaskDetails(self):
+        '''Подготовка данных для работы агента'''
+        return({'paramIn': self.paramIn})
+    def SetTaskDetails(self, data):
+        '''Обработка данных агента'''
+        self.paramOut = data['paramOut'] 
+        super(TestQueue, self).SetTaskDetails(data)
+    def save(self, *args, **kwargs):
+        if self.paramIn == '':
+            self.paramIn = str(random.randint(100, 999))
+        super(TestQueue, self).save(*args, **kwargs)

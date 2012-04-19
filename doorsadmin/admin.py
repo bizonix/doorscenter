@@ -453,6 +453,15 @@ class RedirectTypeAdmin(BaseAdmin):
         (None, {'fields': ['description', 'fileName']}),
     ]
 
+class TestQueueAdmin(BaseAdminManaged):
+    list_display = ('pk', 'paramIn', 'paramOut', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
+    fieldsets = [
+        (None, {'fields': [('paramIn', 'paramOut')]}),
+        ('Remarks', {'fields': ['remarks'], 'classes': ['collapse']}),
+        ('State information', {'fields': [('stateManaged', 'agent', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
+    ]
+    readonly_fields = ['lastError', 'dateAdded', 'dateChanged']
+
 admin.site.register(Niche, NicheAdmin)
 admin.site.register(NetPlan, NetPlanAdmin)
 admin.site.register(Net, NetAdmin)
@@ -476,3 +485,5 @@ admin.site.register(Agent, AgentAdmin)
 admin.site.register(Event, EventAdmin)
 admin.site.register(Report, ReportAdmin)
 admin.site.register(RedirectType, RedirectTypeAdmin)
+
+admin.site.register(TestQueue, TestQueueAdmin)

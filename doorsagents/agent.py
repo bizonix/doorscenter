@@ -217,15 +217,5 @@ class BaseAgent(object):
         '''Выполнение полученного задания. Абстрактный метод'''
         return True
     
-class SomeAgent(BaseAgent):
-    '''Пример агента'''
-    def _ActionOn(self):
-        return True
-    def _ActionOff(self):
-        self.currentTask['keywordsList'] = []
-        self.currentTask['stopwordsList'] = []
-        self.currentTask['spamLinksList'] = []
-        return True
-
 if __name__ == '__main__':
     agent = SomeAgent('http://127.0.0.1:8000/doorsadmin')
