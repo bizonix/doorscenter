@@ -168,6 +168,7 @@ class BaseAgent(object):
                 print('%s - Starting task #%s' % (dts, self._GetCurrentTaskId()))
                 try:
                     self.currentTask['timeStart'] = datetime.datetime.now()
+                    self.currentTask['timeFinish'] = datetime.datetime.now()
                     self.currentTask['runTime'] = 0
                     self._SaveLocalData()
                     self._ActionOn()
@@ -186,7 +187,8 @@ class BaseAgent(object):
         if self._HasTask():
             print('%s - Finishing task #%s' % (dts, self._GetCurrentTaskId()))
             try:
-                self.currentTask['runTime'] = (datetime.datetime.now() - self.currentTask['timeStart']).seconds
+                self.currentTask['timeFinish'] = datetime.datetime.now()
+                self.currentTask['runTime'] = (self.currentTask['timeFinish'] - self.currentTask['timeStart']).seconds
                 self._SaveLocalData()
                 if self._ActionOff():
                     self._SetCurrentTaskState('done', '')

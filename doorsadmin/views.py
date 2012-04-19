@@ -70,11 +70,10 @@ def update(request, agentId):
                 task.SetTaskDetails(taskData)
             except Exception as errorHandle:
                 taskData['state'] = 'error'
-                taskData['error'] += '. Handle error:' + str(errorHandle)
+                taskData['error'] += '. The task handling error:' + str(errorHandle)
             task.stateManaged = taskData['state']
             task.lastError = taskData['error']
-            if 'runTime' in taskData:
-                task.runTime = taskData['runTime']
+            task.runTime = taskData['runTime']
             task.save()
             if task.stateManaged == 'error':
                 EventLog(task.stateManaged, task.lastError, task)

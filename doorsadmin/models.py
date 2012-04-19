@@ -2,9 +2,6 @@
 from django.db import models, transaction
 from django.db.models import Sum, Count, Max, Q
 from django.db.models.signals import pre_delete
-from django.contrib.admin.models import LogEntry, ADDITION
-from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import force_unicode
 from django.core.mail import send_mail
 from doorsadmin.common import KeywordToUrl, FindShortKeyword, AddDomainToControlPanel, DelDomainFromControlPanel, GetFirstObject, EncodeListForAgent, DecodeListFromAgent, GenerateRandomWord, PrettyDate, GetCounter, GetFieldCounter, GetRelativeTrafficCounter, HtmlLinksToBBCodes, MakeListUnique, ReplaceZero, GenerateNetConfig
 from doorsadmin.locations import GetRandomLocation
@@ -1072,7 +1069,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
     @classmethod
     def GetTasksList(self, agent):
         '''Получение списка задач для агента'''
-        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')[:1]
+        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')[:20]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
