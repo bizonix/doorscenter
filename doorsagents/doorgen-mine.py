@@ -14,7 +14,7 @@ class DoorgenMineAgent(agent.BaseAgent):
     <?php system('tar -zxf bean.tgz'); unlink('bean.tgz'); ?>     
 '''
     
-    def _Settings(self, generateTemplate = False):
+    def _Settings(self):
         '''Настройки'''
         self.appTemplatesFolder = os.path.dirname(os.path.abspath(__file__)) + '/doorgen/templates'  # папка с шаблонами 
         self.appTextsFolder = os.path.dirname(os.path.abspath(__file__)) + '/doorgen/templates/texts'  # папка с текстовыми файлами
@@ -30,11 +30,6 @@ class DoorgenMineAgent(agent.BaseAgent):
         else:
             self.remoteFolder = '%s/sub-%s%s' % (self.currentTask['documentRoot'], self.currentTask['domainSub'], self.currentTask['domainFolder'])
         self.currentTask['doorLinksList'] = []
-        '''Генерация шаблона'''
-        if generateTemplate:
-            if self.currentTask['templateFolder'].startswith('xgen'):
-                tplgen.TemplateGenerator1(self.currentTask['templateFolder'], os.path.join(self.appTemplatesFolder, 'xgen'))
-                self.currentTask['templateFolder'] = 'xgen'
         
     def _CheckStatusCode(self):
         '''Проверить код статуса HTTP у залитого дора'''
@@ -43,7 +38,7 @@ class DoorgenMineAgent(agent.BaseAgent):
             raise Exception('Status code = %d' % statusCode)
         
     def _ActionOn(self):
-        self._Settings(True)
+        self._Settings()
         '''Запуск приложения'''
         self.doorgen = Doorgen(self.appTemplatesFolder, self.appTextsFolder, self.appSnippetsFolder)
         keywordsList = self.currentTask['keywordsList'][:]
