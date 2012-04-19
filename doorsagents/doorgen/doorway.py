@@ -156,6 +156,7 @@ Disallow: /*/js/'''
 </methodCall>''' % (self.title, self.url)
             request = urllib2.Request('http://blogsearch.google.com/ping/RPC2')
             request.add_header('User-Agent', 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0)')
-            urllib2.urlopen(request, pingXml).read()
+            response = urllib2.urlopen(request, pingXml).read()
+            print('Ping %s.' % ('ok' if response.find('Thanks for the ping') > 0 else 'ERROR'))
         except Exception as error:
             print(error)

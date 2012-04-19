@@ -116,7 +116,7 @@ def UpdateIndexCount():
             domain.stateSimple = 'error'
             domain.save()
     if len(bannedDomains) > 0:
-        EventLog('error', 'Domains banned: %s.' % '; '.join(bannedDomains))
+        EventLog('error', 'Domains banned (%d): %s.' % (len(bannedDomains), '; '.join(bannedDomains)))
     
 def CheckOwnershipTk():
     '''Проверяем .tk на отбор'''
