@@ -132,7 +132,7 @@ class BaseDoorObjectManaged(models.Model):
     GetRunTime.short_description = 'Run Time'
     GetRunTime.allow_tags = True
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
         pass
     def GetTaskDetails(self):
@@ -782,9 +782,9 @@ class SnippetsSet(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectManag
     GetDateLastParsedAgo.short_description = 'Last Parsed'
     GetDateLastParsedAgo.allow_tags = True
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
+        return SnippetsSet.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'localFile': self.localFile, 
@@ -1067,9 +1067,9 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
             s += '<a href="%s">%s</a>\n' % (doorLink.url, doorLink.anchor)
         return s
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')[:20]
+        return Doorway.objects.filter(Q(stateManaged='new'), (Q(agent=agent) | Q(agent=None))).order_by('priority', 'pk')[:20 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         if self.netLinksList == '':
@@ -1199,9 +1199,9 @@ class XrumerBaseSpam(BaseXrumerBase):
     def GetSpamTaskDomainLinksCount(self):
         return random.randint(self.spamTaskDomainLinksMin, self.spamTaskDomainLinksMax)
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
+        return XrumerBaseSpam.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1231,9 +1231,9 @@ class SpamTask(BaseDoorObject, BaseDoorObjectSpammable):
             s += '<a href="%s">%s</a>\n' % (spamLink.url, spamLink.anchor)
         return s
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1]
+        return SpamTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseSpam.GetTaskDetailsCommon()
@@ -1258,9 +1258,9 @@ class SpamProfileTask(BaseDoorObject, BaseDoorObjectSpammable):
         verbose_name = 'Spam Profile Task'
         verbose_name_plural = 'II.4 Spam Profile Tasks - [large, managed]'
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return SpamProfileTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1]
+        return SpamProfileTask.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.xrumerBaseRaw.GetTaskDetailsCommon()
@@ -1280,9 +1280,9 @@ class XrumerBaseDoors(BaseXrumerBase):
         verbose_name = 'Xrumer Base Doors'
         verbose_name_plural = 'II.5 Xrumer Bases Doors - [act, managed]'
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')[:1]
+        return XrumerBaseDoors.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', '?')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1415,9 +1415,9 @@ class XrumerBaseRaw(BaseXrumerBase):
     GetXrumerBasesSpamCount.short_description = 'Bases Spam'
     GetXrumerBasesSpamCount.allow_tags = True
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1]
+        return XrumerBaseRaw.objects.filter(Q(stateManaged='new'), Q(active=True)).order_by('priority', 'pk')[:1 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         result = self.GetTaskDetailsCommon()
@@ -1484,7 +1484,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
         countDone = 0
         countError = 0
         for queue in self.GetQueues():
-            countNew += queue.GetTasksList(self).count()
+            countNew += queue.GetTasksList(self, True).count()
             countInproc += queue.objects.filter(Q(stateManaged='inproc'), Q(agent=self)).count()
             countDone += queue.objects.filter(Q(stateManaged='done'), Q(agent=self)).count()
             countError += queue.objects.filter(Q(stateManaged='error'), Q(agent=self)).count()
@@ -1558,9 +1558,9 @@ class TestQueue(BaseDoorObject, BaseDoorObjectManaged):
     def __unicode__(self):
         return self.paramIn
     @classmethod
-    def GetTasksList(self, agent):
+    def GetTasksList(self, agent, fullList):
         '''Получение списка задач для агента'''
-        return TestQueue.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:4]
+        return TestQueue.objects.filter(Q(stateManaged='new')).order_by('priority', 'pk')[:4 if not fullList else 999]
     def GetTaskDetails(self):
         '''Подготовка данных для работы агента'''
         return({'paramIn': self.paramIn})

@@ -20,7 +20,7 @@ def get(request, agentId):
         if agent.active:
             for queue in agent.GetQueues(): 
                 '''Очередь возвращает порцию заданий для агента'''
-                tasksList = queue.GetTasksList(agent)
+                tasksList = queue.GetTasksList(agent, False)
                 if len(tasksList) > 0:
                     tasksDataList = []
                     for task in tasksList:
