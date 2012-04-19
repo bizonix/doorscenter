@@ -40,7 +40,7 @@ def get(request, agentId):
                     '''Обновляем агента'''
                     tasksType = tasksDataList[0]['type']
                     tasksIdsList = [str(item['id']) for item in tasksDataList]
-                    agent.currentTask = '%s #%s' % (tasksType, ','.join(tasksIdsList))
+                    agent.currentTask = '%s #%s' % (tasksType, ', '.join(tasksIdsList))
                     agent.save()
                     transaction.commit()
                     '''Формируем ответ'''
