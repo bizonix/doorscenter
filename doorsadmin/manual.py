@@ -1,12 +1,12 @@
 # coding=utf8
-from doorsadmin.models import Domain, Doorway, Host, IPAddress
+from doorsadmin.models import Niche, Domain, Doorway, Host, IPAddress
 import re, random, urlparse
 
 def AddDomains():
     '''Добавление доменов из файла'''
     host = Host.objects.get(pk=8)
     ipAddress = IPAddress.objects.get(pk=random.randint(14, 18))
-    domainsFileName = r'/home/admin/searchpro.name/doorscenter/domains.txt'
+    domainsFileName = r'./domains.txt'
     for domainName in open(domainsFileName).readlines():
         domainName = domainName.strip()
         if domainName != '':
@@ -26,7 +26,8 @@ def ExtractUrl(link):
 
 def AddLinks():
     '''Добавление дорвеев и ссылок из файла (для классики)'''
-    linksFileName = r'/home/admin/searchpro.name/doorscenter/links.txt'
+    linksFileName = r'./links.txt'
+    '''Читаем ссылки и группируем по хостам'''
     linksDict = {}
     for link in open(linksFileName):
         url = ExtractUrl(link)
@@ -34,18 +35,26 @@ def AddLinks():
         if host not in linksDict:
             linksDict[host] = []
         linksDict[host].append(link)
+    '''Создаем дорвеи и ссылки для спама'''
+    niche = Niche.objects.get(pk=5)
     for host in linksDict.iterkeys():
-        domain = Domain.objects.get(name=host)
-        linksCount = len(linksDict[host])
-        if domain != None:
+        print(host)
+        try:
+            linksCount = len(linksDict[host])
+            domain = Domain.objects.get(name=host.replace('www.', ''))
+            domain.niche = niche
             domain.group = 'classic'
+            domain.maxDoorsCount = 1
             domain.save()
-            doorway = Doorway.objects.create(domain=domain, domainFolder=r'/', pagesCount=-1, doorLinksCount=linksCount, spamLinksCount=linksCount)
-            doorway.SetTaskDetails({'doorLinksList': linksDict[host], 'state': 'done', 'lastError': '', 'runTime': None})
-            doorway.stateManaged = 'done'
-            doorway.save()
-        else:
-            print('Domain %s not found' % host)
+            if Doorway.objects.filter(domain=domain, domainFolder=r'/').count() == 0:
+                doorway = Doorway.objects.create(niche=niche, domain=domain, domainFolder=r'/', pagesCount=-1, doorLinksCount=linksCount, spamLinksCount=linksCount)
+                doorway.SetTaskDetails({'doorLinksList': linksDict[host], 'state': 'done', 'lastError': '', 'runTime': None})
+                doorway.stateManaged = 'done'
+                doorway.save()
+            else:
+                raise Exception('Doorway already exists.')
+        except Exception as error:
+            print('Error: %s' % error)
     
 def Helper():
     '''Прочие действия из командной строки'''
