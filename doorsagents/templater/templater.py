@@ -5,12 +5,12 @@ from BeautifulSoup import BeautifulSoup, Tag, Comment, Declaration
 class TemplateGenerator(object):
     '''Генератор шаблона дорвея'''
     
-    def __init__(self, tdsScheme):
+    def __init__(self, templateFolder, tdsScheme):
         '''Инициализация'''
         self.tdsScheme = tdsScheme
         self.soup = None
         self.workFolder = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\templater'
-        self.templateFolder = r'C:\Work\pandora\data\templates\templater'
+        self.templateFolder = templateFolder
         self.dataFilesFolder = r'C:\Work\pandora\data\files'
         self.idsList = self._GetFileLines('list-id.txt')
         self.namesList = self._GetFileLines('list-name.txt')
@@ -34,15 +34,18 @@ class TemplateGenerator(object):
     
     def _ClearFolder(self, folderName):
         '''Очищаем папку'''
-        for pathName in os.listdir(folderName):
-            pathName = os.path.join(folderName, pathName)
-            try:
-                if os.path.isfile(pathName):
-                    os.unlink(pathName)
-                elif os.path.isdir(pathName):
-                    shutil.rmtree(pathName, True)
-            except Exception:
-                pass
+        try:
+            for pathName in os.listdir(folderName):
+                pathName = os.path.join(folderName, pathName)
+                try:
+                    if os.path.isfile(pathName):
+                        os.unlink(pathName)
+                    elif os.path.isdir(pathName):
+                        shutil.rmtree(pathName, True)
+                except Exception:
+                    pass
+        except Exception:
+            pass
     
     def _GetFileContents(self, fileName):
         '''Читаем содержимое файла из рабочей папки'''
@@ -565,8 +568,8 @@ AddType application/x-httpd-php .php .html'''
         '''Завершение работы'''
         print('Done')
 
-x = TemplateGenerator(101)
-x.Main()
+for n in range(20):
+    TemplateGenerator(r'C:\Work\pandora\data\templates\templater%02d' % n, 84).Main()
 '''
 дата поста
 '''
