@@ -1111,49 +1111,50 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
             n += 1
         super(Doorway, self).SetTaskDetails(data)
     def save(self, *args, **kwargs):
-        '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
-        if self.template == None:
-            self.template = self.niche.GetRandomTemplate()
-        if self.keywordsSet == None:
-            self.keywordsSet = self.niche.GetRandomKeywordsSet()
-        '''Если не указан домен - берем следующий свободный по нише'''
-        if self.domain == None:
-            self.domain = self.niche.GetNextDomain()
-        '''Если нет ключевых слов, то генерируем (с фильтром по конкуренции)'''
-        if self.keywordsList == '':
-            self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount, 150000))  # настройка: максимальная конкуренция в гугле
-        '''Если нет ссылок сетки, то генерируем'''
-        if self.netLinksList == '':
-            self.netLinksList = self.domain.GetNetLinksList(self)
-        '''Если не указаны параметры домена, то пытаемся занять корень. Если не получается,
-        то придумываем новую папку по названию первого кея из списка'''
-        if (self.domainSub == '') and (self.domainFolder == ''):
-            if self.domain.IsRootFree():
-                self.domainSub = ''
-                self.domainFolder = r'/'
-            else:
-                subName = FindShortKeyword(self.keywordsList.split('\n'))
-                if random.randint(0, 100) < 50: # настройка: процент выбора из списка городов
-                    subName = GetRandomLocation()
-                if (self.domain.autoSubdomains) and (random.randint(0, 100) < 95): # настройка: процент генерации на субдоменах
-                    '''генерация дора на субдомене'''
-                    self.domainSub = KeywordToUrl(subName)
+        if self.pagesCount != -1:  # для ручного добавления доров по списку урлов
+            '''Если не указаны шаблон или набор кеев - берем случайные по нише'''
+            if self.template == None:
+                self.template = self.niche.GetRandomTemplate()
+            if self.keywordsSet == None:
+                self.keywordsSet = self.niche.GetRandomKeywordsSet()
+            '''Если не указан домен - берем следующий свободный по нише'''
+            if self.domain == None:
+                self.domain = self.niche.GetNextDomain()
+            '''Если нет ключевых слов, то генерируем (с фильтром по конкуренции)'''
+            if self.keywordsList == '':
+                self.keywordsList = '\n'.join(self.keywordsSet.GenerateKeywordsList(self.pagesCount, 150000))  # настройка: максимальная конкуренция в гугле
+            '''Если нет ссылок сетки, то генерируем'''
+            if self.netLinksList == '':
+                self.netLinksList = self.domain.GetNetLinksList(self)
+            '''Если не указаны параметры домена, то пытаемся занять корень. Если не получается,
+            то придумываем новую папку по названию первого кея из списка'''
+            if (self.domainSub == '') and (self.domainFolder == ''):
+                if self.domain.IsRootFree():
+                    self.domainSub = ''
                     self.domainFolder = r'/'
                 else:
-                    '''генерация дора в папке'''
-                    self.domainSub = ''
-                    self.domainFolder = r'/' + KeywordToUrl(subName)
-        '''Если у домена не указана ниша, то устанавливаем ее'''
-        if self.domain.niche == None:
-            self.domain.niche = self.niche
-            self.domain.save()
-        '''Если число доров на домене превысило максимально допустимое, делаем его неактивным'''
-        if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
-            self.domain.active = False
-            self.domain.save()
-        '''Если не указан желаемый агент, берем из шаблона'''
-        if (self.agent == None) and (self.template != None):
-            self.agent = self.template.agent
+                    subName = FindShortKeyword(self.keywordsList.split('\n'))
+                    if random.randint(0, 100) < 50: # настройка: процент выбора из списка городов
+                        subName = GetRandomLocation()
+                    if (self.domain.autoSubdomains) and (random.randint(0, 100) < 95): # настройка: процент генерации на субдоменах
+                        '''генерация дора на субдомене'''
+                        self.domainSub = KeywordToUrl(subName)
+                        self.domainFolder = r'/'
+                    else:
+                        '''генерация дора в папке'''
+                        self.domainSub = ''
+                        self.domainFolder = r'/' + KeywordToUrl(subName)
+            '''Если у домена не указана ниша, то устанавливаем ее'''
+            if self.domain.niche == None:
+                self.domain.niche = self.niche
+                self.domain.save()
+            '''Если число доров на домене превысило максимально допустимое, делаем его неактивным'''
+            if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
+                self.domain.active = False
+                self.domain.save()
+            '''Если не указан желаемый агент, берем из шаблона'''
+            if (self.agent == None) and (self.template != None):
+                self.agent = self.template.agent
         super(Doorway, self).save(*args, **kwargs)
 
 class DoorLink(models.Model):
