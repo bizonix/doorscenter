@@ -927,6 +927,12 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     GetBackLinksCountDate.short_description = 'Backs Date'
     GetBackLinksCountDate.allow_tags = True
     GetBackLinksCountDate.admin_order_field = 'backLinksCountDate'
+    def GetAge(self):
+        '''Возраст в днях'''
+        return (datetime.date.today() - self.dateRegistered).days
+    GetAge.short_description = 'Age'
+    GetAge.allow_tags = True
+    GetAge.admin_order_field = 'dateRegistered'
     def GetDateExpires(self):
         '''Дата истечения регистрации с подсветкой'''
         if self.dateExpires < datetime.date.today():
@@ -967,6 +973,7 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
         '''Удаляем домен из панели управления + прочие действия'''
         self._DelFromControlPanel()
         self.stateSimple = 'deleted'
+        self.active = False
         self.save()
         self.doorway_set.update(stateManaged='deleted')
     def _AddToControlPanel(self):
