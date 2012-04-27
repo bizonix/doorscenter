@@ -1,2 +1,2 @@
 @echo off
-python manage.py genspam
+python manage.py doorsgenspam
