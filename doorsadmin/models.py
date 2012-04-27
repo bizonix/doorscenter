@@ -563,12 +563,13 @@ class Net(BaseNet):
     GetTrafficLastYearRelative.short_description = 'Traf/y'
     GetTrafficLastYearRelative.allow_tags = True
     def GetNextDomain(self):
-        '''Получить следующий свободный домен'''
+        '''Получить следующий свободный домен. 
+        Сначала генерим доры в корне всех доменов сети поочереди.'''
         try:
-            for obj in self.domain_set.filter(active=True).order_by('pk').all():
+            for obj in self.domain_set.filter(maxDoorsCountExceeded=False).order_by('pk').all():
                 if obj.IsRootFree():
                     return obj
-            return Domain.objects.filter(Q(active=True), Q(net=self)).order_by('?')[:1].get()
+            return Domain.objects.filter(Q(maxDoorsCountExceeded=False), Q(net=self)).order_by('?')[:1].get()
         except Exception:
             pass
     def AddDomains(self, count = None, domainsLimit = 999, linksLimit = 999):
@@ -823,6 +824,7 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
     linkedDomains = models.ManyToManyField('self', verbose_name='Linked Domains', symmetrical=False, null=True, blank=True)
     bulkAddDomains = models.TextField('More Domains', default='', blank=True)
     maxDoorsCount = models.IntegerField('Max Doors', default=MaxDoorsCount, blank=True)
+    maxDoorsCountExceeded = models.BooleanField('Max Doors Exceeded', default=False, blank=True)
     makeSpam = models.BooleanField('Sp.', default=True)
     group = models.CharField('Group', max_length=50, default='', blank=True)
     drop = models.BooleanField('Is drop', default=False, blank=True)
@@ -1165,7 +1167,7 @@ class Doorway(BaseDoorObject, BaseDoorObjectManaged):
                 self.domain.save()
             '''Если число доров на домене превысило максимально допустимое, делаем его неактивным'''
             if self.domain.doorway_set.count() >= self.domain.maxDoorsCount:
-                self.domain.active = False
+                self.domain.maxDoorsCountExceeded = True
                 self.domain.save()
             '''Если не указан желаемый агент, берем из шаблона'''
             if (self.agent == None) and (self.template != None):
