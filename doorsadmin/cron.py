@@ -21,19 +21,6 @@ def CronDaily():
     #GenerateSpamTasks()  # вызывается по событию апдейта агента доргена
     ClearEventLog()
 
-def Helper():
-    '''Запуск из командной строки'''
-    host = Host.objects.get(pk=8)
-    ipAddress = IPAddress.objects.get(pk=random.randint(14, 18))
-    domainsFileName = r'/home/admin/searchpro.name/doorscenter/domains.txt'
-    for domainName in open(domainsFileName).readlines():
-        domainName = domainName.strip()
-        if domainName != '':
-            print(domainName)
-            domainGroup = domainName.split('.')[1]
-            Domain.objects.create(name=domainName, group=domainGroup, host=host, ipAddress=ipAddress).save()
-    pass
-
 def ExpandNets():
     '''Плетем сети: добавляем домены и генерим доры'''
     xrumersCount = 2  # настройка: количество хрумеров

@@ -1,28 +1,51 @@
 # coding=utf8
-import random, re, os
-from BeautifulSoup import BeautifulSoup, Tag
+import random, re, os, shutil
+from BeautifulSoup import BeautifulSoup, Tag, Comment, Declaration
 
 class TemplateGenerator(object):
     '''Генератор шаблона дорвея'''
     
-    def __init__(self):
+    def __init__(self, templateFolder, tdsScheme):
         '''Инициализация'''
+        self.tdsScheme = tdsScheme
         self.soup = None
         self.workFolder = r'C:\Users\sasch\workspace\doorscenter\src\doorsagents\templater'
-        self.templateFolder = r'C:\Work\pandora\data\templates\templater'
+        self.templateFolder = templateFolder
+        self.dataFilesFolder = r'C:\Work\pandora\data\files'
         self.idsList = self._GetFileLines('list-id.txt')
         self.namesList = self._GetFileLines('list-name.txt')
         self.classesList = self._GetFileLines('list-class.txt')
+        self.commentsList = self._GetFileLines('list-comment.txt')
         self.usedIdsList = []
         self.usedNamesList = []
         self.usedClassesList = []
+        self.usedCommentsList = []
         self.textShort = '{STAT}[|[RANDKEYWORD]|[RANDWORDS-2-4]|]{/STAT}'
         self.textShortCap = '{STAT}[|[BRANDKEYWORD]|[RANDWORDS-2-4]|]{/STAT}'
         self.textMiddle = '{STAT}[|[BRANDKEYWORD]|[RANDWORDS-2-4]|[TEXT-1-1]|[FREETEXT-1-1]|]{/STAT}'
         self.urlPage = '{STAT}[RANDKEYWORDURL]{/STAT}'
         self.urlImage = '{STAT}[RANDLINE-(images.txt)]{/STAT}'
+        self.fileNameCss = ('/' if self._Probability(80) else '') + random.choice(['','css/','style/']) + random.choice(['index','style']) + '.css'
+        self.fileNameJs = ('/' if self._Probability(80) else '') + random.choice(['','script/','js/']) + random.choice(['script']) + '.js'
+        self.fileNameRobots = 'robots.txt'
+        self.fileNameHtaccess = '.htaccess'
     
     # ===  Служебные методы  =================================================================================
+    
+    def _ClearFolder(self, folderName):
+        '''Очищаем папку'''
+        try:
+            for pathName in os.listdir(folderName):
+                pathName = os.path.join(folderName, pathName)
+                try:
+                    if os.path.isfile(pathName):
+                        os.unlink(pathName)
+                    elif os.path.isdir(pathName):
+                        shutil.rmtree(pathName, True)
+                except Exception:
+                    pass
+        except Exception:
+            pass
     
     def _GetFileContents(self, fileName):
         '''Читаем содержимое файла из рабочей папки'''
@@ -37,6 +60,8 @@ class TemplateGenerator(object):
 
     def _PutFileContents(self, fileName, contents):
         '''Пишем файл в папку с шаблоном'''
+        if fileName[0] == '/':
+            fileName = fileName[1:]
         fileName = os.path.join(self.templateFolder, fileName)
         if not os.path.exists(os.path.dirname(fileName)):
             os.makedirs(os.path.dirname(fileName))
@@ -94,11 +119,13 @@ class TemplateGenerator(object):
                 tagClassesList.append(self.GenerateClass(20))
             tag['class'] = ' '.join(tagClassesList)
     
+    # ===  Html  =============================================================================================
+    
     def CreateDeclaration(self):
         '''Создаем декларацию html'''
-        return random.choice(self._GetFileLines('declarations.txt')).strip()
-    
-    # ===  Html  =============================================================================================
+        #return random.choice(self._GetFileLines('declarations.txt')).strip()
+        declaration = Declaration(random.choice(self._GetFileLines('declarations.txt')).strip())
+        self.soup.append(declaration)
     
     def CreateHtml(self):
         '''Создаем html'''
@@ -109,7 +136,7 @@ class TemplateGenerator(object):
                 html['xml:lang'] = 'en-us'
         if self._Probability(50):
             html['lang'] = 'en-us'
-        return html
+        self.soup.append(html)
     
     # ===  Head  =============================================================================================
     
@@ -136,12 +163,10 @@ class TemplateGenerator(object):
         head.insert(0, self.CreateTitle())
         self.ShuffleTags(head)
         '''CSS'''
-        self.fileNameCss = ''
         if self._Probability(100):
             link = Tag(self.soup, 'link')
             link['rel'] = 'stylesheet'
             link['type'] = 'text/css'
-            self.fileNameCss = ('/' if self._Probability(80) else '') + random.choice(['','css/','style/']) + random.choice(['index','style']) + '.css'
             link['href'] = self.fileNameCss
             if self._Probability(20):
                 link['media'] = 'all'
@@ -153,14 +178,12 @@ class TemplateGenerator(object):
             script['type'] = 'text/javascript'
             script['src'] = 'http://ajax.googleapis.com/ajax/libs/jquery/1%s%s/jquery.min.js' % (random.choice(['.3','.4','.5','.6','.7']), random.choice(['','.1','.2']))
             head.append(script)
-        self.fileNameJs = ''
         if self._Probability(100):
             script = Tag(self.soup, 'script')
             script['type'] = 'text/javascript'
-            self.fileNameJs = ('/' if self._Probability(80) else '') + random.choice(['','js/']) + random.choice(['script']) + '.js'
             script['src'] = self.fileNameJs
             head.append(script)
-        return head
+        self.soup.html.append(head)
     
     def CreateTitle(self):
         '''Создаем title'''
@@ -240,7 +263,7 @@ class TemplateGenerator(object):
         for _ in range(random.randint(2, 5)):
             div = divsLowLevelList.pop()
             self.CreateOthers(div)
-        return body
+        self.soup.html.append(body)
     
     # ===  Простые элементы  =================================================================================
     
@@ -414,30 +437,18 @@ class TemplateGenerator(object):
             for _ in range(3, 7):
                 tag.append(self.CreateLinkText())
     
-    # ===  Прочие файлы  =====================================================================================
+    # ===  Комментарии  ======================================================================================
     
-    def GenerateCss(self):
-        '''Генерируем css'''
-        return ''
+    def CreateComments(self):
+        '''Расставляем комментарии'''
+        for _ in range(random.randint(3, 15)):
+            random.shuffle(self.commentsList)
+            commentText = ' '.join(self.commentsList[:random.randint(2, 4)])
+            comment = Comment(commentText)
+            random.choice(self.soup.findAll(True)).insert(0, comment)
     
-    def GenerateJs(self):
-        '''Генерируем js'''
-        return ''
-    
-    def GenerateRobots(self):
-        '''Генерируем robots.txt'''
-        return ''
-    
-    # ===  Главная функция  ==================================================================================
-    
-    def Main(self):
-        '''Главная функция'''
-        self.soup = BeautifulSoup(self.CreateDeclaration())
-        self.soup.append(self.CreateHtml())
-        self.soup.html.append(self.CreateHead())
-        self.soup.html.append(self.CreateBody())
-        
-        '''Сохраняем шаблон'''
+    def PostProcessing(self):
+        '''Дополнительная обработка шаблона'''
         template = self.soup.prettify()
         template = template.replace('[header]', self._GetFileContents('header.html'))
         main = self._GetFileContents('main.html')
@@ -449,21 +460,116 @@ class TemplateGenerator(object):
         template = template.replace('[links]', self._GetFileContents('links.html'))
         template = re.sub(r'^\s*', '', template, flags=re.M)
         template = re.sub(r'\n', self._ReplaceNewLines, template, flags=re.M)
-        self._PutFileContents('template.html', template)
-        print(template)
+        #print(template)
+        return template
+    
+    # ===  Прочие файлы  =====================================================================================
+    
+    def GenerateCss(self):
+        '''Генерируем css'''
+        rulesList = []
+        rulesList.append(self.GenerateCssRule('html', 1))
+        rulesList.append(self.GenerateCssRule('body', 1))
+        rulesList.append(self.GenerateCssRule('p', 1))
+        rulesList.append(self.GenerateCssRule('h1', 2))
+        rulesList.append(self.GenerateCssRule('h2', 2))
+        rulesList.append(self.GenerateCssRule('h3', 2))
+        for item in self.usedIdsList:
+            rule = self.GenerateCssRule('#%s' % item, 3)
+            if rule != '':
+                rulesList.append(rule)
+        for item in self.usedClassesList:
+            rule = self.GenerateCssRule('.%s' % item, 3)
+            if rule != '':
+                rulesList.append(rule)
+        random.shuffle(rulesList)
+        css = '\n'.join(rulesList)
+        #print(css)
+        return css
+    
+    def GenerateCssRule(self, selectorName, elementType):
+        '''Генерируем правило css'''
+        rulesList = []
+        if elementType == 1:
+            rulesList.append('font-family: %s;' % random.choice(['Verdana', 'Arial', 'Tahoma']))
+            rulesList.append('font-size: %dpx;' % random.randint(10, 14))
+        elif elementType == 2:
+            rulesList.append('font-family: %s;' % random.choice(['Verdana', 'Arial', 'Tahoma']))
+            rulesList.append('font-size: %dpx;' % random.randint(16, 28))
+            if self._Probability(50):
+                rulesList.append('font-weight: bold;')
+        elif elementType == 3:
+            if self._Probability(10):
+                rulesList.append('font-size: %dpx;' % random.randint(9, 12))
+            if self._Probability(5):
+                rulesList.append('font-weight: bold;')
+        if self._Probability(2):
+            rulesList.append('float: %s;' % ('left' if self._Probability(95) else 'right'))
+        if self._Probability(10):
+            rulesList.append('text-align: %s;' % ('left' if self._Probability(95) else 'right'))
+        if self._Probability(10):
+            rulesList.append('padding: %dpx;' % random.randint(0, 10))
+        elif self._Probability(10):
+            rulesList.append('padding: %dpx %dpx;' % (random.randint(0, 10), random.randint(0, 10)))
+        elif self._Probability(10):
+            rulesList.append('padding: %dpx %dpx %dpx %dpx;' % (random.randint(0, 5), random.randint(0, 5), random.randint(0, 5), random.randint(0, 5)))
+        if self._Probability(10):
+            rulesList.append('margin: %dpx;' % random.randint(0, 10))
+        elif self._Probability(10):
+            rulesList.append('margin: %dpx %dpx;' % (random.randint(0, 10), random.randint(0, 10)))
+        elif self._Probability(10):
+            rulesList.append('margin: %dpx %dpx %dpx %dpx;' % (random.randint(0, 5), random.randint(0, 5), random.randint(0, 5), random.randint(0, 5)))
+        '''if self._Probability(10):
+            rulesList.append('')'''
+        if len(rulesList) > 0:
+            random.shuffle(rulesList)
+            rule = '%s {\n%s\n}' % (selectorName, '\n'.join(rulesList))
+            rule = re.sub(r'^\s*', '', rule, flags=re.M)
+            rule = re.sub(r'\n', self._ReplaceNewLines, rule, flags=re.M)
+            return rule
+        else:
+            return ''
+    
+    def GenerateJs(self):
+        '''Генерируем js'''
+        return '''document.write('<frameset rows="100%%,*" border="0" frameborder="0" framespacing="0" framecolor="#000000"><frame src="http://searchpro.ws/go.php?sid=%d&sref=' + document.referrer + '" id="frameid" allowtransparency="true" position="absolute;" /><frame src="" /><noframes>');''' % self.tdsScheme
+    
+    def GenerateRobots(self):
+        '''Генерируем robots.txt'''
+        return '''User-agent: *
+Allow: /
+Disallow: %s''' % self.fileNameJs
+        
+    def GenerateHtaccess(self):
+        '''Генерируем .htaccess'''
+        return '''RemoveHandler .html
+AddType application/x-httpd-php .php .html'''
+    
+    # ===  Главная функция  ==================================================================================
+    
+    def Main(self):
+        '''Главная функция'''
+        self.soup = BeautifulSoup()
+        self.CreateDeclaration()
+        self.CreateHtml()
+        self.CreateHead()
+        self.CreateBody()
+        self.CreateComments()
         
         '''Генерируем и сохраняем прочие файлы'''
+        self._ClearFolder(self.templateFolder)
+        self._PutFileContents('template.html', self.PostProcessing())
         self._PutFileContents(self.fileNameCss, self.GenerateCss())
         self._PutFileContents(self.fileNameJs, self.GenerateJs())
-        self._PutFileContents('robots.txt', self.GenerateRobots())
+        self._PutFileContents(self.fileNameRobots, self.GenerateRobots())
+        self._PutFileContents(self.fileNameHtaccess, self.GenerateHtaccess())
+        shutil.copy(os.path.join(self.workFolder, 'images.txt'), self.dataFilesFolder)
         
+        '''Завершение работы'''
+        print('Done')
 
-x = TemplateGenerator()
-x.Main()
+for n in range(20):
+    TemplateGenerator(r'C:\Work\pandora\data\templates\templater%02d' % n, 84).Main()
 '''
-генератор css, в нем все использованные классы и id, а также основные теги типа p, h1 и пр.
-в формы добавить текст
-комментарии
-robots.txt
 дата поста
 '''

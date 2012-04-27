@@ -71,7 +71,7 @@ def update(request, agentId):
             except Exception as errorHandle:
                 taskData['state'] = 'error'
                 taskData['error'] += '. The task handling error:' + str(errorHandle)
-            task.stateManaged = taskData['state']
+            task.stateManaged = taskData['state']  # можно вынести в BaseDoorObjectManaged.SetTaskDetails
             task.lastError = taskData['error']
             task.runTime = taskData['runTime']
             task.save()
