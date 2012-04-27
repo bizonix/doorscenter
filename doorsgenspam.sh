@@ -1,2 +1,2 @@
 #!/bin/bash
-python manage.py genspam
+python manage.py doorsgenspam
