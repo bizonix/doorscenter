@@ -1,5 +1,5 @@
 # coding=utf8
-from doorsadmin.models import Niche, Domain, Doorway, Host, IPAddress
+from doorsadmin.models import Niche, Domain, Doorway, Host, IPAddress, GenerateSpamTasks
 import re, random, urlparse
 
 def AddDomains():
@@ -55,6 +55,10 @@ def AddLinks():
                 raise Exception('Doorway already exists.')
         except Exception as error:
             print('Error: %s' % error)
+
+def GenSpam():
+    '''Генерируем задания для спама'''
+    GenerateSpamTasks()
     
 def Helper():
     '''Прочие действия из командной строки'''

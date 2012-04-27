@@ -76,6 +76,12 @@ def NextBaseNumber():
     '''Следующий номер базы'''
     return max(0, XrumerBaseRaw.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseSpam.objects.all().aggregate(xx=Max('baseNumber'))['xx'], XrumerBaseDoors.objects.all().aggregate(xx=Max('baseNumber'))['xx']) + 1
 
+def GenerateSpamTasks():
+    '''Генерируем задания для спама'''
+    for niche in Niche.objects.filter(active=True).order_by('pk').all():
+        #niche.GenerateSpamProfileTasks()
+        niche.GenerateSpamTasksMultiple()
+
 '''Abstract models'''
 
 class BaseDoorObject(models.Model):
@@ -1467,10 +1473,7 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
             if self.type == 'doorgen':
                 '''Генерируем задания для спама'''
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
-                    # def GenerateSpamTasks():
-                    for niche in Niche.objects.filter(active=True).order_by('pk').all():
-                        niche.GenerateSpamProfileTasks()
-                        #niche.GenerateSpamTasksMultiple()
+                    GenerateSpamTasks()
         except Exception as error:
             EventLog('error', 'Error in "OnUpdate"', self, error)
     def GetDateLastPingAgo(self):
