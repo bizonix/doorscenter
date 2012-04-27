@@ -354,13 +354,13 @@ class Niche(BaseDoorObject, BaseDoorObjectActivatable, BaseDoorObjectTrackable):
             EventLog('error', 'Cannot generate keywords list', self, error)
     def GetSpamLinks(self):
         '''Ссылки по этой нише, которые надо спамить'''
-        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), (Q(doorway__domain__net__makeSpam=True) | Q(doorway__domain__net__isnull=True)))
     def GetSpamProfileLinks(self):
         '''Ссылки по этой нише, которые надо спамить по профилям'''
-        return DoorLink.objects.filter(Q(url__endswith='/index.html'), Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+        return DoorLink.objects.filter(Q(url__endswith='/index.html'), Q(spamTask=None), Q(doorway__niche=self), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), (Q(doorway__domain__net__makeSpam=True) | Q(doorway__domain__net__isnull=True)))
     def GetSpamDomainLinks(self, domain):
         '''Ссылки по домену, которые надо спамить по базе R'''
-        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), Q(doorway__domain__net__makeSpam=True))
+        return DoorLink.objects.filter(Q(spamTask=None), Q(doorway__domain=domain), Q(makeSpam=True), Q(doorway__makeSpam=True), Q(doorway__domain__makeSpam=True), (Q(doorway__domain__net__makeSpam=True) | Q(doorway__domain__net__isnull=True)))
     def _CreateSpamTask(self, xrumerBaseSpam, linksList):
         '''Создаем задание на спам по базе R'''
         if len(linksList) == 0:
