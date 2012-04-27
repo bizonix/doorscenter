@@ -8,8 +8,8 @@ from doorsadmin.locations import GetRandomLocation
 import datetime, random, os, re, MySQLdb, keywords, google, yahoo
 
 eventTypes = (('trace', 'trace'), ('info', 'info'), ('warning', 'warning'), ('error', 'error'))
-stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'))
-stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'))
+stateSimple = (('new', 'new'), ('ok', 'ok'), ('error', 'error'), ('deleted', 'deleted'))
+stateManaged = (('new', 'new'), ('inproc', 'inproc'), ('done', 'done'), ('error', 'error'), ('deleted', 'deleted'))
 languages = (('en', 'en'), ('ru', 'ru'))
 encodings = (('cp1251', 'cp1251'), ('utf-8', 'utf-8'))
 agentTypes = (('doorgen', 'doorgen'), ('snippets', 'snippets'), ('xrumer', 'xrumer'), ('test', 'test'))
@@ -961,11 +961,16 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
         '''Продляем регистрацию домена'''
         self.dateExpires = self.dateExpires + datetime.timedelta(365)
         self.save()
-    def save(self, *args, **kwargs):
-        '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
+    def DeleteFromCP(self):
+        '''Удаляем домен из панели управления + прочие действия'''
+        self._DelFromControlPanel()
+        self.stateSimple = 'deleted'
+        self.save()
+        self.doorway_set.update(stateManaged='deleted')
+    def _AddToControlPanel(self):
+        '''Добавляем домен в панель управления'''
         try:
-            '''Новый домен добавляем в панель управления'''
-            if (self.name != '#') and (self.stateSimple == 'new'):
+            if self.name != '#':
                 error = AddDomainToControlPanel(self.name, self.ipAddress.address, self.useOwnDNS, self.host.controlPanelType, self.host.controlPanelUrl, self.host.controlPanelServerId)
                 if error != '':
                     self.lastError = error
@@ -973,6 +978,18 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
                     self.save()
         except Exception as error:
             EventLog('error', 'Cannot add domain to control panel', self, error)
+    def _DelFromControlPanel(self):
+        '''Удаляем домен из панели управления'''
+        try:
+            if self.name != '#':
+                _ = DelDomainFromControlPanel(self.name, self.host.controlPanelType, self.host.controlPanelUrl)
+        except Exception:
+            pass
+    def save(self, *args, **kwargs):
+        '''Если в имени домена стоит #, то его не добавляем, а берем имена из bulkAddDomains'''
+        '''Новый домен добавляем в панель управления'''
+        if self.stateSimple == 'new':
+            self._AddToControlPanel()
         '''Групповое добавление доменов с теми же параметрами'''
         if (self.name == '#') and (self.bulkAddDomains != ''):
             for domainName in self.bulkAddDomains.lower().splitlines():
@@ -1002,15 +1019,7 @@ class Domain(BaseDoorObject, BaseDoorObjectTrackable, BaseDoorObjectActivatable)
 def DomainOnDelete(sender, **kwargs):
     '''Событие на удаление домена'''
     domain = kwargs['instance']
-    try:
-        if domain.name != '#':
-            error = DelDomainFromControlPanel(domain.name, domain.host.controlPanelType, domain.host.controlPanelUrl)
-            if error != '':
-                #EventLog('error', 'Cannot delete domain from control panel', domain, error)
-                pass
-    except Exception as error:
-        #EventLog('error', 'Cannot delete domain from control panel', domain, error)
-        pass
+    domain._DelFromControlPanel()
 pre_delete.connect(DomainOnDelete, sender=Domain, weak=False)
 
 class Doorway(BaseDoorObject, BaseDoorObjectManaged):

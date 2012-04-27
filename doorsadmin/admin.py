@@ -215,7 +215,7 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
         ('State information', {'fields': [('stateSimple', 'lastError'), ('dateAdded', 'dateChanged')], 'classes': ['collapse']}),
     ]
     readonly_fields = ['dateBan', 'lastError', 'dateAdded', 'dateChanged']
-    actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset', 'Prolongate']
+    actions = ['UpdateSECount', 'UpdateIndexCount', 'UpdateBackLinksCount', 'CheckOwnership', 'Reset', 'Prolongate', 'DeleteFromCP']
     def UpdateSECount(self, request, queryset):
         '''Проверяем индекс в гугле'''
         processed = 0
@@ -271,6 +271,14 @@ class DomainAdmin(BaseAdminSimple, BaseAdminActivatable):
             processed += 1
         self.message_user(request, "%s prolongated." % GetMessageBit(processed))
     Prolongate.short_description = "f. Prolongate"
+    def DeleteFromCP(self, request, queryset):
+        '''Удаляем домены из панели управления'''
+        processed = 0
+        for domain in queryset:
+            domain.DeleteFromCP()
+            processed += 1
+        self.message_user(request, "%s deleted from CP." % GetMessageBit(processed))
+    DeleteFromCP.short_description = "g. Delete from CP"
 
 class DoorwayAdmin(BaseAdminManaged):
     list_display = ('pk', 'niche', 'GetNet', 'template', 'keywordsSet', 'pagesCount', 'GetLinksCount', 'makeSpam', 'GetUrl', 'trafficLastDay', 'trafficLastMonth', 'priority', 'GetRunTime', 'stateManaged', 'dateChanged', 'dateAdded')
