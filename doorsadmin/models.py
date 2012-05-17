@@ -1492,6 +1492,10 @@ class Agent(BaseDoorObject, BaseDoorObjectActivatable):
                 '''Генерируем задания для спама'''
                 if Doorway.objects.filter(stateManaged='new').count() == 0:
                     GenerateSpamTasks()
+            elif self.type == 'xrumer':
+                '''Сообщаем администратору об окончании спама (только для спама по базам)'''
+                if SpamTask.objects.filter(stateManaged='new').count() == 0:
+                    send_mail('Doors Administration', 'Spam completed', 'alex@searchpro.name', ['alex@altstone.com'], fail_silently = True)
         except Exception as error:
             EventLog('error', 'Error in "OnUpdate"', self, error)
     def GetDateLastPingAgo(self):

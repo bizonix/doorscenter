@@ -96,7 +96,7 @@ def UpdateIndexCount():
         domain.UpdateIndexCount()
         indexCountNew = domain.indexCount
         if (indexCountNew == 0) and (indexCountOld > 0):
-            bannedDomains.append('"%s": %s, %s, %d days, %d uniques' % (domain.name, domain.niche.description, domain.net.description, (datetime.date.today() - domain.dateRegistered).days, domain.trafficLastMonth))
+            bannedDomains.append('"%s": %s, %d days, %d uniques' % (domain.name, domain.niche.description, (datetime.date.today() - domain.dateRegistered).days, domain.trafficLastMonth))
             domain.active = False
             domain.banned = True
             domain.dateBan = datetime.date.today()
