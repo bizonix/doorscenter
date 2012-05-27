@@ -1,6 +1,6 @@
 # coding=utf8
 from django.db import models
-import engines
+import datetime, engines
 
 class Blog(models.Model):
     '''Блог'''
@@ -29,25 +29,24 @@ class Blog(models.Model):
         super(Blog, self).save(*args, **kwargs)
     def GetIndexCount(self):
         '''Ссылка для проверки индекса по гуглу'''
-        if self.indexCount:
-            return '<a href="%s">%d</a>' % (engines.Google.GetIndexLink(self.name), self.indexCount)
-        else:
-            return '<a href="%s">-</a>' % (engines.Google.GetIndexLink(self.name))
+        return '<a href="%s">%s</a>' % (engines.Google.GetIndexLink(self.domain), (str(self.indexCount) if self.indexCount else '-'))
     GetIndexCount.short_description = 'GI'
     GetIndexCount.allow_tags = True
     GetIndexCount.admin_order_field = 'indexCount'
     def GetBackLinksCount(self):
         '''Ссылка для проверки back links'''
-        if self.backLinksCount:
-            return '<a href="%s">%d</a>' % (engines.Alexa.GetBackLinksLink(self.name), self.backLinksCount)
-        else:
-            return '<a href="%s">-</a>' % (engines.Alexa.GetBackLinksLink(self.name))
+        return '<a href="%s">%s</a>' % (engines.Alexa.GetBackLinksLink(self.domain), (str(self.backLinksCount) if self.backLinksCount else '-'))
     GetBackLinksCount.short_description = 'BL'
     GetBackLinksCount.allow_tags = True
     GetBackLinksCount.admin_order_field = 'backLinksCount'
     def Check(self):
         '''Проверяем индекс и ссылки'''
-        pass
+        google = engines.Google()
+        self.indexCount = google.GetIndex(self.domain)
+        alexa = engines.Alexa()
+        self.backLinksCount = alexa.GetBackLinks(self.domain)
+        self.lastChecked = datetime.datetime.now()
+        self.save()
 
 class Position(models.Model):
     '''Кейворды и позиции'''
@@ -56,15 +55,15 @@ class Position(models.Model):
     group = models.CharField('Group', max_length=200, default='', blank=True)
     googlePosition = models.IntegerField('G.Pos.', null=True, blank=True)
     googleMaxPosition = models.IntegerField('G.Pos.Max.', null=True, blank=True)
-    googleMaxPositionDate = models.DateField('G.Pos.Max.Date', null=True, blank=True)
+    googleMaxPositionDate = models.DateTimeField('G.Pos.Max.Date', null=True, blank=True)
     googleExtendedInfo = models.TextField('Google Info', default='', blank=True)
     yahooPosition = models.IntegerField('Y.Pos.', null=True, blank=True)
     yahooMaxPosition = models.IntegerField('Y.Pos.Max.', null=True, blank=True)
-    yahooMaxPositionDate = models.DateField('Y.Pos.Max.Date', null=True, blank=True)
+    yahooMaxPositionDate = models.DateTimeField('Y.Pos.Max.Date', null=True, blank=True)
     yahooExtendedInfo = models.TextField('Yahoo Info', default='', blank=True)
     bingPosition = models.IntegerField('B.Pos.', null=True, blank=True)
     bingMaxPosition = models.IntegerField('B.Pos.Max.', null=True, blank=True)
-    bingMaxPositionDate = models.DateField('B.Pos.Max.Date', null=True, blank=True)
+    bingMaxPositionDate = models.DateTimeField('B.Pos.Max.Date', null=True, blank=True)
     bingExtendedInfo = models.TextField('Bing Info', default='', blank=True)
     lastChecked = models.DateTimeField('Last Checked', null=True, blank=True)
     bulkAddKeywords = models.TextField('Bulk Add', default='', blank=True)
@@ -78,42 +77,39 @@ class Position(models.Model):
         if self.bulkAddKeywords != '':
             for line in self.bulkAddKeywords.lower().splitlines():
                 if line != '':
-                    #try:
-                    domain = line.split(':')[0].strip()
-                    keyword = line.split(':')[1].strip()
-                    blog, _ = Blog.objects.get_or_create(domain=domain)
-                    Position.objects.create(blog=blog, keyword=keyword, group=self.group).save()
-                    #except Exception:
-                    #    pass
+                    try:
+                        domain = line.split(':')[0].strip()
+                        keyword = line.split(':')[1].strip()
+                        blog, _ = Blog.objects.get_or_create(domain=domain)
+                        Position.objects.create(blog=blog, keyword=keyword, group=self.group).save()
+                    except Exception:
+                        pass
         self.bulkAddKeywords = ''
         super(Position, self).save(*args, **kwargs)
     def GetGooglePosition(self):
         '''Ссылка для проверки позиции в гугле'''
-        if self.googlePosition:
-            return '<a href="%s">%d</a>' % (engines.Google.GetPositionLink(self.keyword), self.googlePosition)
-        else:
-            return '<a href="%s">-</a>' % (engines.Google.GetPositionLink(self.keyword))
+        return '<a href="%s">%s</a>' % (engines.Google.GetPositionLink(self.keyword), (str(self.googlePosition) if self.googlePosition else '-'))
     GetGooglePosition.short_description = 'G.Pos.'
     GetGooglePosition.allow_tags = True
     GetGooglePosition.admin_order_field = 'googlePosition'
     def GetYahooPosition(self):
         '''Ссылка для проверки позиции в яху'''
-        if self.yahooPosition:
-            return '<a href="%s">%d</a>' % (engines.Yahoo.GetPositionLink(self.keyword), self.yahooPosition)
-        else:
-            return '<a href="%s">-</a>' % (engines.Yahoo.GetPositionLink(self.keyword))
+        return '<a href="%s">%s</a>' % (engines.Yahoo.GetPositionLink(self.keyword), (str(self.yahooPosition) if self.yahooPosition else '-'))
     GetYahooPosition.short_description = 'Y.Pos.'
     GetYahooPosition.allow_tags = True
     GetYahooPosition.admin_order_field = 'yahooPosition'
     def GetBingPosition(self):
         '''Ссылка для проверки позиции в бинг'''
-        if self.bingPosition:
-            return '<a href="%s">%d</a>' % (engines.Bing.GetPositionLink(self.keyword), self.bingPosition)
-        else:
-            return '<a href="%s">-</a>' % (engines.Bing.GetPositionLink(self.keyword))
+        return '<a href="%s">%s</a>' % (engines.Bing.GetPositionLink(self.keyword), (str(self.bingPosition) if self.bingPosition else '-'))
     GetBingPosition.short_description = 'B.Pos.'
     GetBingPosition.allow_tags = True
     GetBingPosition.admin_order_field = 'bingPosition'
     def Check(self):
-        '''Проверяем позицию'''
-        pass
+        '''Проверяем позиции'''
+        google = engines.Google()
+        self.googlePosition, self.googleExtendedInfo = google.GetPosition(self.blog.domain, self.keyword)
+        if (self.googlePosition) and (self.googlePosition <= (self.googleMaxPosition if self.googleMaxPosition != None else 101)):
+            self.googleMaxPosition = self.googlePosition
+            self.googleMaxPositionDate = datetime.datetime.now()
+        self.lastChecked = datetime.datetime.now()
+        self.save()
