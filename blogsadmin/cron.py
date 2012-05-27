@@ -16,7 +16,7 @@ def CheckBlogs():
     if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка: интервал парсинга в минутах
         return
     blogs = Blog.objects.order_by('lastChecked', 'pk').all()
-    for blog in blogs[:5]:  # настройка
+    for blog in blogs[:10]:  # настройка
         blog.Check()
 
 def CheckPositions():
@@ -27,7 +27,7 @@ def CheckPositions():
         return
     news = ''
     positions = Position.objects.order_by('lastChecked', 'pk').all()
-    for position in positions[:10]:  # настройка
+    for position in positions[:25]:  # настройка
         googlePositionOld = position.googlePosition
         yahooPositionOld = position.yahooPosition
         bingPositionOld = position.bingPosition
