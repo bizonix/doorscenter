@@ -40,7 +40,6 @@ class Google(Engine):
     def GetIndex(self, domain):
         '''Получаем индекс'''
         html = self.GetPage(self.GetIndexLink(domain))
-        print(html)
         indexRegexpsList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'<div>([0-9,]*) res']
         for indexRegexp in indexRegexpsList:
             try:
