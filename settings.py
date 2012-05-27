@@ -93,6 +93,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
+    'blogsadmin',
     'doorsadmin',
     'south'
     # Uncomment the next line to enable admin documentation:
