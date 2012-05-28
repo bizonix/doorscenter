@@ -41,10 +41,13 @@ class Blog(models.Model):
     GetBackLinksCount.admin_order_field = 'backLinksCount'
     def Check(self):
         '''Проверяем индекс и ссылки'''
-        self.indexCount = engines.Google.GetIndex(self.domain)
-        self.backLinksCount = engines.Alexa.GetBackLinks(self.domain)
-        self.lastChecked = datetime.datetime.now()
-        self.save()
+        try:
+            self.indexCount = engines.Google.GetIndex(self.domain)
+            self.backLinksCount = engines.Alexa.GetBackLinks(self.domain)
+            self.lastChecked = datetime.datetime.now()
+            self.save()
+        except Exception:
+            pass
 
 class Position(models.Model):
     '''Кейворды и позиции'''
@@ -104,17 +107,20 @@ class Position(models.Model):
     GetBingPosition.admin_order_field = 'bingPosition'
     def Check(self):
         '''Проверяем позиции'''
-        self.googlePosition, self.googleExtendedInfo = engines.Google.GetPosition(self.blog.domain, self.keyword)
-        if (self.googlePosition) and (self.googlePosition <= (self.googleMaxPosition if self.googleMaxPosition != None else 101)):
-            self.googleMaxPosition = self.googlePosition
-            self.googleMaxPositionDate = datetime.datetime.now()
-        self.yahooPosition, self.yahooExtendedInfo = engines.Yahoo.GetPosition(self.blog.domain, self.keyword)
-        if (self.yahooPosition) and (self.yahooPosition <= (self.yahooMaxPosition if self.yahooMaxPosition != None else 101)):
-            self.yahooMaxPosition = self.yahooPosition
-            self.yahooMaxPositionDate = datetime.datetime.now()
-        self.bingPosition, self.bingExtendedInfo = engines.Bing.GetPosition(self.blog.domain, self.keyword)
-        if (self.bingPosition) and (self.bingPosition <= (self.bingMaxPosition if self.bingMaxPosition != None else 101)):
-            self.bingMaxPosition = self.bingPosition
-            self.bingMaxPositionDate = datetime.datetime.now()
-        self.lastChecked = datetime.datetime.now()
-        self.save()
+        try:
+            self.googlePosition, self.googleExtendedInfo = engines.Google.GetPosition(self.blog.domain, self.keyword)
+            if (self.googlePosition) and (self.googlePosition <= (self.googleMaxPosition if self.googleMaxPosition != None else 101)):
+                self.googleMaxPosition = self.googlePosition
+                self.googleMaxPositionDate = datetime.datetime.now()
+            self.yahooPosition, self.yahooExtendedInfo = engines.Yahoo.GetPosition(self.blog.domain, self.keyword)
+            if (self.yahooPosition) and (self.yahooPosition <= (self.yahooMaxPosition if self.yahooMaxPosition != None else 101)):
+                self.yahooMaxPosition = self.yahooPosition
+                self.yahooMaxPositionDate = datetime.datetime.now()
+            self.bingPosition, self.bingExtendedInfo = engines.Bing.GetPosition(self.blog.domain, self.keyword)
+            if (self.bingPosition) and (self.bingPosition <= (self.bingMaxPosition if self.bingMaxPosition != None else 101)):
+                self.bingMaxPosition = self.bingPosition
+                self.bingMaxPositionDate = datetime.datetime.now()
+            self.lastChecked = datetime.datetime.now()
+            self.save()
+        except Exception:
+            pass
