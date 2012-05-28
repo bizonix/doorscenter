@@ -13,7 +13,7 @@ def CheckBlogs():
     '''Проверяем блоги'''
     lastChecked = Blog.objects.all().aggregate(x=Max('lastChecked'))['x']
     delta = datetime.datetime.now() - lastChecked
-    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка: интервал парсинга в минутах
+    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка
         return
     blogs = Blog.objects.order_by('lastChecked', 'pk').all()
     for blog in blogs[:10]:  # настройка
@@ -23,7 +23,7 @@ def CheckPositions():
     '''Проверяем позиции'''
     lastChecked = Position.objects.all().aggregate(x=Max('lastChecked'))['x']
     delta = datetime.datetime.now() - lastChecked
-    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка: интервал парсинга в минутах
+    if (delta.days * 24 * 60 * 60 + delta.seconds) / 60 < 55:  # настройка
         return
     news = ''
     positions = Position.objects.order_by('lastChecked', 'pk').all()

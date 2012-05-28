@@ -7,6 +7,7 @@ proxyUser = '218660178:dd7a0e1e'
 class Engine(object):
     '''Предок используемых сайтов'''
     
+    @classmethod
     def GetPage(self, url):
         '''Читаем урл и возвращаем текст'''
         try:
@@ -21,27 +22,22 @@ class Engine(object):
             curl.setopt(pycurl.PROXY, random.choice(proxyUrls))
             curl.setopt(pycurl.PROXYUSERPWD, proxyUser)
             curl.setopt(pycurl.URL, url)
-            #curl.setopt(pycurl.URL, 'http://www.google.com/search?hl=en&q=jessica+simpson+shoes+cheap&num=100&btnG=Google+Search')
             curl.setopt(pycurl.WRITEFUNCTION, buf.write)
             curl.perform()
             return buf.getvalue()
         except Exception:
             return ''
-    
-class Google(Engine):
-    '''Гугл'''
-
+        
     @classmethod
-    def GetIndexLink(self, domain):
-        '''Ссылка для проверки индекса'''
-        urlIndexSearch = 'http://www.google.com/search?hl=en&q=%s&btnG=Google+Search'
-        return urlIndexSearch % urllib.quote_plus('site:' + domain.encode('cp1251'))
+    def GetLink(self, url, item):
+        '''Возвращаем ссылку'''
+        return url % urllib.quote_plus(item.encode('cp1251'))
     
-    def GetIndex(self, domain):
+    @classmethod
+    def GetIndex(self, domain, regexpsList):
         '''Получаем индекс'''
         html = self.GetPage(self.GetIndexLink(domain))
-        indexRegexpsList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'<div>([0-9,]*) res']
-        for indexRegexp in indexRegexpsList:
+        for indexRegexp in regexpsList:
             try:
                 return int(re.findall(indexRegexp, html)[0].replace(',', ''))
             except Exception:
@@ -49,15 +45,11 @@ class Google(Engine):
         return 0
     
     @classmethod
-    def GetPositionLink(self, keyword):
-        '''Ссылка для проверки позиции'''
-        urlPositionSearch = 'http://www.google.com/search?hl=en&q=%s&num=100&btnG=Google+Search'
-        return urlPositionSearch % urllib.quote_plus(keyword.encode('cp1251'))
-    
-    def GetPosition(self, domain, keyword):
+    def GetPosition(self, domain, keyword, regexp):
         '''Получаем позицию'''
         html = self.GetPage(self.GetPositionLink(keyword))
-        urlsList = re.findall(r'href="/url\?q=([^&]*)&', html)
+        urlsList = re.findall(regexp, html)
+        urlsList = [urllib.unquote_plus(re.sub(r'<.*?>', '', url)).replace('&#8203;', '') for url in urlsList]
         counter = 1
         position = None
         extendedInfo = ''
@@ -71,50 +63,91 @@ class Google(Engine):
             counter += 1
         return position, extendedInfo
     
+    
+class Google(Engine):
+    '''Гугл'''
+
+    @classmethod
+    def GetIndexLink(self, domain):
+        '''Ссылка для проверки индекса'''
+        url = 'http://www.google.com/search?hl=en&q=site:%s'
+        return super(Google, self).GetLink(url, domain)
+    
+    @classmethod
+    def GetIndex(self, domain):
+        '''Получаем индекс'''
+        regexpsList = [r'About ([0-9,]*) res', r'of about <b>([0-9,]*)</b>', r'<div>([0-9,]*) res']
+        return super(Google, self).GetIndex(domain, regexpsList)
+    
+    @classmethod
+    def GetPositionLink(self, keyword):
+        '''Ссылка для проверки позиции'''
+        url = 'http://www.google.com/search?hl=en&q=%s&num=100'
+        return super(Google, self).GetLink(url, keyword)
+    
+    @classmethod
+    def GetPosition(self, domain, keyword):
+        '''Получаем позицию'''
+        regexp = r'href="/url\?q=([^&]*)&'
+        return super(Google, self).GetPosition(domain, keyword, regexp)
+
+
 class Alexa(Engine):
     '''Алекса'''
     
     @classmethod
+    def GetIndexLink(self, domain):
+        '''Ссылка для проверки обратных ссылок'''
+        return self.GetBackLinksLink(domain)
+
+    @classmethod
     def GetBackLinksLink(self, domain):
         '''Ссылка для проверки обратных ссылок'''
         url = 'http://www.alexa.com/siteinfo/%s'
-        return url % domain.encode('cp1251')
+        return super(Alexa, self).GetLink(url, domain)
 
+    @classmethod
     def GetBackLinks(self, domain):
         '''Получаем обратные ссылки'''
-        html = self.GetPage(self.GetBackLinksLink(domain))
-        backLinksRegexp = r'/site/linksin.*?>([^<]*)<'
-        try:
-            return int(re.findall(backLinksRegexp, html, re.M)[0].strip().replace(',', ''))
-        except Exception:
-            return 0
-    
+        regexpsList = [r'/site/linksin.*?>([^<]*)<']
+        return super(Alexa, self).GetIndex(domain, regexpsList)
+
+
 class Yahoo(Engine):
     '''Яху'''
     
     @classmethod
     def GetPositionLink(self, keyword):
         '''Ссылка для проверки позиции'''
-        pass
+        url = 'http://search.yahoo.com/search?n=100&p=%s'
+        return super(Yahoo, self).GetLink(url, keyword)
 
+    @classmethod
     def GetPosition(self, domain, keyword):
         '''Получаем позицию'''
-        pass
-    
+        regexp = r'class=url>(.*?)</span>'
+        return super(Yahoo, self).GetPosition(domain, keyword, regexp)
+
+
 class Bing(Engine):
     '''Бинг'''
     
     @classmethod
     def GetPositionLink(self, keyword):
         '''Ссылка для проверки позиции'''
-        pass
+        url = 'http://www.bing.com/search?q=%s'
+        return super(Bing, self).GetLink(url, keyword)
 
+    @classmethod
     def GetPosition(self, domain, keyword):
         '''Получаем позицию'''
-        pass
-    
+        regexp = r'class="sb_meta"><cite>(.*?)</cite>'
+        return super(Bing, self).GetPosition(domain, keyword, regexp)
+
+
 if __name__ == '__main__':
-    position, extendedInfo = Google.GetPosition('thejessicasimpsonshoes.com', 'jessica simpson shoes cheap')
-    print(position, extendedInfo)
-    #links = Alexa.GetBackLinks('thejessicasimpsonshoes.com')
-    #print(links)
+    print(Google.GetIndex('sexgamesforxbox.net'))
+    print(Google.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
+    print(Yahoo.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
+    print(Bing.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
+    print(Alexa.GetBackLinks('thejessicasimpsonshoes.com'))
