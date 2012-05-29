@@ -35,7 +35,7 @@ class Blog(models.Model):
     GetIndexCount.admin_order_field = 'indexCount'
     def GetBackLinksCount(self):
         '''Ссылка для проверки back links'''
-        return '<a href="%s">%s</a>' % (engines.Alexa.GetBackLinksLink(self.domain), (str(self.backLinksCount) if self.backLinksCount else '-'))
+        return '<a href="%s">%s</a>' % (engines.Majestic.GetBackLinksLink(self.domain), (str(self.backLinksCount) if self.backLinksCount else '-'))
     GetBackLinksCount.short_description = 'BL'
     GetBackLinksCount.allow_tags = True
     GetBackLinksCount.admin_order_field = 'backLinksCount'
