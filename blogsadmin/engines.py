@@ -45,6 +45,17 @@ class Engine(object):
         return 0
     
     @classmethod
+    def GetBackLinks(self, domain, regexpsList):
+        '''Получаем обратные ссылки'''
+        html = self.GetPage(self.GetBackLinksLink(domain))
+        for indexRegexp in regexpsList:
+            try:
+                return int(re.findall(indexRegexp, html)[0].replace(',', ''))
+            except Exception:
+                pass
+        return 0
+        
+    @classmethod
     def GetPosition(self, domain, keyword, regexp):
         '''Получаем позицию'''
         html = self.GetPage(self.GetPositionLink(keyword))
@@ -92,27 +103,6 @@ class Google(Engine):
         return super(Google, self).GetPosition(domain, keyword, regexp)
 
 
-class Alexa(Engine):
-    '''Алекса'''
-    
-    @classmethod
-    def GetIndexLink(self, domain):
-        '''Ссылка для проверки обратных ссылок'''
-        return self.GetBackLinksLink(domain)
-
-    @classmethod
-    def GetBackLinksLink(self, domain):
-        '''Ссылка для проверки обратных ссылок'''
-        url = 'http://www.alexa.com/siteinfo/%s'
-        return super(Alexa, self).GetLink(url, domain)
-
-    @classmethod
-    def GetBackLinks(self, domain):
-        '''Получаем обратные ссылки'''
-        regexpsList = [r'/site/linksin.*?>([^<]*)<']
-        return super(Alexa, self).GetIndex(domain, regexpsList)
-
-
 class Yahoo(Engine):
     '''Яху'''
     
@@ -145,9 +135,42 @@ class Bing(Engine):
         return super(Bing, self).GetPosition(domain, keyword, regexp)
 
 
+class Alexa(Engine):
+    '''Алекса'''
+    
+    @classmethod
+    def GetBackLinksLink(self, domain):
+        '''Ссылка для проверки обратных ссылок'''
+        url = 'http://www.alexa.com/siteinfo/%s'
+        return super(Alexa, self).GetLink(url, domain)
+
+    @classmethod
+    def GetBackLinks(self, domain):
+        '''Получаем обратные ссылки'''
+        regexpsList = [r'/site/linksin.*?>([^<]*)<']
+        return super(Alexa, self).GetBackLinks(domain, regexpsList)
+
+
+class Majestic(Engine):
+    '''Маджестик'''
+    
+    @classmethod
+    def GetBackLinksLink(self, domain):
+        '''Ссылка для проверки обратных ссылок'''
+        url = 'http://www.majesticseo.com/reports/site-explorer/summary/%s/'
+        return super(Majestic, self).GetLink(url, domain)
+
+    @classmethod
+    def GetBackLinks(self, domain):
+        '''Получаем обратные ссылки'''
+        regexpsList = [r'<p>\s*?External Backlinks\s*</p>\s*?<p.*?>\s*?<b>(.*?)</b>']
+        return super(Majestic, self).GetBackLinks(domain, regexpsList)
+
+
 if __name__ == '__main__':
     print(Google.GetIndex('sexgamesforxbox.net'))
     print(Google.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
     print(Yahoo.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
     print(Bing.GetPosition('sexgamesforxbox.net', 'sex games for xbox'))
-    print(Alexa.GetBackLinks('thejessicasimpsonshoes.com'))
+    print(Alexa.GetBackLinks('myglutenfreediet.net'))
+    print(Majestic.GetBackLinks('myglutenfreediet.net'))

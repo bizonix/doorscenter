@@ -43,7 +43,7 @@ class Blog(models.Model):
         '''Проверяем индекс и ссылки'''
         try:
             self.indexCount = engines.Google.GetIndex(self.domain)
-            self.backLinksCount = engines.Alexa.GetBackLinks(self.domain)
+            self.backLinksCount = engines.Majestic.GetBackLinks(self.domain)
             self.lastChecked = datetime.datetime.now()
             self.save()
         except Exception:
