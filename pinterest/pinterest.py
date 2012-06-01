@@ -2,6 +2,8 @@
 from __future__ import print_function
 import os, sys, re, time, random, pycurl, cStringIO, pickle, base64, argparse
 
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
+
 class Pinterest(object):
     '''Private Pinterest Bot'''
     
@@ -323,7 +325,7 @@ class CommandsParser(object):
         self.parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
         self.parser.add_argument('--email', required=True, help='user\'s email')
         self.parser.add_argument('--password', required=True, help='user\'s password')
-        self.parser.add_argument('--action', choices=['follow-users', 'follow-boards', 'like-pins'], required=True, help='action to execute')
+        self.parser.add_argument('--action', choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins'], required=True, help='action to execute')
         self.parser.add_argument('--keywords', required=True, help='comma-separated keywords for scraping; use "popular" for liking popular pins')
         self.parser.add_argument('--countmin', type=int, required=True, help='minimal actions count')
         self.parser.add_argument('--countmax', type=int, required=True, help='maximum actions count')
@@ -355,10 +357,11 @@ class CommandsParser(object):
             pinterest.LikePins(keywordsList, actionsCountMin, actionsCountMax)
 
 
-argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-users --keywords=shoes,gucci --countmin=3 --countmax=5'
-argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-boards --keywords=shoes,gucci --countmin=3 --countmax=5'
-commands = CommandsParser()
-if len(sys.argv) > 1:
-    commands.Execute()
-else:
-    commands.Execute(argsString)
+if __name__ == '__main__':
+    argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-users --keywords=shoes,gucci --countmin=3 --countmax=5'
+    argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-boards --keywords=shoes,gucci --countmin=3 --countmax=5'
+    commands = CommandsParser()
+    if len(sys.argv) > 1:
+        commands.Execute()
+    else:
+        commands.Execute(argsString)
