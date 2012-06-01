@@ -1,8 +1,10 @@
 # coding=utf8
 from __future__ import print_function
 import os, sys, re, time, random, pycurl, cStringIO, pickle, base64, argparse
+import amazon
 
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
+if __name__ == '__main__':
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
 
 class Pinterest(object):
     '''Private Pinterest Bot'''
@@ -66,11 +68,14 @@ class Pinterest(object):
         except Exception as error:
             print('### Error: %s' % error)
     
-    def _GetPage(self, url, postData=None):
+    def _GetPage(self, url, postData=None, postDataMultipart=None):
         '''Читаем урл и возвращаем текст'''
         try:
             bufHeaders = cStringIO.StringIO()
             bufBody = cStringIO.StringIO()
+            self.lastResponseHeaders = ''
+            self.lastResponseBody = ''
+            '''Формируем заголовки'''
             headersList = []
             headersList.append('Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
             headersList.append('Accept-Language: en-us,en;q=0.5')
@@ -85,6 +90,8 @@ class Pinterest(object):
             curl.setopt(pycurl.URL, url)
             if postData:
                 curl.setopt(pycurl.POSTFIELDS, postData)
+            elif postDataMultipart:
+                curl.setopt(pycurl.HTTPPOST, postDataMultipart)
             curl.setopt(pycurl.HTTPHEADER, headersList)
             curl.setopt(pycurl.USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0')
             curl.setopt(pycurl.SSL_VERIFYPEER, 0)
@@ -95,17 +102,18 @@ class Pinterest(object):
             curl.setopt(pycurl.TIMEOUT, 30)
             curl.setopt(pycurl.HEADERFUNCTION, bufHeaders.write)
             curl.setopt(pycurl.WRITEFUNCTION, bufBody.write)
-            #curl.setopt(pycurl.PROXY, random.choice(proxyUrls))
-            #curl.setopt(pycurl.PROXYUSERPWD, proxyUser)
+            if self.userData['proxyHost'] != '':
+                curl.setopt(pycurl.PROXY, self.userData['proxyHost'])
+                if self.userData['proxyPassword'] != '':
+                    curl.setopt(pycurl.PROXYUSERPWD, self.userData['proxyPassword'])
             curl.perform()
             '''Получаем ответ'''
             self.lastResponseHeaders = bufHeaders.getvalue()
             self.lastResponseBody = bufBody.getvalue()
+            self.lastRequestUrl = url
             self._DebugWrite(url + '\n\n' + self.lastResponseHeaders + '\n' + self.lastResponseBody)
         except Exception as error:
             print('### Error: %s' % error)
-            self.lastResponseBody = ''
-        self.lastRequestUrl = url
     
     @classmethod
     def _LoadPage(self, fileName):
@@ -148,7 +156,11 @@ class Pinterest(object):
             print('### Error: %s' % error)
             return []
     
-    def Login(self, userEmail, userPassword, proxyHost, proxyPassword):
+    def _ScrapeOwnBoards(self):
+        '''Получаем список своих досок'''
+        pass
+    
+    def Login(self, userEmail, userPassword, proxyHost='', proxyPassword=''):
         '''Логинимся в пинтерест'''
         if self._LoadUserData(userEmail):
             print('Checking if "%s" is logged in ... ' % self.userData['id'], end='')
@@ -156,6 +168,7 @@ class Pinterest(object):
             if self.lastResponseBody.find('Logout') >= 0:
                 print('ok')
                 self._Timeout()
+                self._ScrapeOwnBoards()
                 return
             else:
                 print('not logged in')
@@ -187,6 +200,7 @@ class Pinterest(object):
         self._Timeout()
         
         self._SaveUserData()
+        self._ScrapeOwnBoards()
         print('User "%s" logged in successfully' % self.userData['id'])
     
     def _ScrapeUsers(self, keywordsList, pageNum):
@@ -315,53 +329,124 @@ class Pinterest(object):
             else:
                 print('error')
             self._Timeout()
+    
+    def AddPin(self, boardId, title, link, imageUrl):
+        '''Добавляем на свою доску свой пин'''
+        '''print('Finding images for new pin "%s" ... ' % title, end='')
+        self._GetPage('http://pinterest.com/pin/create/find_images/?url=%s' % urllib.quote(link))
+        self._CheckToken(self.lastResponseBody, '"status": "success"', True)
+        self._Timeout()'''
+        
+        print('Adding new pin "%s" ... ' % title, end='')
+        self._GetPage('http://pinterest.com/pin/create/', None, [('board', boardId), ('details', title), ('link', link), ('img_url', imageUrl), ('tags', ''), ('replies', ''), ('peeps_holder', ''), ('buyable', ''), ('csrfmiddlewaretoken', self.userData['token1'])])
+        self._CheckToken(self.lastResponseBody, '"status": "success"', True)
+        pinId = self._GetToken(self.lastResponseBody, r'"url": "/pin/([^/]*)/"')
+        self._Timeout()
+        
+        print('Viewing posted pin #%s ... ' % pinId, end='')
+        self._GetPage('http://pinterest.com/pin/%s/' % pinId)
+        print('ok')
+        self._Timeout()
+    
+    def AddPinsAmazon(self, boardId, keywordsList, pinsCountMin, pinsCountMax, department='All'):
+        '''Парсим амазон и постим на доску'''
+        pinsCount = random.randint(pinsCountMin, pinsCountMax)
+        postedItems = []
+        amazonObj = amazon.Amazon()
+        itemsList = amazonObj.Parse(','.join(keywordsList), pinsCount, department)
+        for item in itemsList:
+            if item['id'] in postedItems:
+                continue
+            self.AddPin(boardId, item['title'], item['link'], item['imageUrl'])
+            postedItems.append(item['id'])
 
 
 class CommandsParser(object):
-    '''Парсер командной строки'''
+    '''Парсер командной строки и команд'''
     
     def __init__(self):
         '''Инициализация'''
-        self.parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
-        self.parser.add_argument('--email', required=True, help='user\'s email')
-        self.parser.add_argument('--password', required=True, help='user\'s password')
-        self.parser.add_argument('--action', choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins'], required=True, help='action to execute')
-        self.parser.add_argument('--keywords', required=True, help='comma-separated keywords for scraping; use "popular" for liking popular pins')
-        self.parser.add_argument('--countmin', type=int, required=True, help='minimal actions count')
-        self.parser.add_argument('--countmax', type=int, required=True, help='maximum actions count')
-        self.parser.add_argument('--proxy', default='', help='proxy host[:port]')
-        self.parser.add_argument('--proxypwd', default='', help='proxy username:password')
+        self.pinterest = Pinterest(True)
+        self.loggedIn = False
     
-    def Execute(self, commandString=None):
+    def Execute(self, command=None):
         '''Выполняем команды'''
-        if commandString:
-            args = self.parser.parse_args(commandString.split(' '))
+        if not command:
+            singleMode = ' '.join(sys.argv).find('--batchfile') < 0
         else:
-            args = self.parser.parse_args()
-        userEmail = args.email
-        userPassword = args.password
-        action = args.action
-        actionsCountMin = args.countmin
-        actionsCountMax = args.countmax
-        keywordsList = args.keywords.split(',')
-        proxyHost = args.proxy
-        proxyPassword = args.proxypwd
+            singleMode = command.find('--batchfile') < 0
+        parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
+        parser.add_argument('--email', required=singleMode, help='user\'s email')
+        parser.add_argument('--password', required=singleMode, help='user\'s password')
+        parser.add_argument('--action', required=singleMode, choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins', 'add-pins-amazon'], help='action to execute')
+        parser.add_argument('--countmin', required=singleMode, type=int, help='minimal actions count')
+        parser.add_argument('--countmax', required=singleMode, type=int, help='maximum actions count')
+        parser.add_argument('--keywords', required=singleMode, help='comma-separated keywords for scraping; use "popular" for liking popular pins')
+        parser.add_argument('--department', default='All', help='amazon department for searching goods')
+        parser.add_argument('--proxy', default='', help='proxy host[:port]')
+        parser.add_argument('--proxypwd', default='', help='proxy username:password')
+        parser.add_argument('--batchfile', default='', help='commands file name for batch mode')
+        if not command:
+            args = parser.parse_args()
+        else:
+            args = parser.parse_args(command.split(' '))
         
-        pinterest = Pinterest(True)
-        pinterest.Login(userEmail, userPassword, proxyHost, proxyPassword)
-        if action == 'follow-users':
-            pinterest.FollowUsers(keywordsList, actionsCountMin, actionsCountMax)
-        elif action == 'follow-boards':
-            pinterest.FollowBoards(keywordsList, actionsCountMin, actionsCountMax)
-        elif action == 'like-pins':
-            pinterest.LikePins(keywordsList, actionsCountMin, actionsCountMax)
+        if singleMode:
+            '''Одиночная команда'''
+            userEmail = args.email
+            userPassword = args.password
+            action = args.action
+            actionsCountMin = args.countmin
+            actionsCountMax = args.countmax
+            keywordsList = args.keywords.split(',')
+            amazonDepartment = args.department
+            proxyHost = args.proxy
+            proxyPassword = args.proxypwd
+            
+            '''Логинимся'''
+            if not self.loggedIn:
+                self.pinterest.Login(userEmail, userPassword, proxyHost, proxyPassword)
+                self.loggedIn = True
+            
+            '''Выполняем команду'''
+            if action == 'follow-users':
+                self.pinterest.FollowUsers(keywordsList, actionsCountMin, actionsCountMax)
+            elif action == 'unfollow-users':
+                self.pinterest.UnfollowUsers(actionsCountMin, actionsCountMax)
+            elif action == 'follow-boards':
+                self.pinterest.FollowBoards(keywordsList, actionsCountMin, actionsCountMax)
+            elif action == 'like-pins':
+                self.pinterest.LikePins(keywordsList, actionsCountMin, actionsCountMax)
+            elif action == 'add-pins-amazon':
+                self.pinterest.AddPinsAmazon('', keywordsList, actionsCountMin, actionsCountMax, amazonDepartment)
+        else:
+            '''Читаем и выполняем команды из файла'''
+            batchFileName = args.batchfile
+            print('=== Executing commands from "%s" ...' % batchFileName)
+            try:
+                commandsList = open(batchFileName).read().splitlines()
+                for command in commandsList:
+                    if command.strip() != '':
+                        try:
+                            self.Execute(command)
+                        except Exception as error:
+                            print('### Error: %s' % error)
+            except Exception as error:
+                print('### Error: %s' % error)
+            print('=== Done commands from "%s".' % batchFileName)
 
+
+'''userEmail = 'alex@altstone.com'
+userPassword = 'kernel32'
+pinterest = Pinterest(True)
+pinterest.Login(userEmail, userPassword)
+#pinterest.AddPin('213991488483272763', 'xxx', 'http://www.amazon.com/PDX-FUCK-ME-SILLY-DUDE/dp/B0065M9922', 'http://ecx.images-amazon.com/images/I/41LYc9OfvGL._SL500_AA300_.jpg')
+pinterest.AddPinsAmazon('213991488483272763', 'missoni', 3, 'Shoes')
+sys.exit()'''
 
 if __name__ == '__main__':
     argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-users --keywords=shoes,gucci --countmin=3 --countmax=5'
     argsString = '--email=alex@altstone.com --password=kernel32 --action=follow-boards --keywords=shoes,gucci --countmin=3 --countmax=5'
+    #commands = CommandsParser(argsString)
     commands = CommandsParser()
-    if len(sys.argv) > 1:
-        commands.Execute()
-    else:
-        commands.Execute(argsString)
+    commands.Execute()

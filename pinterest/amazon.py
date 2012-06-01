@@ -1,9 +1,9 @@
 # coding=utf8
 from __future__ import print_function
 import time, hmac, hashlib, base64, urllib, sys, os, re
-from BeautifulSoup import BeautifulSoup
 
-sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
+if __name__ == '__main__':
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
 
 class Amazon(object):
     '''Парсер Амазона'''
@@ -14,12 +14,12 @@ class Amazon(object):
         self.accessKeyID = dataList[0]
         self.secretAccessKey = dataList[1]
         self.assotiateTag = dataList[2]
-        self.searchIndexes = ('All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
+        self.departments = ('All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
             'Grocery','DVD','Electronics','HealthPersonalCare','HomeGarden','Industrial','Jewelry','KindleStore','Kitchen','LawnAndGarden',
             'Magazines','Marketplace','Merchants','Miscellaneous','MobileApps','MP3Downloads','Music','MusicalInstruments','MusicTracks',
             'OfficeProducts','OutdoorLiving','PCHardware','PetSupplies','Photo','Shoes','Software','SportingGoods','Tools','Toys','UnboxVideo',
             'VHS','Video','VideoGames','Watches','Wireless','WirelessAccessories')
-        self.searchIndexesSort = {'All': [''],
+        self.departmentsSort = {'All': [''],
             'Apparel': ['relevancerank', 'salesrank'],
             'Appliances': ['salesrank','pmrank','relevancerank','reviewrank'],
             'ArtsAndCrafts': ['pmrank','relevancerank','reviewrank'],
@@ -66,11 +66,6 @@ class Amazon(object):
             'Wireless': ['reviewrank','salesrank'],
             'WirelessAccessories': ['psrank','salesrank']}
     
-    def Prettify(self, xml):
-        '''Prettify'''
-        soup = BeautifulSoup(xml)
-        return soup.prettify()
-    
     def Request(self, paramsDist):
         '''Делаем запрос'''
         paramsDist.update({'Service': 'AWSECommerceService', 'AWSAccessKeyId': self.accessKeyID, 'AssociateTag': self.assotiateTag, 'Timestamp': time.strftime('%Y-%m-%dT%H:%M:%S.000Z')})
@@ -87,11 +82,11 @@ class Amazon(object):
         paramsDist = {'Operation': 'BrowseNodeLookup', 'BrowseNodeId': str(parentNodeId)}
         return self.Request(paramsDist)
         
-    def ItemSearch(self, keywords, page=1, searchIndex='All'):
+    def ItemSearch(self, keywords, page=1, department='All'):
         '''Запрос ItemSearch'''
-        paramsDist = {'Operation': 'ItemSearch', 'SearchIndex': searchIndex, 'Keywords': keywords, 'ItemPage': str(page)}
+        paramsDist = {'Operation': 'ItemSearch', 'SearchIndex': department, 'Keywords': keywords, 'ItemPage': str(page)}
         paramsDist.update({'Availability': 'Available', 'Condition': 'New', 'MinimumPrice': '1000'})
-        sort = self.searchIndexesSort[searchIndex][0]
+        sort = self.departmentsSort[department][0]
         if sort != '':
             paramsDist.update({'Sort': sort})
         return self.Request(paramsDist)
@@ -101,17 +96,17 @@ class Amazon(object):
         paramsDist = {'Operation': 'ItemLookup', 'ItemId': itemId, 'ResponseGroup': responseGroups}
         return self.Request(paramsDist)
     
-    def Parse(self, keywords, count=10, searchIndex='All'):
+    def Parse(self, keywords, count=10, department='All'):
         '''Парсим товары по кеям'''
         result = []
         pageNum = 1
         idsList = []
-        count = min(count, (50 if searchIndex == 'All' else 100))
+        count = min(count, (50 if department == 'All' else 100))
         while count > 0:
             try:
                 if len(idsList) == 0:
-                    print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, searchIndex), end='')
-                    responseSearch = self.ItemSearch(keywords, pageNum, searchIndex)
+                    print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, department), end='')
+                    responseSearch = self.ItemSearch(keywords, pageNum, department)
                     idsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
                     print('%d found' % len(idsList))
                     pageNum += 1
@@ -124,8 +119,7 @@ class Amazon(object):
                 item = {}
                 item['id'] = itemId
                 item['title'] = re.findall(r'<Title>([^<]*)<', responseLookup, re.U)[0]
-                item['imageMediumUrl'] = re.findall(r'<MediumImage><URL>([^<]*)<', responseLookup, re.U)[0]
-                item['imageLargeUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
+                item['imageUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
                 item['link'] = re.findall(r'<DetailPageURL>([^<]*)<', responseLookup, re.U)[0]
                 result.append(item)
                 count -= 1
@@ -138,4 +132,4 @@ if __name__ == '__main__':
     #print(amazon.BrowseNodeLookup(2478844011))
     #print(amazon.ItemSearch('harry potter', 1, 'Books'))
     #print(amazon.ItemLookup('0062101897'))
-    print(amazon.Parse('jessica', 3, 'Shoes'))
+    print(amazon.Parse('missoni', 3, 'Shoes'))
