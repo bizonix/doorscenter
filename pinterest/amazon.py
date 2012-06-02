@@ -1,9 +1,9 @@
 # coding=utf8
 from __future__ import print_function
-import time, hmac, hashlib, base64, urllib, sys, os, re
+import os, re, sys, time, hmac, base64, hashlib, urllib
 
 if __name__ == '__main__':
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)  # убираем буферизацию stdout
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
 class Amazon(object):
     '''Парсер Амазона'''
@@ -126,6 +126,7 @@ class Amazon(object):
             except Exception as error:
                 print('### Error: %s' % error)
         return result
+
 
 if __name__ == '__main__':
     amazon = Amazon()
