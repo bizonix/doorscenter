@@ -21,15 +21,16 @@ class PinterestBot(object):
         self.lastResponseHeaders = ''
         self.lastResponseBody = ''
         self.timeout = 60
-        self.lastPrintEnd = None
-        self.usersDataFolder = 'users'
+        self.usersDataFolder = 'userdata'
         self.debugFolder = 'debug'
         self.boardCategoriesList = ['architecture','art','cars_motorcycles','design','diy_crafts','education',
             'film_music_books','fitness','food_drink','gardening','geek','hair_beauty','history','holidays','home',
             'humor','kids','mylife','women_apparel','men_apparel','outdoors','people','pets','photography',
             'prints_posters','products','science','sports','technology','travel_places','wedding_events','other']
-        self.commentsList = open('comments.txt').read().splitlines()
-        self.commentsList = [item.strip() for item in self.commentsList if item.strip() != '']
+        self.commentsList = []
+        if os.path.exists('comments.txt'):
+            self.commentsList = open('comments.txt').read().splitlines()
+            self.commentsList = [item.strip() for item in self.commentsList if item.strip() != '']
     
     def _License1(self):
         dataList = open('license.ini').read().splitlines()
@@ -59,7 +60,6 @@ class PinterestBot(object):
             text = self.printPrefix + text
             end = None  # в многопоточном режиме всегда выводим конец строки
         common.PrintThreaded(text, end)
-        self.lastPrintEnd = end
     
     def _Debug(self, data):
         '''Пишем дебаг'''
@@ -90,7 +90,7 @@ class PinterestBot(object):
     
     def _LoadUserData(self, userEmail):
         '''Загружаем данные о юзере из файла'''
-        userFileName = os.path.join(self.usersDataFolder, userEmail + '.txt')
+        userFileName = os.path.join(self.usersDataFolder, 'login-%s.txt' % userEmail)
         self._ClearUserData()
         if not os.path.exists(userFileName):
             return False
@@ -103,7 +103,7 @@ class PinterestBot(object):
     
     def _SaveUserData(self):
         '''Сохраняем данные о юзере в файл'''
-        userFileName = os.path.join(self.usersDataFolder, self.userData['email'] + '.txt')
+        userFileName = os.path.join(self.usersDataFolder, 'login-%s.txt' % self.userData['email'])
         try:
             if not os.path.exists(self.usersDataFolder):
                 os.makedirs(self.usersDataFolder)
@@ -111,8 +111,8 @@ class PinterestBot(object):
         except Exception as error:
             self._Print('### Error: %s' % error)
     
-    def _Request(self, text, url, postData=None, postDataMultipart=None):
-        '''Читаем урл'''
+    def _Request(self, printText, url, postData=None, postDataMultipart=None, checkToken=None, printOk='ok', printError='error'):
+        '''Выдерживаем таймаут, выводим текст, отправляем запрос, проверям содержимое ответа, выводим текст в зависимости от наличия заданного токена'''
         try:
             bufHeaders = cStringIO.StringIO()
             bufBody = cStringIO.StringIO()
@@ -126,7 +126,7 @@ class PinterestBot(object):
                 time.sleep(timeout - lastRequestTimeDelta)
             
             '''Выводим текст'''
-            self._Print(text + ' ... ', '')
+            self._Print(printText + ' ... ', '')
             
             '''Формируем заголовки'''
             headersList = []
@@ -170,19 +170,29 @@ class PinterestBot(object):
             self.lastResponseHeaders = bufHeaders.getvalue()
             self.lastResponseBody = bufBody.getvalue()
             self._Debug(url + '\n\n' + self.lastResponseHeaders + '\n' + self.lastResponseBody)
+            
+            '''Проверям токен и выводим текст'''
+            if checkToken != None:
+                result = self.lastResponseBody.find(checkToken) >= 0
+                if not result:
+                    result = self.lastResponseHeaders.find(checkToken) >= 0
+                if result:
+                    if printOk:
+                        self._Print(printOk)
+                else:
+                    if printError:
+                        self._Print(printError)
+            else:
+                result = True
+            return result
         except Exception as error:
             self._Print('### Error: %s' % error)
+            return False
     
     @classmethod
     def _LoadPage(self, fileName):
         '''Читаем страницу из файла'''
         return open(fileName).read()
-    
-    def _CheckToken(self, snippet, token):
-        '''Проверям наличие токена'''
-        result = snippet.find(token) >= 0
-        self._Print('ok' if result else 'error')
-        return result
     
     def _GetToken(self, snippet, regexp):
         '''Извлекаем токен по регекспу'''
@@ -204,45 +214,29 @@ class PinterestBot(object):
         '''Логинимся в пинтерест'''
         self._License1()
         if self._LoadUserData(userEmail):
-            self._Request('Checking if "%s" is logged in' % self.userData['id'], 'http://pinterest.com/')
-            if self.lastResponseBody.find('Logout') >= 0:
-                self._Print('ok')
+            if self._Request('Checking if "%s" is logged in' % self.userData['id'], 'http://pinterest.com/', None, None, 'Logout', 'ok', 'not logged in'):
                 self._ScrapeOwnBoards()
                 return True
-            else:
-                self._Print('not logged in')
-        
         self._ClearUserData()
         self.userData['email'] = userEmail
         self.userData['password'] = userPassword
         self.userData['proxyHost'] = proxyHost
         self.userData['proxyPassword'] = proxyPassword
-        
-        self._Request('Logging in "%s" (step 1)' % self.userData['email'], 'https://pinterest.com/login/?next=%2F')
-        if not self._CheckToken(self.lastResponseBody, 'csrfmiddlewaretoken'):
-            return False
-        self.userData['token1'] = self._GetToken(self.lastResponseHeaders, "csrftoken=(.*?);")
-        self.userData['token2'] = self._GetToken(self.lastResponseHeaders, "_pinterest_sess=(.*?);")
-        
-        self._Request('Logging in "%s" (step 2)' % self.userData['email'], 'https://pinterest.com/login/?next=%2Flogin%2F', urllib.urlencode({'email': self.userData['email'], 'password': self.userData['password'], 'next': '/', 'csrfmiddlewaretoken': self.userData['token1']}))
-        if not self._CheckToken(self.lastResponseHeaders, '_pinterest_sess'):
-            return False
-        self.userData['token2'] = self._GetToken(self.lastResponseHeaders, "_pinterest_sess=(.*?);")
-        
-        self._Request('Logging in "%s" (step 3)' % self.userData['email'], 'http://pinterest.com/')
-        if not self._CheckToken(self.lastResponseBody, 'Logout'):
-            return False
-        self.userData['id'] = self._GetToken(self.lastResponseBody, '"UserNav">\s*<a href="/(.*?)/"')
-        
-        self._SaveUserData()
-        self._ScrapeOwnBoards()
-        self._Print('User "%s" logged in successfully' % self.userData['id'])
-        return True
+        if self._Request('Logging in "%s"' % self.userData['email'], 'https://pinterest.com/login/?next=%2F', None, None, 'csrfmiddlewaretoken'):
+            self.userData['token1'] = self._GetToken(self.lastResponseHeaders, "csrftoken=(.*?);")
+            self.userData['token2'] = self._GetToken(self.lastResponseHeaders, "_pinterest_sess=(.*?);")
+            if self._Request('', 'https://pinterest.com/login/?next=%2Flogin%2F', urllib.urlencode({'email': self.userData['email'], 'password': self.userData['password'], 'next': '/', 'csrfmiddlewaretoken': self.userData['token1']}), None, None, '_pinterest_sess'):
+                self.userData['token2'] = self._GetToken(self.lastResponseHeaders, "_pinterest_sess=(.*?);")
+                if self._Request('', 'http://pinterest.com/', None, None, 'Logout'):
+                    self.userData['id'] = self._GetToken(self.lastResponseBody, '"UserNav">\s*<a href="/(.*?)/"')
+                    self._SaveUserData()
+                    self._ScrapeOwnBoards()
+                    return True
+        return False
     
     def _GetUserReport(self, userId):
         '''Получаем отчет по произвольному юзеру'''
-        self._Request('Getting info about "%s"' % userId, 'http://pinterest.com/%s/' % userId)
-        if self._CheckToken(self.lastResponseBody, 'Logout'):
+        if self._Request('Getting info about "%s"' % userId, 'http://pinterest.com/%s/' % userId, None, None, 'Logout'):
             userReport = {}
             try:
                 userReport['followers'] = int(self._GetToken(self.lastResponseBody, r'<strong>(\d*)</strong> Followers'))
@@ -272,53 +266,54 @@ class PinterestBot(object):
         for n in range(len(idsList)):
             self.userBoardsDist[idsList[n]] = namesList[n]
     
-    def _GetOwnBoard(self, keywordsList):
+    def _FindBoard(self, boardsList):
         '''Находим свою доску по кейворду'''
         boardsIds = self.userBoardsDist.keys()
         random.shuffle(boardsIds)
-        random.shuffle(keywordsList)
-        for keyword in keywordsList:
+        random.shuffle(boardsList)
+        for boardName in boardsList:
             for boardId in boardsIds:  # сначала ищем полное совпадение
-                if self.userBoardsDist[boardId].lower() == keyword.lower():
+                if self.userBoardsDist[boardId].lower() == boardName.lower():
                     return boardId
             for boardId in boardsIds:  # потом частичное
-                if self.userBoardsDist[boardId].lower().find(keyword.lower()) >= 0:
+                if self.userBoardsDist[boardId].lower().find(boardName.lower()) >= 0:
                     return boardId
     
-    def _CreateOwnBoard(self, boardName, category=''):
+    def _CreateBoard(self, boardName, category=''):
         '''Создаем свою доску'''
         if category == '':
             text = 'Creating new board "%s"' % boardName
         else:
             text = 'Creating new board "%s" in category "%s"' % (boardName, category)
-        if self._GetOwnBoard(boardName) == None:
+        if self._FindBoard([boardName]) == None:
             if (category != '') and (category not in self.boardCategoriesList):
                 self._Print('incorrect category, ignoring')
                 category = ''
             if category == '':
-                self._Request(text, 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName}))
+                result = self._Request(text, 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName}), None, '"status": "success"')
             else:
-                self._Request(text, 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName, 'category': category}))
-            if self._CheckToken(self.lastResponseBody, '"status": "success"'):
+                result = self._Request(text, 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName, 'category': category}), None, '"status": "success"')
+            if result:
                 boardId = self._GetToken(self.lastResponseBody, r'"id": "([^"]*)"')
                 self.userBoardsDist[boardId] = boardName
         else:
             self._Print('already exists, skipped')
     
-    def _GetOrCreateOwnBoard(self, keywordsList, boardName, category=''):
+    def _FindOrCreateBoard(self, boardsList, category=''):
         '''Находим или создаем доску'''
-        boardId = self._GetOwnBoard(keywordsList)
+        boardId = self._FindBoard(boardsList)
         if not boardId:
-            boardId = self._CreateOwnBoard(boardName, category)
+            boardName = random.choice(boardsList)
+            boardId = self._CreateBoard(boardName, category)
         return boardId
     
     def _ScrapeUsers(self, keywordsList, pageNum):
         '''Ищем юзеров по заданным кеям на заданной странице'''
         for keyword in keywordsList:
-            self._Request('Searching for users by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/people/?q=%s&page=%d' % (keyword, pageNum))
-            newUsersList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/"')
-            self.usersList.extend(newUsersList)
-            self._Print('%d found' % len(newUsersList))
+            if self._Request('Searching for users by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/people/?q=%s&page=%d' % (keyword, pageNum), None, None, 'Logout', None, 'error'):
+                newUsersList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/"')
+                self.usersList.extend(newUsersList)
+                self._Print('%d found' % len(newUsersList))
         self.usersList = list(set(self.usersList))
         random.shuffle(self.usersList)
     
@@ -336,11 +331,9 @@ class PinterestBot(object):
                 if len(self.usersList) == 0:
                     self._Print('Out of users')
                     break
-            userId = self.usersList.pop()
-            self._Request('Following user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'http://pinterest.com/%s/?d' % userId)
-            if self.lastResponseBody.find('Follow') >= 0:
-                self._Request('', 'http://pinterest.com/%s/follow/' % userId, '1')
-                if self._CheckToken(self.lastResponseBody, '"status": "success"'):
+            userId = self.usersList.pop(0)
+            if self._Request('Following user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'http://pinterest.com/%s/?d' % userId, None, None, 'Follow', None, None):
+                if self._Request('', 'http://pinterest.com/%s/follow/' % userId, '1', None, '"status": "success"'):
                     actionNum += 1
             elif self.lastResponseBody.find('Unfollow') >= 0:
                 self._Print('already followed')
@@ -350,24 +343,23 @@ class PinterestBot(object):
     def UnfollowUsers(self, actionsCountMin, actionsCountMax):
         '''Анфолловим юзеров'''
         actionsCount = random.randint(actionsCountMin, actionsCountMax)
-        self._Request('Getting followers list', 'http://pinterest.com/%s/following/' % self.userData['id'])
-        usersList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/">\s*?Unfollow')
-        random.shuffle(usersList)
-        actionNum = 1
-    
-        while actionNum <= actionsCount:
-            userId = usersList.pop()
-            self._Request('Unfollowing user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'http://pinterest.com/%s/follow/' % userId, urllib.urlencode({'unfollow': '1'}))
-            if self._CheckToken(self.lastResponseBody, '"status": "success"'):
-                actionNum += 1
+        if self._Request('Getting followers list', 'http://pinterest.com/%s/following/' % self.userData['id'], None, None, 'Logout'):
+            usersList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/">\s*?Unfollow')
+            random.shuffle(usersList)
+            actionNum = 1
+        
+            while actionNum <= actionsCount:
+                userId = usersList.pop(0)
+                if self._Request('Unfollowing user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'http://pinterest.com/%s/follow/' % userId, urllib.urlencode({'unfollow': '1'}), None, '"status": "success"'):
+                    actionNum += 1
     
     def _ScrapeBoards(self, keywordsList, pageNum):
         '''Ищем доски по заданным кеям на заданной странице'''
         for keyword in keywordsList:
-            self._Request('Searching for boards by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/boards/?q=%s&page=%d' % (keyword, pageNum))
-            newBoardsList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/"')
-            self.boardsList.extend(newBoardsList)
-            self._Print('%d found' % len(newBoardsList))
+            if self._Request('Searching for boards by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/boards/?q=%s&page=%d' % (keyword, pageNum), None, None, 'Logout', None, 'error'):
+                newBoardsList = self._GetTokensList(self.lastResponseBody, r'"/([a-zA-Z0-9-/]*)/follow/"')
+                self.boardsList.extend(newBoardsList)
+                self._Print('%d found' % len(newBoardsList))
         self.boardsList = list(set(self.boardsList))
         random.shuffle(self.boardsList)
     
@@ -385,11 +377,9 @@ class PinterestBot(object):
                 if len(self.boardsList) == 0:
                     self._Print('Out of boards')
                     break
-            boardId = self.boardsList.pop()
-            self._Request('Following board "%s" (%d/%d)' % (boardId, actionNum, actionsCount), 'http://pinterest.com/%s/' % boardId)
-            if self.lastResponseBody.find('Follow') >= 0:
-                self._Request('', 'http://pinterest.com/%s/follow/' % boardId, '1')
-                if self._CheckToken(self.lastResponseBody, '"status": "success"'):
+            boardId = self.boardsList.pop(0)
+            if self._Request('Following board "%s" (%d/%d)' % (boardId, actionNum, actionsCount), 'http://pinterest.com/%s/' % boardId, None, None, 'Follow', None, None):
+                if self._Request('', 'http://pinterest.com/%s/follow/' % boardId, '1', None, '"status": "success"'):
                     actionNum += 1
             elif self.lastResponseBody.find('Unfollow') >= 0:
                 self._Print('already followed')
@@ -400,37 +390,33 @@ class PinterestBot(object):
         '''Ищем пины по заданным кеям на заданной странице'''
         for keyword in keywordsList:
             if keyword == 'popular':
-                self._Request('Searching for popular pins on page %d' % pageNum, 'http://pinterest.com/popular/?lazy=1&page=%d' % pageNum)
+                result = self._Request('Searching for popular pins on page %d' % pageNum, 'http://pinterest.com/popular/?lazy=1&page=%d' % pageNum, None, None, 'Logout', None, 'error')
             else:
-                self._Request('Searching for pins by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/?q=%s&page=%d' % (keyword, pageNum))
-            newPinsList = self._GetTokensList(self.lastResponseBody, r'"/pin/([0-9]*)/"')
-            self.pinsList.extend(newPinsList)
-            self._Print('%d found' % len(newPinsList))
+                result = self._Request('Searching for pins by keyword "%s" on page %d' % (keyword, pageNum), 'http://pinterest.com/search/?q=%s&page=%d' % (keyword, pageNum), None, None, 'Logout', None, 'error')
+            if result:
+                newPinsList = self._GetTokensList(self.lastResponseBody, r'"/pin/([0-9]*)/"')
+                self.pinsList.extend(newPinsList)
+                self._Print('%d found' % len(newPinsList))
         self.pinsList = list(set(self.pinsList))
         random.shuffle(self.pinsList)
     
     def _LikePin(self, pinId):
         '''Лайкаем заданный пин'''
-        self._Request('', 'http://pinterest.com/pin/%s/like/' % pinId, '1')
-        return self._CheckToken(self.lastResponseBody, '"status": "success"')
+        return self._Request('', 'http://pinterest.com/pin/%s/like/' % pinId, '1', None, '"status": "success"')
     
     def _RepostPin(self, pinId, boardsList):
         '''Репостим заданный пин'''
-        self._Request('', 'http://pinterest.com/pin/%s/repindata/' % pinId, '1')
-        if self.lastResponseBody.find('"status": "success"') >= 0:
+        if self._Request('', 'http://pinterest.com/pin/%s/repindata/' % pinId, '1', None, '"status": "success"', None, 'error'):
             pinDescription = self._GetToken(self.lastResponseBody, r'"details": "([^"]*)"')
-            boardId = self._GetOwnBoard(boardsList)
-            self._Request('', 'http://pinterest.com/pin/%s/repin/' % pinId, urllib.urlencode({'board': boardId, 'id': pinId, 'tags': '', 'replies': '', 'details': pinDescription, 'buyable': '', 'csrfmiddlewaretoken': self.userData['token1']}))
-            return self._CheckToken(self.lastResponseBody, '"status": "success"')
+            boardId = self._FindOrCreateBoard(boardsList)
+            return self._Request('', 'http://pinterest.com/pin/%s/repin/' % pinId, urllib.urlencode({'board': boardId, 'id': pinId, 'tags': '', 'replies': '', 'details': pinDescription, 'buyable': '', 'csrfmiddlewaretoken': self.userData['token1']}), None, '"status": "success"')
         else:
-            self._Print('error')
             return False
     
     def _CommentPin(self, pinId):
         '''Комментим заданный пин'''
         comment = random.choice(self.commentsList)
-        self._Request('', 'http://pinterest.com/pin/%s/comment/' % pinId, urllib.urlencode({'text': comment, 'replies': '', 'path': '/pin/%s/' % pinId}))
-        return self._CheckToken(self.lastResponseBody, '"status": "success"')
+        return self._Request('', 'http://pinterest.com/pin/%s/comment/' % pinId, urllib.urlencode({'text': comment, 'replies': '', 'path': '/pin/%s/' % pinId}), None, '"status": "success"')
     
     def _ActionPins(self, action, actionPrint, keywordsList, actionsCountMin, actionsCountMax, boardsList=None):
         '''Действия с пинами'''
@@ -446,9 +432,8 @@ class PinterestBot(object):
                 if len(self.pinsList) == 0:
                     self._Print('Out of pins')
                     break
-            pinId = self.pinsList.pop()
-            self._Request('%s pin "%s" (%d/%d)' % (actionPrint, pinId, actionNum, actionsCount), 'http://pinterest.com/pin/%s/' % pinId)
-            if self.lastResponseBody.find('Pinned') >= 0:
+            pinId = self.pinsList.pop(0)
+            if self._Request('%s pin "%s" (%d/%d)' % (actionPrint, pinId, actionNum, actionsCount), 'http://pinterest.com/pin/%s/' % pinId, None, None, 'Pinned', None, 'error'):
                 result = False
                 if action == 'like':
                     result = self._LikePin(pinId)
@@ -458,8 +443,6 @@ class PinterestBot(object):
                     result = self._CommentPin(pinId)
                 if result:
                     actionNum += 1
-            else:
-                self._Print('error')
     
     def LikePins(self, keywordsList, actionsCountMin, actionsCountMax):
         '''Лайкаем пины'''
@@ -471,33 +454,48 @@ class PinterestBot(object):
     
     def CommentPins(self, keywordsList, actionsCountMin, actionsCountMax):
         '''Комментируем пины'''
-        self._ActionPins('comment', 'Commenting', keywordsList, actionsCountMin, actionsCountMax)
+        if len(self.commentsList) > 0:
+            self._ActionPins('comment', 'Commenting', keywordsList, actionsCountMin, actionsCountMax)
+        else:
+            print('No comments in the list, skipping commenting')
     
-    def AddPin(self, boardId, title, link, imageUrl):
+    def _AddPin(self, boardId, title, link, imageUrl, addText=''):
         '''Добавляем на свою доску свой пин'''
-        '''self._Request('Finding images for new pin "%s"' % title, 'http://pinterest.com/pin/create/find_images/?' + urllib.urlencode({'url': link}))
-        if not self._CheckToken(self.lastResponseBody, '"status": "success"', True):
-            return'''
-        
-        self._Request('Adding new pin "%s"' % title, 'http://pinterest.com/pin/create/', None, [('board', boardId), ('details', title), ('link', link), ('img_url', imageUrl), ('tags', ''), ('replies', ''), ('peeps_holder', ''), ('buyable', ''), ('csrfmiddlewaretoken', self.userData['token1'])])
-        if not self._CheckToken(self.lastResponseBody, '"status": "success"', True):
-            return
-        pinId = self._GetToken(self.lastResponseBody, r'"url": "/pin/([^/]*)/"')
-        
-        self._Request('Viewing posted pin #%s' % pinId, 'http://pinterest.com/pin/%s/' % pinId)
-        self._Print('ok')
+        if self._Request('Adding new pin "%s"%s' % (title, addText), 'http://pinterest.com/pin/create/find_images/?' + urllib.urlencode({'url': link.replace('http://', 'http%3A//')}), '1', None, '"status": "success"', None, 'error'):
+            if self._Request('', 'http://pinterest.com/pin/create/', None, [('board', boardId), ('details', title), ('link', link), ('img_url', imageUrl), ('tags', ''), ('replies', ''), ('peeps_holder', ''), ('buyable', ''), ('csrfmiddlewaretoken', self.userData['token1'])], '"status": "success"', None, 'error'):
+                pinId = self._GetToken(self.lastResponseBody, r'"url": "/pin/([^/]*)/"')
+                return self._Request('', 'http://pinterest.com/pin/%s/' % pinId, None, None, 'Logout')
+        return False
     
     def AddPinsAmazon(self, keywordsList, actionsCountMin, actionsCountMax, boardsList, department='All'):
         '''Парсим амазон и постим на доску'''
         actionsCount = random.randint(actionsCountMin, actionsCountMax)
+        itemsList = []
+        actionNum = 1
+        pageNum = 1
+        
+        '''Читаем данные о запощенных товарах'''
+        amazonDataFileName = os.path.join(self.usersDataFolder, 'amazon-%s.txt' % self.userData['email'])
+        amazonPostedItemsList = []
+        if os.path.exists(amazonDataFileName):
+            amazonPostedItemsList = open(amazonDataFileName).read().splitlines()
+        
+        '''Постим'''
         amazonObj = amazon.Amazon(self.printPrefix)
-        itemsList = amazonObj.Parse(','.join(keywordsList), actionsCount, department)
-        for item in itemsList:
-            if item['id'] in self.userData['amazonPostedItemsList']:
-                continue
-            self.AddPin(boardId, item['title'], item['link'], item['imageUrl'])
-            self.userData['amazonPostedItemsList'].append(item['id'])
-        pass
+        while actionNum <= actionsCount:
+            if len(itemsList) == 0:
+                itemsList = amazonObj.Parse(keywordsList, pageNum, department)
+                pageNum += 1
+                if len(itemsList) == 0:
+                    self._Print('Out of items')
+                    break
+            item = itemsList.pop(0)
+            if item['id'] not in amazonPostedItemsList:
+                boardId = self._FindOrCreateBoard(boardsList)
+                if self._AddPin(boardId, item['title'], item['link'], item['imageUrl'], ' (%d/%d)' % (actionNum, actionsCount)):
+                    amazonPostedItemsList.append(item['id'])
+                    open(amazonDataFileName, 'w').write('\n'.join(amazonPostedItemsList))
+                    actionNum += 1
 
 
 if __name__ == '__main__':
@@ -506,6 +504,6 @@ if __name__ == '__main__':
     #bot.Report()
     #bot.LikePins(['popular'], 1, 1)
     #bot.RepostPins(['popular'], 1, 1, ['home'])
-    bot.CommentPins(['popular'], 1, 1)
-    #bot.AddPin('213991488483272763', 'xxx', 'http://www.amazon.com/PDX-FUCK-ME-SILLY-DUDE/dp/B0065M9922', 'http://ecx.images-amazon.com/images/I/41LYc9OfvGL._SL500_AA300_.jpg')
-    #bot.AddPinsAmazon('213991488483272763', 'missoni', 3, 'Shoes')
+    #bot.CommentPins(['popular'], 1, 1)
+    #bot._AddPin('213991488483272763', 'xxx', 'http://www.amazon.com/PDX-FUCK-ME-SILLY-DUDE/dp/B0065M9922', 'http://ecx.images-amazon.com/images/I/41LYc9OfvGL._SL500_AA300_.jpg')
+    bot.AddPinsAmazon(['missoni'], 2, 3, ['All the Random'], 'Shoes')

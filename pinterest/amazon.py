@@ -1,6 +1,6 @@
 # coding=utf8
 from __future__ import print_function
-import os, re, sys, time, hmac, base64, hashlib, urllib
+import os, re, sys, time, random, hmac, base64, hashlib, urllib
 import common
 
 if __name__ == '__main__':
@@ -92,52 +92,52 @@ class Amazon(object):
         paramsDist = {'Operation': 'BrowseNodeLookup', 'BrowseNodeId': str(parentNodeId)}
         return self._Request(paramsDist)
         
-    def ItemSearch(self, keywords, page=1, department='All'):
+    def ItemSearch(self, keywords, page=1, department='All', sortType=None):
         '''Запрос ItemSearch'''
         paramsDist = {'Operation': 'ItemSearch', 'SearchIndex': department, 'Keywords': keywords, 'ItemPage': str(page)}
         paramsDist.update({'Availability': 'Available', 'Condition': 'New', 'MinimumPrice': '1000'})
-        sort = self.departmentsSort[department][0]
-        if sort != '':
-            paramsDist.update({'Sort': sort})
+        if (sortType != None) and (sortType != ''):
+            paramsDist.update({'Sort': sortType})
         return self._Request(paramsDist)
 
     def ItemLookup(self, itemId, responseGroups='Images,Small'):
-        '''Запрос ItemSearch'''
+        '''Запрос ItemLookup'''
         paramsDist = {'Operation': 'ItemLookup', 'ItemId': itemId, 'ResponseGroup': responseGroups}
         return self._Request(paramsDist)
     
-    def Parse(self, keywords, count=10, department='All'):
+    def Parse(self, keywordsList, pageNum=1, department='All', sortType=None):
         '''Парсим товары по кеям'''
         result = []
-        pageNum = 1
-        idsList = []
-        count = min(count, (50 if department == 'All' else 100))
-        while count > 0:
-            try:
-                if len(idsList) == 0:
-                    self._Print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, department), end='')
-                    responseSearch = self.ItemSearch(keywords, pageNum, department)
-                    idsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
-                    self._Print('%d found' % len(idsList))
-                    pageNum += 1
-                    if len(idsList) == 0:
-                        break
-                itemId = idsList.pop(0)
-                self._Print('Getting information on item "%s" ... ' % itemId, end='')
-                responseLookup = self.ItemLookup(itemId)
-                self._Print('ok')
-                item = {}
-                item['id'] = itemId
-                item['title'] = re.findall(r'<Title>([^<]*)<', responseLookup, re.U)[0]
-                item['imageUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
-                item['link'] = re.findall(r'<DetailPageURL>([^<]*)<', responseLookup, re.U)[0]
-                result.append(item)
-                count -= 1
-            except Exception as error:
-                self._Print('### Error: %s' % error)
+        maxPageNum = 5 if department == 'All' else 10
+        if pageNum > maxPageNum:
+            return result
+        keywords = ','.join(keywordsList)
+        try:
+            self._Print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, department), end='')
+            if sortType == None:
+                sortType = random.choice(self.departmentsSort[department])
+            responseSearch = self.ItemSearch(keywords, pageNum, department, sortType)
+            itemsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
+            self._Print('%d found' % len(itemsList))
+            for itemId in itemsList:
+                try:
+                    self._Print('Getting information about item "%s" ... ' % itemId, end='')
+                    responseLookup = self.ItemLookup(itemId)
+                    self._Print('ok')
+                    item = {}
+                    item['id'] = itemId
+                    item['title'] = re.findall(r'<Title>([^<]*)<', responseLookup, re.U)[0]
+                    item['imageUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
+                    item['link'] = re.findall(r'<DetailPageURL>([^<]*)<', responseLookup, re.U)[0]
+                    result.append(item)
+                except Exception as error:
+                    self._Print('### Error: %s' % error)
+        except Exception as error:
+            self._Print('### Error: %s' % error)
+        random.shuffle(result)
         return result
 
 
 if __name__ == '__main__':
     amazon = Amazon()
-    print(amazon.Parse('missoni', 3, 'Shoes'))
+    print(amazon.Parse(['missoni'], 1, 'Shoes'))
