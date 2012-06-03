@@ -15,13 +15,14 @@ class LauncherSingle(object):
     
     def Parse(self, command):
         '''Парсим команду'''
+        #TODO: условная обязательность аргументов
         parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
         parser.add_argument('--email', required=True, help='user\'s email')
         parser.add_argument('--password', required=True, help='user\'s password')
-        parser.add_argument('--action', required=True, choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins', 'repost-pins', 'comment-pins', 'add-pins-amazon', 'report'], help='action to execute')
-        parser.add_argument('--countmin', required=True, type=int, help='minimal actions count')
-        parser.add_argument('--countmax', required=True, type=int, help='maximum actions count')
-        parser.add_argument('--keywords', required=True, help='comma-separated keywords for scraping; use "popular" for liking, reposting and commenting popular pins')
+        parser.add_argument('--action', required=True, choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins', 'repost-pins', 'comment-pins', 'post-amazon', 'userinfo'], help='action to execute')
+        parser.add_argument('--countmin', default=1, type=int, help='minimal actions count')
+        parser.add_argument('--countmax', default=1, type=int, help='maximum actions count')
+        parser.add_argument('--keywords', default='', help='comma-separated keywords for scraping; use "popular" for liking, reposting and commenting popular pins')
         parser.add_argument('--boards', default='', help='comma-separated board names or keywords for repinning and posting')
         parser.add_argument('--department', default='All', help='amazon department for searching for goods')
         parser.add_argument('--proxy', default='', help='proxy host[:port]')
@@ -66,10 +67,10 @@ class LauncherSingle(object):
                 self.bot.RepostPins(self.keywordsList, self.actionsCountMin, self.actionsCountMax, self.boardsList)
             elif self.action == 'comment-pins':
                 self.bot.CommentPins(self.keywordsList, self.actionsCountMin, self.actionsCountMax)
-            elif self.action == 'add-pins-amazon':
-                self.bot.AddPinsAmazon(self.keywordsList, self.actionsCountMin, self.actionsCountMax, self.boardsList, self.amazonDepartment)
-            elif self.action == 'report':
-                self.bot.Report()
+            elif self.action == 'post-amazon':
+                self.bot.PostFromAmazon(self.keywordsList, self.actionsCountMin, self.actionsCountMax, self.boardsList, self.amazonDepartment)
+            elif self.action == 'userinfo':
+                self.bot.ShowUserInfo()
             else:
                 raise Exception('Unknown action')
         except Exception as error:
@@ -123,9 +124,9 @@ class LauncherBatch(object):
         if os.path.exists(self.batchFileName):
             self.commandsList = open(self.batchFileName).read().splitlines()
             self.commandsList = [item.strip() for item in self.commandsList if item.strip() != '']
-            #self.threadsCount = min(self.threadsCount, len(self.commandsList))
+            self.threadsCount = min(self.threadsCount, len(self.commandsList))
         else:
-            common.PrintThreaded('### Error: File "%s" not found' % self.batchFileName)
+            print('### Error: File "%s" not found' % self.batchFileName)
     
     def Execute(self, command):
         '''Выполняем команды'''
@@ -133,14 +134,14 @@ class LauncherBatch(object):
             self.Parse(command)
         if len(self.commandsList) == 0:
             return
-        common.PrintThreaded('=== Executing commands from "%s" ...' % self.batchFileName)
+        print('=== Executing commands from "%s" ...' % self.batchFileName)
         self.commandsQueue = Queue.Queue()
         for command in self.commandsList:
             self.commandsQueue.put(command)
         for n in range(self.threadsCount):
             LauncherSingleThreaded(self, n + 1).start()
         self.commandsQueue.join()
-        common.PrintThreaded('=== Done commands from "%s".' % self.batchFileName)
+        print('=== Done commands from "%s".' % self.batchFileName)
     
     def CommandAllowed(self, userEmail, proxyHost):
         '''Проверяем, выполняются ли команды с этим юзером или прокси'''
@@ -148,14 +149,64 @@ class LauncherBatch(object):
         return True
 
 
+class LauncherTest(object):
+    '''Запускаем тест'''
+    
+    def __init__(self):
+        '''Инициализация'''
+        pass
+
+    def Parse(self, command):
+        '''Парсим команду'''
+        parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
+        parser.add_argument('--email', required=True, help='user\'s email')
+        parser.add_argument('--password', required=True, help='user\'s password')
+        parser.add_argument('--keywords', required=True, help='keywords for testing')
+        parser.add_argument('--boards', required=True, help='boards for testing')
+        parser.add_argument('--testmode', action='store_true')
+        
+        args = parser.parse_args(command.split(' '))
+        self.userEmail = args.email
+        self.userPassword = args.password
+        self.keywords = args.keywords
+        self.boards = args.boards
+        
+        self.commands =  '''--email=%EMAIL% --password=%PASSWORD% --action=follow-users --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=unfollow-users --countmin=1 --countmax=1
+                            --email=%EMAIL% --password=%PASSWORD% --action=follow-boards --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=like-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=repost-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS% --boards=%BOARDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=comment-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=post-amazon --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+                            --email=%EMAIL% --password=%PASSWORD% --action=userinfo'''
+        self.commands = self.commands.replace('%EMAIL%', self.userEmail)
+        self.commands = self.commands.replace('%PASSWORD%', self.userPassword)
+        self.commands = self.commands.replace('%KEYWORDS%', self.keywords)
+        self.commands = self.commands.replace('%BOARDS%', self.boards)
+        self.commandsList = self.commands.splitlines()
+        self.commandsList = [item.strip() for item in self.commandsList if item.strip() != '']
+
+    def Execute(self, command):
+        '''Выполняем команды'''
+        if command != 'parsed':
+            self.Parse(command)
+        launcher = LauncherBatch()
+        launcher.batchFileName = 'test mode'
+        launcher.threadsCount = 1
+        launcher.commandsList = self.commandsList[:]
+        launcher.Execute('parsed')
+        
+
 def Dispatcher(command=None):
     '''Точка входа'''
     if not command:
         command = ' '.join(sys.argv[1:])
-    if command.find('--batchfile') < 0:
-        launcher = LauncherSingle()
-    else:
+    if command.find('--batchfile') >= 0:
         launcher = LauncherBatch()
+    elif command.find('--testmode') >= 0:
+        launcher = LauncherTest()
+    else:
+        launcher = LauncherSingle()
     launcher.Execute(command)
 
 
@@ -164,4 +215,5 @@ if __name__ == '__main__':
     command = '--email=alex@altstone.com --password=kernel32 --action=follow-boards --countmin=3 --countmax=5 --keywords=shoes,gucci'
     command = '--email=alex@altstone.com --password=kernel32 --action=report --countmin=1 --countmax=1 --keywords='
     command = '--batchfile=commands.txt'
+    command = '--email=alex@altstone.com --password=kernel32 --keywords=shoes --boards=Home --testmode'
     Dispatcher(command)

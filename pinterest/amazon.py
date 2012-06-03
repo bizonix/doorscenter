@@ -1,7 +1,6 @@
 # coding=utf8
 from __future__ import print_function
 import os, re, sys, time, random, hmac, base64, hashlib, urllib
-import common
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -68,14 +67,6 @@ class Amazon(object):
             'Wireless': ['reviewrank','salesrank'],
             'WirelessAccessories': ['psrank','salesrank']}
     
-    def _Print(self, text, end=None):
-        '''Выводим текст на консоль'''
-        if self.printPrefix != None:
-            text = self.printPrefix + text
-            end = None  # в многопоточном режиме всегда выводим конец строки
-        common.PrintThreaded(text, end)
-        self.lastPrintEnd = end
-    
     def _Request(self, paramsDist):
         '''Делаем запрос'''
         paramsDist.update({'Service': 'AWSECommerceService', 'AWSAccessKeyId': self.accessKeyID, 'AssociateTag': self.assotiateTag, 'Timestamp': time.strftime('%Y-%m-%dT%H:%M:%S.000Z')})
@@ -111,29 +102,24 @@ class Amazon(object):
         maxPageNum = 5 if department == 'All' else 10
         if pageNum > maxPageNum:
             return result
-        keywords = ','.join(keywordsList)
         try:
-            self._Print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, department), end='')
             if sortType == None:
                 sortType = random.choice(self.departmentsSort[department])
-            responseSearch = self.ItemSearch(keywords, pageNum, department, sortType)
+            responseSearch = self.ItemSearch(','.join(keywordsList), pageNum, department, sortType)
             itemsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
-            self._Print('%d found' % len(itemsList))
             for itemId in itemsList:
                 try:
-                    self._Print('Getting information about item "%s" ... ' % itemId, end='')
                     responseLookup = self.ItemLookup(itemId)
-                    self._Print('ok')
                     item = {}
                     item['id'] = itemId
                     item['title'] = re.findall(r'<Title>([^<]*)<', responseLookup, re.U)[0]
                     item['imageUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
                     item['link'] = re.findall(r'<DetailPageURL>([^<]*)<', responseLookup, re.U)[0]
                     result.append(item)
-                except Exception as error:
-                    self._Print('### Error: %s' % error)
-        except Exception as error:
-            self._Print('### Error: %s' % error)
+                except Exception:
+                    pass
+        except Exception:
+            pass
         random.shuffle(result)
         return result
 
