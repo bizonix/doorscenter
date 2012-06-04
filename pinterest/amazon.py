@@ -1,6 +1,6 @@
 # coding=utf8
 from __future__ import print_function
-import os, re, sys, time, random, hmac, base64, hashlib, urllib
+import os, re, sys, time, random, hmac, base64, hashlib, urllib, ConfigParser
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -11,10 +11,11 @@ class Amazon(object):
     def __init__(self, printPrefix=None):
         '''Инициализация'''
         self.printPrefix = printPrefix
-        dataList = open('amazon.ini').read().splitlines()
-        self.accessKeyID = dataList[0]
-        self.secretAccessKey = dataList[1]
-        self.assotiateTag = dataList[2]
+        config = ConfigParser.RawConfigParser()
+        config.read('config.ini')
+        self.accessKeyID = config.get('Amazon', 'AccessKeyID')
+        self.secretAccessKey = config.get('Amazon', 'SecretAccessKey')
+        self.assotiateTag = config.get('Amazon', 'AssotiateTag')
         self.departments = ('All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
             'Grocery','DVD','Electronics','HealthPersonalCare','HomeGarden','Industrial','Jewelry','KindleStore','Kitchen','LawnAndGarden',
             'Magazines','Marketplace','Merchants','Miscellaneous','MobileApps','MP3Downloads','Music','MusicalInstruments','MusicTracks',

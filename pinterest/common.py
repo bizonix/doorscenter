@@ -3,7 +3,7 @@ from __future__ import print_function
 import os, time, threading
 
 LOG_LEVEL = 2
-LOG_FOLDER = 'log'
+LOG_FOLDER = 'logs'
 
 threadLock = threading.Lock()
 

@@ -15,15 +15,15 @@ class LauncherSingle(object):
     
     def Parse(self, command):
         '''Парсим команду'''
-        #TODO: условная обязательность аргументов
         parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012')
         parser.add_argument('--email', required=True, help='user\'s email')
         parser.add_argument('--password', required=True, help='user\'s password')
         parser.add_argument('--action', required=True, choices=['follow-users', 'unfollow-users', 'follow-boards', 'like-pins', 'repost-pins', 'comment-pins', 'post-amazon', 'userinfo'], help='action to execute')
         parser.add_argument('--countmin', default=1, type=int, help='minimal actions count')
         parser.add_argument('--countmax', default=1, type=int, help='maximum actions count')
-        parser.add_argument('--keywords', default='', help='comma-separated keywords for scraping; use "popular" for liking, reposting and commenting popular pins')
-        parser.add_argument('--boards', default='', help='comma-separated board names or keywords for repinning and posting')
+        parser.add_argument('--keywords', default='', help='comma-separated keywords for scraping')
+        parser.add_argument('--category', default='', help='category for scraping; use "popular" for liking, reposting and commenting popular pins')
+        parser.add_argument('--boards', default='', help='comma-separated board names for repinning and posting; place board category after the ":" sign')
         parser.add_argument('--department', default='All', help='amazon department for searching for goods')
         parser.add_argument('--proxy', default='', help='proxy host[:port]')
         parser.add_argument('--proxypwd', default='', help='proxy username:password')
@@ -35,6 +35,7 @@ class LauncherSingle(object):
         self.actionsCountMin = args.countmin
         self.actionsCountMax = args.countmax
         self.keywordsList = args.keywords.split(',')
+        self.category = args.category
         self.boardsList = args.boards.split(',')
         self.amazonDepartment = args.department
         self.proxyHost = args.proxy
@@ -56,17 +57,17 @@ class LauncherSingle(object):
             
             '''Выполняем команду'''
             if self.action == 'follow-users':
-                self.bot.FollowUsers(self.keywordsList, self.actionsCountMin, self.actionsCountMax)
+                self.bot.FollowUsers(self.keywordsList, self.category, self.actionsCountMin, self.actionsCountMax)
             elif self.action == 'unfollow-users':
                 self.bot.UnfollowUsers(self.actionsCountMin, self.actionsCountMax)
             elif self.action == 'follow-boards':
-                self.bot.FollowBoards(self.keywordsList, self.actionsCountMin, self.actionsCountMax)
+                self.bot.FollowBoards(self.keywordsList, self.category, self.actionsCountMin, self.actionsCountMax)
             elif self.action == 'like-pins':
-                self.bot.LikePins(self.keywordsList, self.actionsCountMin, self.actionsCountMax)
+                self.bot.LikePins(self.keywordsList, self.category, self.actionsCountMin, self.actionsCountMax)
             elif self.action == 'repost-pins':
-                self.bot.RepostPins(self.keywordsList, self.actionsCountMin, self.actionsCountMax, self.boardsList)
+                self.bot.RepostPins(self.keywordsList, self.category, self.actionsCountMin, self.actionsCountMax, self.boardsList)
             elif self.action == 'comment-pins':
-                self.bot.CommentPins(self.keywordsList, self.actionsCountMin, self.actionsCountMax)
+                self.bot.CommentPins(self.keywordsList, self.category, self.actionsCountMin, self.actionsCountMax)
             elif self.action == 'post-amazon':
                 self.bot.PostFromAmazon(self.keywordsList, self.actionsCountMin, self.actionsCountMax, self.boardsList, self.amazonDepartment)
             elif self.action == 'userinfo':
@@ -86,7 +87,7 @@ class LauncherSingleThreaded(threading.Thread):
         self.daemon = True
         self.batch = batch
         self.threadNumber = threadNumber
-        self.printPrefix = ' ' * ((self.threadNumber - 1) * 4) + 'Thread #%d - ' % self.threadNumber
+        self.printPrefix = 'Thread #%d - ' % self.threadNumber + (' ' * ((self.threadNumber - 1) * 4))
         self.launcher = LauncherSingle(self.printPrefix)
     
     def run(self):
@@ -141,7 +142,7 @@ class LauncherBatch(object):
         for n in range(self.threadsCount):
             LauncherSingleThreaded(self, n + 1).start()
         self.commandsQueue.join()
-        print('=== Done commands from "%s".' % self.batchFileName)
+        print('=== Done commands from "%s"' % self.batchFileName)
     
     def CommandAllowed(self, userEmail, proxyHost):
         '''Проверяем, выполняются ли команды с этим юзером или прокси'''
@@ -162,6 +163,7 @@ class LauncherTest(object):
         parser.add_argument('--email', required=True, help='user\'s email')
         parser.add_argument('--password', required=True, help='user\'s password')
         parser.add_argument('--keywords', required=True, help='keywords for testing')
+        parser.add_argument('--category', required=True, help='category for testing')
         parser.add_argument('--boards', required=True, help='boards for testing')
         parser.add_argument('--testmode', action='store_true')
         
@@ -169,32 +171,43 @@ class LauncherTest(object):
         self.userEmail = args.email
         self.userPassword = args.password
         self.keywords = args.keywords
+        self.category = args.category
         self.boards = args.boards
         
-        self.commands =  '''--email=%EMAIL% --password=%PASSWORD% --action=follow-users --countmin=1 --countmax=1 --keywords=%KEYWORDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=unfollow-users --countmin=1 --countmax=1
-                            --email=%EMAIL% --password=%PASSWORD% --action=follow-boards --countmin=1 --countmax=1 --keywords=%KEYWORDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=like-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=repost-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS% --boards=%BOARDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=comment-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=post-amazon --countmin=1 --countmax=1 --keywords=%KEYWORDS%
-                            --email=%EMAIL% --password=%PASSWORD% --action=userinfo'''
+        self.commands =  '''
+            --email=%EMAIL% --password=%PASSWORD% --action=follow-users --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=follow-users --countmin=1 --countmax=1 --category=%CATEGORY%
+            --email=%EMAIL% --password=%PASSWORD% --action=unfollow-users --countmin=1 --countmax=1
+            --email=%EMAIL% --password=%PASSWORD% --action=follow-boards --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=follow-boards --countmin=1 --countmax=1 --category=%CATEGORY%
+            --email=%EMAIL% --password=%PASSWORD% --action=like-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=like-pins --countmin=1 --countmax=1 --category=%CATEGORY%
+            --email=%EMAIL% --password=%PASSWORD% --action=repost-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS% --boards=%BOARDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=repost-pins --countmin=1 --countmax=1 --category=%CATEGORY% --boards=%BOARDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=comment-pins --countmin=1 --countmax=1 --keywords=%KEYWORDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=comment-pins --countmin=1 --countmax=1 --category=%CATEGORY%
+            --email=%EMAIL% --password=%PASSWORD% --action=post-amazon --countmin=1 --countmax=1 --keywords=%KEYWORDS% --boards=%BOARDS%
+            --email=%EMAIL% --password=%PASSWORD% --action=userinfo
+        '''
         self.commands = self.commands.replace('%EMAIL%', self.userEmail)
         self.commands = self.commands.replace('%PASSWORD%', self.userPassword)
         self.commands = self.commands.replace('%KEYWORDS%', self.keywords)
+        self.commands = self.commands.replace('%CATEGORY%', self.category)
         self.commands = self.commands.replace('%BOARDS%', self.boards)
         self.commandsList = self.commands.splitlines()
         self.commandsList = [item.strip() for item in self.commandsList if item.strip() != '']
-
+    
     def Execute(self, command):
         '''Выполняем команды'''
         if command != 'parsed':
             self.Parse(command)
-        launcher = LauncherBatch()
-        launcher.batchFileName = 'test mode'
-        launcher.threadsCount = 1
-        launcher.commandsList = self.commandsList[:]
-        launcher.Execute('parsed')
+        if len(self.commandsList) == 0:
+            return
+        print('=== Running test mode ...')
+        launcher = LauncherSingle()
+        for command in self.commandsList:
+            launcher.Execute(command)
+        print('=== Done test mode')
         
 
 def Dispatcher(command=None):
@@ -211,9 +224,10 @@ def Dispatcher(command=None):
 
 
 if __name__ == '__main__':
-    command = '--email=alex@altstone.com --password=kernel32 --action=follow-users --countmin=3 --countmax=5 --keywords=shoes,gucci'
-    command = '--email=alex@altstone.com --password=kernel32 --action=follow-boards --countmin=3 --countmax=5 --keywords=shoes,gucci'
-    command = '--email=alex@altstone.com --password=kernel32 --action=report --countmin=1 --countmax=1 --keywords='
-    command = '--batchfile=commands.txt'
-    command = '--email=alex@altstone.com --password=kernel32 --keywords=shoes --boards=Home --testmode'
+    command = '--email=alex@altstone.com --password=kernel32 --keywords=shoes --category=design --boards=Home --testmode'
     Dispatcher(command)
+
+'''
+SherryaRubeckrwg@hotmail.com
+iWx0auk95jpr
+'''
