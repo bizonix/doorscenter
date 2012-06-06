@@ -1,8 +1,10 @@
 # coding=utf8
 from __future__ import print_function
-import os, time, threading
+import os, time, platform, threading, ConfigParser
 
-LOG_LEVEL = 2
+config = ConfigParser.RawConfigParser()
+config.read('config.ini')
+LOG_LEVEL = int(config.get('Pinterest', 'LogLevel'))
 LOG_FOLDER = 'logs'
 
 threadLock = threading.Lock()
@@ -25,3 +27,10 @@ def PrintLogThreaded(text, end=None):
         text += '\n'
     open(sessionLogFileName, 'a').write(text)
     threadLock.release()
+
+def DevelopmentMode():
+    '''Запуск на компьютере разработчика'''
+    return platform.node() == 'sasch-note'
+
+if (__name__ == '__main__') and DevelopmentMode():
+    print(os.getcwd())

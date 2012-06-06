@@ -1,0 +1,14 @@
+Private Pinterest Bot (c) search 2012
+
+Требования: 
+  1. Python 2.7 (2.6), pycurl. В случае Python 2.6 дополнительно требуется argparse.
+  2. Папка с ботом должна быть доступна на запись.
+
+Для начала работы необходимо:
+  1. В файл "config.ini" поместить свои данные для доступа к Амазону. 
+  2. В файл "users.txt" - список юзеров в формате "login_or_email:password[:proxy_host:proxy_port[:proxy_login:proxy_password]]" (без кавычек).
+  3. В файл "comments.txt" - список комментариев.
+
+Запуск бота производится из командной строки: "python launcher.py ...".
+Запуск бота в тестовом режиме: "python launcher.py --user=... --keywords=shoes --category=design --boards=Home --testmode".
+Более подробное описание команд: "python launcher.py --help".

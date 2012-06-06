@@ -1,6 +1,7 @@
 # coding=utf8
 from __future__ import print_function
 import os, re, sys, time, random, hmac, base64, hashlib, urllib, ConfigParser
+import common
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -16,11 +17,11 @@ class Amazon(object):
         self.accessKeyID = config.get('Amazon', 'AccessKeyID')
         self.secretAccessKey = config.get('Amazon', 'SecretAccessKey')
         self.assotiateTag = config.get('Amazon', 'AssotiateTag')
-        self.departments = ('All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
+        self.departmentsList = ['All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
             'Grocery','DVD','Electronics','HealthPersonalCare','HomeGarden','Industrial','Jewelry','KindleStore','Kitchen','LawnAndGarden',
             'Magazines','Marketplace','Merchants','Miscellaneous','MobileApps','MP3Downloads','Music','MusicalInstruments','MusicTracks',
             'OfficeProducts','OutdoorLiving','PCHardware','PetSupplies','Photo','Shoes','Software','SportingGoods','Tools','Toys','UnboxVideo',
-            'VHS','Video','VideoGames','Watches','Wireless','WirelessAccessories')
+            'VHS','Video','VideoGames','Watches','Wireless','WirelessAccessories']
         self.departmentsSort = {'All': [''],
             'Apparel': ['relevancerank', 'salesrank'],
             'Appliances': ['salesrank','pmrank','relevancerank','reviewrank'],
@@ -125,6 +126,6 @@ class Amazon(object):
         return result
 
 
-if __name__ == '__main__':
+if (__name__ == '__main__') and common.DevelopmentMode():
     amazon = Amazon()
     print(amazon.Parse(['missoni'], 1, 'Shoes'))
