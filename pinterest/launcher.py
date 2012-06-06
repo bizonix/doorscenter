@@ -1,5 +1,5 @@
 # coding=utf8
-import os, sys, argparse, threading, Queue, time
+import os, sys, time, shlex, argparse, threading, Queue
 import pinterest, amazon, common
 
 if __name__ == '__main__':
@@ -17,7 +17,7 @@ class LauncherSingle(object):
         self.amazon = amazon.Amazon(printPrefix)
         self.loggedIn = False
     
-    def Parse(self, command):
+    def Parse(self, argumentsList):
         '''Парсим команду'''
         parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012', formatter_class=argparse.RawTextHelpFormatter)
         parser.add_argument('--user', required=True, help='login or email; you must specify logins (or emails), passwords and proxy (if needed) in "users.txt"')
@@ -33,7 +33,7 @@ class LauncherSingle(object):
         parser.add_argument('--testmode', action='store_true', help='test (or demo) mode, executes all available commands')  # аргумент нужен только для справки, реально используется только в LauncherTest
         parser.epilog = 'Pinterest categories list: %s.\n\nAmazon departments list: %s.' % (', '.join(self.bot.boardCategoriesList), ', '.join(self.amazon.departmentsList))
         
-        args = parser.parse_args(command.split(' '))
+        args = parser.parse_args(argumentsList)
         self.userLogin = args.user
         self.action = args.action
         self.actionsCountMin = args.countmin
@@ -43,10 +43,10 @@ class LauncherSingle(object):
         self.boardsList = args.boards.split(',')
         self.amazonDepartment = args.department
     
-    def Execute(self, command):
+    def Execute(self, argumentsList):
         '''Выполняем команду'''
-        if command != 'parsed':
-            self.Parse(command)
+        if argumentsList != []:
+            self.Parse(argumentsList)
         try:
             '''Логинимся'''
             if self.bot.user.login != self.userLogin:
@@ -107,9 +107,10 @@ class LauncherSingleThread(threading.Thread):
         common.PrintThreaded(self.printPrefix + 'Thread started')
         while not self.batch.commandsQueue.empty():
             command = self.batch.commandsQueue.get()
-            self.launcher.Parse(command)
+            argumentsList = shlex.split(command)
+            self.launcher.Parse(argumentsList)
             if self.batch.ExecutionAllowed(self, self.launcher.userLogin, self.launcher.proxyHost):
-                self.launcher.Execute('parsed')
+                self.launcher.Execute([])
                 self._ClearLoginAndProxy()
             else:
                 self.batch.commandsQueue.put(command)
@@ -125,13 +126,13 @@ class LauncherBatch(object):
         self.commandsQueue = None
         self.threadsList = []
     
-    def Parse(self, command):
+    def Parse(self, argumentsList):
         '''Парсим команду'''
         parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012', formatter_class=argparse.RawTextHelpFormatter)
         parser.add_argument('--batchfile', required=True, help='commands file name for batch mode')
         parser.add_argument('--threads', type=int, default=5, help='threads count for batch mode')
         
-        args = parser.parse_args(command.split(' '))
+        args = parser.parse_args(argumentsList)
         self.batchFileName = args.batchfile
         self.threadsCount = args.threads
         
@@ -143,10 +144,10 @@ class LauncherBatch(object):
         else:
             print('### Error parsing batch file: File "%s" not found' % self.batchFileName)
     
-    def Execute(self, command):
+    def Execute(self, argumentsList):
         '''Выполняем команды'''
-        if command != 'parsed':
-            self.Parse(command)
+        if argumentsList != []:
+            self.Parse(argumentsList)
         if len(self.commandsList) == 0:
             return
         print('=== Executing commands from "%s" ...' % self.batchFileName)
@@ -179,7 +180,7 @@ class LauncherTest(object):
         '''Инициализация'''
         pass
     
-    def Parse(self, command):
+    def Parse(self, argumentsList):
         '''Парсим команду'''
         parser = argparse.ArgumentParser(description='Private Pinterest Bot (c) search 2012', formatter_class=argparse.RawTextHelpFormatter)
         parser.add_argument('--user', required=True, help='user\'s login or email')
@@ -188,7 +189,7 @@ class LauncherTest(object):
         parser.add_argument('--boards', required=True, help='boards for testing')
         parser.add_argument('--testmode', required=True, action='store_true', help='test (or demo) mode, executes all available commands')
         
-        args = parser.parse_args(command.split(' '))
+        args = parser.parse_args(argumentsList)
         self.userLogin = args.user
         self.keywords = args.keywords
         self.category = args.category
@@ -216,36 +217,40 @@ class LauncherTest(object):
         self.commandsList = self.commands.splitlines()
         self.commandsList = [item.strip() for item in self.commandsList if (item.strip() != '') and not item.strip().startswith('#')]
     
-    def Execute(self, command):
+    def Execute(self, argumentsList):
         '''Выполняем команды'''
-        if command != 'parsed':
-            self.Parse(command)
+        if argumentsList != []:
+            self.Parse(argumentsList)
         if len(self.commandsList) == 0:
             return
         print('=== Running test mode ...')
         launcher = LauncherSingle()
         for command in self.commandsList:
-            launcher.Execute(command)
+            argumentsList = shlex.split(command)
+            launcher.Execute(argumentsList)
         print('=== Done test mode')
 
 
 def Dispatcher(command=None):
     '''Точка входа'''
-    if not command:
-        command = ' '.join(sys.argv[1:])
+    if command:
+        argumentsList = shlex.split(command)
+    else:
+        argumentsList = sys.argv[1:]
+        command = ' '.join(argumentsList)
     if command.find('--batchfile') >= 0:
         launcher = LauncherBatch()
     elif command.find('--testmode') >= 0:
         launcher = LauncherTest()
     else:
         launcher = LauncherSingle()
-    launcher.Execute(command)
+    launcher.Execute(argumentsList)
     sys.exit()  # для упрощения разработки и отладки - предотвращаем повторный запуск
 
 
 if __name__ == '__main__':
+    Dispatcher()
     if not common.DevelopmentMode():
         Dispatcher()
-    command = '--user=searchxxx --keywords=shoes --category=design --boards=Home --testmode'
     command = '--user=searchxxx --keywords=shoes --category=design --boards="For the Home,My Home" --testmode'
     Dispatcher(command)
