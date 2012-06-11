@@ -1,15 +1,20 @@
 # coding=utf8
 from __future__ import print_function
-import os, sys, re, time, datetime, random, pycurl, cStringIO, pickle, hmac, base64, hashlib, urllib, ConfigParser
+import os, sys, re, time, datetime, random, pycurl, cStringIO, urllib, ConfigParser, yaml
 import amazon, common
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
+boardCategoriesList = ['architecture','art','cars_motorcycles','design','diy_crafts','education',
+    'film_music_books','fitness','food_drink','gardening','geek','hair_beauty','history','holidays','home',
+    'humor','kids','mylife','women_apparel','men_apparel','outdoors','people','pets','photography',
+    'prints_posters','products','science','sports','technology','travel_places','wedding_events','other']
+
 class PinterestUser(object):
     '''Юзер пинтереста'''
     
-    def __init__(self, bot):
+    def __init__(self, bot=None):
         '''Инициализация'''
         self.bot = bot
         self.usersFileName = 'users.txt'
@@ -17,6 +22,13 @@ class PinterestUser(object):
         self.usersDataFolder = 'userdata'
         self.Clear()
         self._LoadUsers()
+    
+    def _Print(self, text):
+        '''Выводим текст на консоль'''
+        if self.bot:
+            self.bot._Print(text)
+        else:
+            print(text)
     
     def _LoadUsers(self):
         '''Загружаем список юзеров из файла'''
@@ -36,17 +48,19 @@ class PinterestUser(object):
     
     def Clear(self):
         '''Очищаем данные юзера'''
-        self.id = ''  # login (id) only
-        self.login = ''  # login (id) or email
-        self.password = ''
-        self.proxyHost = ''
-        self.proxyPassword = ''
-        self.boardsList = []
-        self.amazonPostedItemsList = []
-        self.authToken1 = ''
-        self.authToken2 = ''
+        self.id = ''  # system, login (id) only
+        self.login = ''  # users.txt, login (id) or email
+        self.password = ''  # users.txt
+        self.proxyHost = ''  # users.txt
+        self.proxyPassword = ''  # users.txt
+        self.authToken1 = ''  # system
+        self.authToken2 = ''  # system
+        self.boardsList = []  # system
+        self.plannedCommonBoardsList = []  # editable
+        self.plannedProfitBoardsList = []  # editable
+        self.amazonPostedItemsList = []  # editable
     
-    def FindUser(self, login):
+    def FindUser(self, login): #TODO: объединить с LoadData
         '''Находим данные о юзере в списке юзеров'''
         self.Clear()
         if login in self.usersDict:
@@ -57,40 +71,47 @@ class PinterestUser(object):
             self.proxyPassword = data['proxyPassword']
             return True
         else:
-            self.bot._Print('Username "%s" unknown, please fill its details in "%s"' % (login, self.usersFileName))
+            self._Print('Username "%s" unknown, please fill its details in "%s"' % (login, self.usersFileName))
             return False
     
     def LoadData(self):
-        '''Загружаем дальнейшие данные о юзере из файла юзера'''
-        userDataFileName = os.path.join(self.usersDataFolder, 'login-%s.txt' % self.login)
-        amazonDataFileName = os.path.join(self.usersDataFolder, 'amazon-%s.txt' % self.login)
-        if not os.path.exists(userDataFileName):
-            return False
+        '''Загружаем дальнейшие данные о юзере из файлов юзера'''
+        systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
+        editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
         try:
-            data = pickle.loads(base64.b64decode(open(userDataFileName).read()))
+            if not os.path.exists(systemDataFileName):
+                return False
+            data = yaml.load(open(systemDataFileName).read())
             self.id = data['id']
-            self.boardsList = data['boardsList']
             self.authToken1 = data['authToken1']
             self.authToken2 = data['authToken2']
-            if os.path.exists(amazonDataFileName):
-                self.amazonPostedItemsList = open(amazonDataFileName).read().splitlines()
+            self.boardsList = data['boardsList']
+            if os.path.exists(editableDataFileName):
+                data = yaml.load(open(editableDataFileName).read())
+                if 'plannedCommonBoardsList' in data:
+                    self.plannedCommonBoardsList = data['plannedCommonBoardsList']
+                if 'plannedProfitBoardsList' in data:
+                    self.plannedProfitBoardsList = data['plannedProfitBoardsList']
+                if 'amazonPostedItemsList' in data:
+                    self.amazonPostedItemsList = data['amazonPostedItemsList']
             return True
         except Exception as error:
-            self.bot._Print('### Error loading user data: %s' % error)
+            self._Print('### Error loading user data: %s' % error)
             return False
     
     def SaveData(self):
-        '''Сохраняем данные о юзере в файл'''
-        userDataFileName = os.path.join(self.usersDataFolder, 'login-%s.txt' % self.login)
-        amazonDataFileName = os.path.join(self.usersDataFolder, 'amazon-%s.txt' % self.login)
+        '''Сохраняем данные о юзере в файлы'''
+        systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
+        editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
         try:
             if not os.path.exists(self.usersDataFolder):
                 os.makedirs(self.usersDataFolder)
-            data = {'id': self.id, 'boardsList': self.boardsList, 'authToken1': self.authToken1, 'authToken2': self.authToken2}
-            open(userDataFileName, 'w').write(base64.b64encode(pickle.dumps(data)))
-            open(amazonDataFileName, 'w').write('\n'.join(self.amazonPostedItemsList))
+            data = {'id': self.id, 'authToken1': self.authToken1, 'authToken2': self.authToken2, 'boardsList': self.boardsList}
+            open(systemDataFileName, 'w').write(yaml.dump(data, default_flow_style=False))
+            data = {'plannedCommonBoardsList': self.plannedCommonBoardsList, 'plannedProfitBoardsList': self.plannedProfitBoardsList, 'amazonPostedItems': self.amazonPostedItemsList}
+            open(editableDataFileName, 'w').write(yaml.dump(data, default_flow_style=False))
         except Exception as error:
-            self.bot._Print('### Error saving user data: %s' % error)
+            self._Print('### Error saving user data: %s' % error)
     
     @classmethod
     def _SplitBoardName(self, boardName):
@@ -120,15 +141,6 @@ class PinterestUser(object):
         for board in self.boardsList:
             if board.category == category:
                 return board
-    
-    def FindOrCreateBoard(self, boardsList):
-        '''Находим или создаем доску'''
-        board = self.FindBoardByName(boardsList)
-        if not board:
-            boardName = random.choice(boardsList)
-            boardName, category = self._SplitBoardName(boardName)
-            board = self.bot._CreateBoard(boardName, category)
-        return board
 
 
 class PinterestBoard(object):
@@ -140,6 +152,36 @@ class PinterestBoard(object):
         self.link = link
         self.name = name
         self.category = category
+
+
+class PlannedCommonBoard(object):
+    '''Доска общей тематики, пополнение которой поставлено в расписание'''
+    
+    def __init__(self, name, category, keywordsList=[]):
+        '''Инициализация'''
+        self.name = name
+        self.category = category
+        self.keywordsList = keywordsList  # по каким кейвордам репостить на доску. можно не указывать для репоста по категории
+    
+    def GetKeywords(self):
+        '''Возвращаем кейворды одной строкой'''
+        return ','.join(self.keywordsList)
+
+
+class PlannedProfitBoard(object):
+    '''Доска с продвигаемыми товарами, пополнение которой поставлено в расписание'''
+    
+    def __init__(self, name, category, keywordsList, department, sourcesList=['pinterest', 'amazon']):
+        '''Инициализация'''
+        self.name = name
+        self.category = category
+        self.keywordsList = keywordsList  # по каким кейвордам репостить на доску с пинтереста и/или амазона, см. sourcesList
+        self.department = department  # какой раздел амазона парсить
+        self.sourcesList = sourcesList  # откуда репостить на доску. список с возможными значениями: "pinterest", "amazon"
+    
+    def GetKeywords(self):
+        '''Возвращаем кейворды одной строкой'''
+        return ','.join(self.keywordsList)
 
 
 class PinterestBot(object):
@@ -161,10 +203,6 @@ class PinterestBot(object):
         self.requestTimeoutMax = int(config.get('Pinterest', 'RequestTimeoutMax'))
         self.maxFailsCount = int(config.get('Pinterest', 'MaxFailsCount'))
         self.timeout = 60
-        self.boardCategoriesList = ['architecture','art','cars_motorcycles','design','diy_crafts','education',
-            'film_music_books','fitness','food_drink','gardening','geek','hair_beauty','history','holidays','home',
-            'humor','kids','mylife','women_apparel','men_apparel','outdoors','people','pets','photography',
-            'prints_posters','products','science','sports','technology','travel_places','wedding_events','other']
         self.commentsList = []
         if os.path.exists('comments.txt'):
             self.commentsList = open('comments.txt').read().splitlines()
@@ -372,7 +410,7 @@ class PinterestBot(object):
         else:
             text = 'Creating new board "%s" in category "%s"' % (boardName, category)
         if self.user.FindBoardByName([boardName]) == None:
-            if (category != '') and (category not in self.boardCategoriesList):
+            if (category != '') and (category not in boardCategoriesList):
                 self._Print('incorrect category, ignoring', end='')
                 category = ''
             if category == '':
@@ -387,6 +425,15 @@ class PinterestBot(object):
                 self.user.SaveData()
         else:
             self._Print('already exists, skipped')
+    
+    def _FindOrCreateBoard(self, boardsList):
+        '''Находим или создаем доску'''
+        board = self.user.FindBoardByName(boardsList)
+        if not board:
+            boardName = random.choice(boardsList)
+            boardName, category = self.user._SplitBoardName(boardName)
+            board = self._CreateBoard(boardName, category)
+        return board
     
     def _ScrapeUsersByKeywords(self, keywordsList, pageNum):
         '''Ищем юзеров по заданным кеям на заданной странице'''
@@ -460,9 +507,8 @@ class PinterestBot(object):
             random.shuffle(pinsList)
         return pinsList
     
-    def FollowUsers(self, keywordsList, category, actionsCountMin, actionsCountMax):
+    def FollowUsers(self, keywordsList, category, actionsCount):
         '''Ищем и фолловим юзеров'''
-        actionsCount = random.randint(actionsCountMin, actionsCountMax)
         usersList = []
         actionNum = 1
         failsCount = 0
@@ -498,9 +544,8 @@ class PinterestBot(object):
         if failsCount >= self.maxFailsCount:
             self._Print('action cancelled, max fails count exceeded')
     
-    def UnfollowUsers(self, actionsCountMin, actionsCountMax):
+    def UnfollowUsers(self, actionsCount):
         '''Анфолловим юзеров'''
-        actionsCount = random.randint(actionsCountMin, actionsCountMax)
         if self._Request('Getting followers list', 'GET', 'http://pinterest.com/%s/following/' % self.user.id, None, 'Logout'):
             usersList = self._GetTokensList(r'"/([a-zA-Z0-9-/]*)/follow/">\s*?Unfollow')
             random.shuffle(usersList)
@@ -525,9 +570,8 @@ class PinterestBot(object):
             if failsCount >= self.maxFailsCount:
                 self._Print('action cancelled, max fails count exceeded')
     
-    def FollowBoards(self, keywordsList, category, actionsCountMin, actionsCountMax):
+    def FollowBoards(self, keywordsList, category, actionsCount):
         '''Ищем и фолловим доски'''
-        actionsCount = random.randint(actionsCountMin, actionsCountMax)
         boardsList = []
         actionNum = 1
         failsCount = 0
@@ -573,9 +617,8 @@ class PinterestBot(object):
         comment = random.choice(self.commentsList)
         return self._Request('', 'POST', 'http://pinterest.com/pin/%s/comment/' % pinId, urllib.urlencode({'text': comment, 'replies': '', 'path': '/pin/%s/' % pinId}), '"status": "success"')
     
-    def _ActionPins(self, action, actionPrint, keywordsList, category, actionsCountMin, actionsCountMax, board=None):
+    def _ActionPins(self, action, actionPrint, keywordsList, category, actionsCount, board=None):
         '''Действия с пинами'''
-        actionsCount = random.randint(actionsCountMin, actionsCountMax)
         pinsList = []
         actionNum = 1
         failsCount = 0
@@ -609,19 +652,19 @@ class PinterestBot(object):
         if failsCount >= self.maxFailsCount:
             self._Print('action cancelled, max fails count exceeded')
     
-    def LikePins(self, keywordsList, category, actionsCountMin, actionsCountMax):
+    def LikePins(self, keywordsList, category, actionsCount):
         '''Лайкаем пины'''
-        self._ActionPins('like', 'Liking', keywordsList, category, actionsCountMin, actionsCountMax)
+        self._ActionPins('like', 'Liking', keywordsList, category, actionsCount)
         
-    def RepostPins(self, keywordsList, category, actionsCountMin, actionsCountMax, boardsList):
+    def RepostPins(self, keywordsList, category, actionsCount, boardsList):
         '''Репиним'''
-        board = self.user.FindOrCreateBoard(boardsList)
-        self._ActionPins('repost', 'Reposting to "%s"' % board.name, keywordsList, category, actionsCountMin, actionsCountMax, board)
+        board = self._FindOrCreateBoard(boardsList)
+        self._ActionPins('repost', 'Reposting to "%s"' % board.name, keywordsList, category, actionsCount, board)
     
-    def CommentPins(self, keywordsList, category, actionsCountMin, actionsCountMax):
+    def CommentPins(self, keywordsList, category, actionsCount):
         '''Комментируем пины'''
         if len(self.commentsList) > 0:
-            self._ActionPins('comment', 'Commenting', keywordsList, category, actionsCountMin, actionsCountMax)
+            self._ActionPins('comment', 'Commenting', keywordsList, category, actionsCount)
         else:
             self._Print('No comments in the list, commenting skipped')
     
@@ -633,9 +676,8 @@ class PinterestBot(object):
                 return self._Request('', 'GET', 'http://pinterest.com/pin/%s/' % pinId, None, 'Logout')
         return False
     
-    def PostFromAmazon(self, keywordsList, actionsCountMin, actionsCountMax, boardsList, department='All'):
+    def PostFromAmazon(self, keywordsList, actionsCount, boardsList, department='All'):
         '''Парсим амазон и постим на доску'''
-        actionsCount = random.randint(actionsCountMin, actionsCountMax)
         itemsList = []
         actionNum = 1
         failsCount = 0
@@ -654,7 +696,7 @@ class PinterestBot(object):
                     break
             item = itemsList.pop(0)
             if item['id'] not in self.user.amazonPostedItemsList:
-                board = self.user.FindOrCreateBoard(boardsList)
+                board = self._FindOrCreateBoard(boardsList)
                 if self._AddPin(board, item['title'], item['link'], item['imageUrl'], ' (%d/%d)' % (actionNum, actionsCount)):
                     self.user.amazonPostedItemsList.append(item['id'])
                     self.user.SaveData()
@@ -668,8 +710,3 @@ class PinterestBot(object):
 if (__name__ == '__main__') and common.DevelopmentMode():
     bot = PinterestBot()
     bot.Login('searchxxx')
-    bot._RepostPin('258745941061400878', ['Home'])
-    #print(bot.user.boardsList[0].name)
-    #bot.Login('alex@altstone.com', 'kernel32')
-    #bot.UnfollowUsers(1, 1)
-    pass

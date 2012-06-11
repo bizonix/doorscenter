@@ -6,6 +6,59 @@ import common
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
+departmentsList = ['All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
+    'Grocery','DVD','Electronics','HealthPersonalCare','HomeGarden','Industrial','Jewelry','KindleStore','Kitchen','LawnAndGarden',
+    'Magazines','Marketplace','Merchants','Miscellaneous','MobileApps','MP3Downloads','Music','MusicalInstruments','MusicTracks',
+    'OfficeProducts','OutdoorLiving','PCHardware','PetSupplies','Photo','Shoes','Software','SportingGoods','Tools','Toys','UnboxVideo',
+    'VHS','Video','VideoGames','Watches','Wireless','WirelessAccessories']
+
+departmentsSort = {'All': [''],
+    'Apparel': ['relevancerank', 'salesrank'],
+    'Appliances': ['salesrank','pmrank','relevancerank','reviewrank'],
+    'ArtsAndCrafts': ['pmrank','relevancerank','reviewrank'],
+    'Automotive': ['salesrank'],
+    'Baby': ['psrank','salesrank'],
+    'Beauty': ['pmrank','salesrank'],
+    'Books': ['relevancerank','salesrank','reviewrank'],
+    'Classical': ['psrank','salesrank'],
+    'DigitalMusic': [''],
+    'DVD': ['relevancerank','salesrank'],
+    'Electronics': ['pmrank','salesrank','reviewrank'],
+    'Grocery': ['relevancerank','salesrank'],
+    'HealthPersonalCare': ['pmrank','salesrank'],
+    'HomeImprovement': ['salesrank'],
+    'Industrial': ['pmrank','salesrank'],
+    'Jewelry': ['pmrank','salesrank'],
+    'KindleStore': ['relevancerank','reviewrank'],
+    'Kitchen': ['pmrank','salesrank'],
+    'LawnAndGarden': ['relevancerank','reviewrank','salesrank'],
+    'Magazines': ['subslot-salesrank','reviewrank'],
+    'Marketplace': ['salesrank'],
+    'Merchants': ['relevancerank','salesrank'],
+    'Miscellaneous': ['pmrank','salesrank'],
+    'MobileApps': ['pmrank','relevancerank','reviewrank'],
+    'MP3Downloads': ['relevancerank','salesrank'],
+    'Music': ['psrank','salesrank','relevancerank'],
+    'MusicalInstruments': ['pmrank','salesrank'],
+    'MusicTracks': [''],
+    'OfficeProducts': ['pmrank','salesrank','reviewrank'],
+    'OutdoorLiving': ['psrank','salesrank'],
+    'PCHardware': ['psrank','salesrank'],
+    'PetSupplies': ['+pmrank','salesrank','relevancerank','reviewrank'],
+    'Photo': ['pmrank','salesrank'],
+    'Shoes': ['pmrank','relevancerank','reviewrank'],
+    'Software': ['pmrank','salesrank'],
+    'SportingGoods': ['relevancerank','salesrank'],
+    'Tools': ['pmrank','salesrank'],
+    'Toys': ['pmrank','salesrank'],
+    'UnboxVideo': ['relevancerank','salesrank'],
+    'VHS': ['relevancerank','salesrank'],
+    'Video': ['relevancerank','salesrank'],
+    'VideoGames': ['pmrank','salesrank'],
+    'Watches': ['relevancerank','reviewrank','salesrank'],
+    'Wireless': ['reviewrank','salesrank'],
+    'WirelessAccessories': ['psrank','salesrank']}
+
 class Amazon(object):
     '''Парсер Амазона'''
     
@@ -17,57 +70,6 @@ class Amazon(object):
         self.accessKeyID = config.get('Amazon', 'AccessKeyID')
         self.secretAccessKey = config.get('Amazon', 'SecretAccessKey')
         self.assotiateTag = config.get('Amazon', 'AssotiateTag')
-        self.departmentsList = ['All','Apparel','Appliances','ArtsAndCrafts','Automotive','Baby','Beauty','Books','Classical','DigitalMusic',
-            'Grocery','DVD','Electronics','HealthPersonalCare','HomeGarden','Industrial','Jewelry','KindleStore','Kitchen','LawnAndGarden',
-            'Magazines','Marketplace','Merchants','Miscellaneous','MobileApps','MP3Downloads','Music','MusicalInstruments','MusicTracks',
-            'OfficeProducts','OutdoorLiving','PCHardware','PetSupplies','Photo','Shoes','Software','SportingGoods','Tools','Toys','UnboxVideo',
-            'VHS','Video','VideoGames','Watches','Wireless','WirelessAccessories']
-        self.departmentsSort = {'All': [''],
-            'Apparel': ['relevancerank', 'salesrank'],
-            'Appliances': ['salesrank','pmrank','relevancerank','reviewrank'],
-            'ArtsAndCrafts': ['pmrank','relevancerank','reviewrank'],
-            'Automotive': ['salesrank'],
-            'Baby': ['psrank','salesrank'],
-            'Beauty': ['pmrank','salesrank'],
-            'Books': ['relevancerank','salesrank','reviewrank'],
-            'Classical': ['psrank','salesrank'],
-            'DigitalMusic': [''],
-            'DVD': ['relevancerank','salesrank'],
-            'Electronics': ['pmrank','salesrank','reviewrank'],
-            'Grocery': ['relevancerank','salesrank'],
-            'HealthPersonalCare': ['pmrank','salesrank'],
-            'HomeImprovement': ['salesrank'],
-            'Industrial': ['pmrank','salesrank'],
-            'Jewelry': ['pmrank','salesrank'],
-            'KindleStore': ['relevancerank','reviewrank'],
-            'Kitchen': ['pmrank','salesrank'],
-            'LawnAndGarden': ['relevancerank','reviewrank','salesrank'],
-            'Magazines': ['subslot-salesrank','reviewrank'],
-            'Marketplace': ['salesrank'],
-            'Merchants': ['relevancerank','salesrank'],
-            'Miscellaneous': ['pmrank','salesrank'],
-            'MobileApps': ['pmrank','relevancerank','reviewrank'],
-            'MP3Downloads': ['relevancerank','salesrank'],
-            'Music': ['psrank','salesrank','relevancerank'],
-            'MusicalInstruments': ['pmrank','salesrank'],
-            'MusicTracks': [''],
-            'OfficeProducts': ['pmrank','salesrank','reviewrank'],
-            'OutdoorLiving': ['psrank','salesrank'],
-            'PCHardware': ['psrank','salesrank'],
-            'PetSupplies': ['+pmrank','salesrank','relevancerank','reviewrank'],
-            'Photo': ['pmrank','salesrank'],
-            'Shoes': ['pmrank','relevancerank','reviewrank'],
-            'Software': ['pmrank','salesrank'],
-            'SportingGoods': ['relevancerank','salesrank'],
-            'Tools': ['pmrank','salesrank'],
-            'Toys': ['pmrank','salesrank'],
-            'UnboxVideo': ['relevancerank','salesrank'],
-            'VHS': ['relevancerank','salesrank'],
-            'Video': ['relevancerank','salesrank'],
-            'VideoGames': ['pmrank','salesrank'],
-            'Watches': ['relevancerank','reviewrank','salesrank'],
-            'Wireless': ['reviewrank','salesrank'],
-            'WirelessAccessories': ['psrank','salesrank']}
     
     def _Request(self, paramsDist):
         '''Делаем запрос'''
@@ -106,7 +108,7 @@ class Amazon(object):
             return result
         try:
             if sortType == None:
-                sortType = random.choice(self.departmentsSort[department])
+                sortType = random.choice(departmentsSort[department])
             responseSearch = self.ItemSearch(','.join(keywordsList), pageNum, department, sortType)
             itemsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
             for itemId in itemsList:
