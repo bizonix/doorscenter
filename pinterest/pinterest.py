@@ -23,12 +23,12 @@ class PinterestUser(object):
         self.Clear()
         self._LoadUsers()
     
-    def _Print(self, text):
+    def _Print(self, text, end=None):
         '''Выводим текст на консоль'''
         if self.bot:
-            self.bot._Print(text)
+            self.bot._Print(text, end)
         else:
-            print(text)
+            print(text, end=end)
     
     def _LoadUsers(self):
         '''Загружаем список юзеров из файла'''
@@ -60,8 +60,8 @@ class PinterestUser(object):
         self.plannedProfitBoardsList = []  # editable
         self.amazonPostedItemsList = []  # editable
     
-    def FindUser(self, login): #TODO: объединить с LoadData
-        '''Находим данные о юзере в списке юзеров'''
+    def LoadData(self, login):
+        '''Находим данные о юзере в списке юзеров ...'''
         self.Clear()
         if login in self.usersDict:
             data = self.usersDict[login]
@@ -69,34 +69,32 @@ class PinterestUser(object):
             self.password = data['password']
             self.proxyHost = data['proxyHost']
             self.proxyPassword = data['proxyPassword']
-            return True
+
+            '''... и загружаем дальнейшие данные о юзере из файлов юзера'''
+            systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
+            editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
+            try:
+                if not os.path.exists(systemDataFileName):
+                    return False
+                data = yaml.load(open(systemDataFileName).read())
+                self.id = data['id']
+                self.authToken1 = data['authToken1']
+                self.authToken2 = data['authToken2']
+                self.boardsList = data['boardsList']
+                if os.path.exists(editableDataFileName):
+                    data = yaml.load(open(editableDataFileName).read())
+                    if 'plannedCommonBoardsList' in data:
+                        self.plannedCommonBoardsList = data['plannedCommonBoardsList']
+                    if 'plannedProfitBoardsList' in data:
+                        self.plannedProfitBoardsList = data['plannedProfitBoardsList']
+                    if 'amazonPostedItemsList' in data:
+                        self.amazonPostedItemsList = data['amazonPostedItemsList']
+                return True
+            except Exception as error:
+                self._Print('### Error loading user data: %s' % error)
+                return False
         else:
             self._Print('Username "%s" unknown, please fill its details in "%s"' % (login, self.usersFileName))
-            return False
-    
-    def LoadData(self):
-        '''Загружаем дальнейшие данные о юзере из файлов юзера'''
-        systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
-        editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
-        try:
-            if not os.path.exists(systemDataFileName):
-                return False
-            data = yaml.load(open(systemDataFileName).read())
-            self.id = data['id']
-            self.authToken1 = data['authToken1']
-            self.authToken2 = data['authToken2']
-            self.boardsList = data['boardsList']
-            if os.path.exists(editableDataFileName):
-                data = yaml.load(open(editableDataFileName).read())
-                if 'plannedCommonBoardsList' in data:
-                    self.plannedCommonBoardsList = data['plannedCommonBoardsList']
-                if 'plannedProfitBoardsList' in data:
-                    self.plannedProfitBoardsList = data['plannedProfitBoardsList']
-                if 'amazonPostedItemsList' in data:
-                    self.amazonPostedItemsList = data['amazonPostedItemsList']
-            return True
-        except Exception as error:
-            self._Print('### Error loading user data: %s' % error)
             return False
     
     def SaveData(self):
@@ -210,18 +208,22 @@ class PinterestBot(object):
     
     def _Print(self, text, end=None):
         '''Выводим текст на консоль'''
+        common.threadLock.acquire()
         if self.printPrefix == None:  # однопоточный режим
-            common.PrintThreaded(text, end)
+            print(text, end=end)
             if common.LOG_LEVEL >= 1:
-                common.PrintLogThreaded(text, end)
-        else:  # многопоточный режим
+                if end == None:
+                    text += '\n'
+                open(common.sessionLogFileName, 'a').write(text)
+        else:  # многопоточный режим, всегда выводим конец строки
             if self.lastPrintEnd == '':
                 text = '... ' + text
             text = self.printPrefix + text
-            common.PrintThreaded(text)  # в многопоточном режиме всегда выводим конец строки
+            print(text)
             if common.LOG_LEVEL >= 1:
-                common.PrintLogThreaded(text)
+                open(common.sessionLogFileName, 'a').write(text + '\n')
         self.lastPrintEnd = end
+        common.threadLock.release()
     
     def _WriteLog(self, data):
         '''Пишем в лог'''
@@ -351,8 +353,8 @@ class PinterestBot(object):
     
     def Login(self, userLogin):
         '''Логинимся в пинтерест'''
-        if self.user.FindUser(userLogin):
-            if self.user.LoadData():
+        if self.user.LoadData(userLogin):
+            if self.user.authToken1 != '' and self.user.authToken2 != '':
                 if self._Request('Checking if "%s" is logged in' % self.user.login, 'GET', 'http://pinterest.com/', None, 'Logout', 'ok', 'not logged in'):
                     return True
             if self._Request('Logging in with "%s"' % self.user.login, 'GET', 'https://pinterest.com/login/?next=%2F', None, 'csrfmiddlewaretoken', None, 'error'):
@@ -684,10 +686,10 @@ class PinterestBot(object):
         pageNum = 1
         
         '''Постим'''
-        amazonObj = amazon.Amazon(self.printPrefix)
+        amazonObj = amazon.Amazon(self)
         while (actionNum <= actionsCount) and (failsCount < self.maxFailsCount):
             if len(itemsList) == 0:
-                self._Print('Searching for Amazon goods by keywords "%s" in "%s" ... ' % (','.join(keywordsList), department), end='')
+                self._Print('Searching for Amazon items by keywords "%s" in "%s" ... ' % (','.join(keywordsList), department), end='')
                 itemsList = amazonObj.Parse(keywordsList, pageNum, department)
                 self._Print('%d found' % len(itemsList))
                 pageNum += 1

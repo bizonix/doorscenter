@@ -62,14 +62,21 @@ departmentsSort = {'All': [''],
 class Amazon(object):
     '''Парсер Амазона'''
     
-    def __init__(self, printPrefix=None):
+    def __init__(self, bot=None):
         '''Инициализация'''
-        self.printPrefix = printPrefix
+        self.bot = bot
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
         self.accessKeyID = config.get('Amazon', 'AccessKeyID')
         self.secretAccessKey = config.get('Amazon', 'SecretAccessKey')
         self.assotiateTag = config.get('Amazon', 'AssotiateTag')
+    
+    def _Print(self, text, end=None):
+        '''Выводим текст на консоль'''
+        if self.bot:
+            self.bot._Print(text, end)
+        else:
+            print(text, end=end)
     
     def _Request(self, paramsDist):
         '''Делаем запрос'''
@@ -106,10 +113,12 @@ class Amazon(object):
         maxPageNum = 5 if department == 'All' else 10
         if pageNum > maxPageNum:
             return result
+        keywords = ','.join(keywordsList)
+        self._Print('Searching for items by keywords "%s" in "%s" ... ' % (keywords, department), '')
         try:
             if sortType == None:
                 sortType = random.choice(departmentsSort[department])
-            responseSearch = self.ItemSearch(','.join(keywordsList), pageNum, department, sortType)
+            responseSearch = self.ItemSearch(keywords, pageNum, department, sortType)
             itemsList = re.findall(r'<ASIN>([^<]*)<', responseSearch)
             for itemId in itemsList:
                 try:
@@ -120,10 +129,11 @@ class Amazon(object):
                     item['imageUrl'] = re.findall(r'<LargeImage><URL>([^<]*)<', responseLookup, re.U)[0]
                     item['link'] = re.findall(r'<DetailPageURL>([^<]*)<', responseLookup, re.U)[0]
                     result.append(item)
-                except Exception:
-                    pass
-        except Exception:
-            pass
+                except Exception as error:
+                    self._Print('### Error: %s' % error)
+        except Exception as error:
+            self._Print('### Error: %s' % error)
+        self._Print('%d found' % len(itemsList))
         random.shuffle(result)
         return result
 

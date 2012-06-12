@@ -56,14 +56,6 @@ class Schedule(object):
         user = pinterest.PinterestUser()
         return user.usersDict.keys()
     
-    def _GetUserCommonBoards(self, userLogin):
-        '''Получаем список досок общего назначения для заданного юзера'''
-        return self._GenerateCommonBoardsList()
-    
-    def _GetUserGoodsBoards(self, userLogin):
-        '''Получаем список товарных досок для заданного юзера'''
-        return [{'keywords': 'gucci', 'board': 'Gucci:women_apparel'}, {'keywords': 'shoes', 'board': 'Shoes:women_apparel'}]
-    
     @classmethod
     def _SelectItem(self, itemsList):
         '''Делаем выбор из списка с заданными вероятностями: [(propapilityA, itemA), (propapilityB, itemB), ...]'''
@@ -116,8 +108,7 @@ class Schedule(object):
         random.shuffle(userLoginsList)
         for userLogin in userLoginsList[:usersCount]:
             user = pinterest.PinterestUser()
-            user.FindUser(userLogin)
-            user.LoadData()
+            user.LoadData(userLogin)
             if len(user.plannedCommonBoardsList) == 0:  # если плановых досок нет, то генерируем их
                 user.plannedCommonBoardsList = self._GenerateCommonBoardsList()
                 user.SaveData()
@@ -127,6 +118,7 @@ class Schedule(object):
                     for _ in range(random.randint(3, 15)):
                         '''Доски общего назначения'''
                         board = random.choice(user.plannedCommonBoardsList)
+                        keywords = board.GetKeywords()
                         itemsList = [
                                     (100, '--user=%s --action=follow-users --count=%d --category=%s' % (userLogin, random.randint(1, 5), board.category)),
                                     (  5, '--user=%s --action=unfollow-users --count=%d' % (userLogin, random.randint(1, 2))),
@@ -134,7 +126,15 @@ class Schedule(object):
                                     (100, '--user=%s --action=like-pins --count=%d --category=%s' % (userLogin, random.randint(1, 5), random.choice(pinterest.boardCategoriesList))),
                                     ( 30, '--user=%s --action=repost-pins --count=%d --category=%s --boards="%s:%s"' % (userLogin, random.randint(1, 5), board.category, board.name, board.category)),
                                     ( 10, '--user=%s --action=comment-pins --count=%d --category=%s' % (userLogin, random.randint(1, 2), random.choice(pinterest.boardCategoriesList))),
-                        ]  # TODO: добавить общие действия по кейвордам
+                        ]
+                        if keywords != '':
+                            itemsList.extend([
+                                    ( 50, '--user=%s --action=follow-users --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    ( 10, '--user=%s --action=follow-boards --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                                    ( 50, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    ( 10, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
+                                    (  5, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                            ])
                         '''Доски для продвижения товаров'''
                         if len(user.plannedProfitBoardsList) > 0:
                             board = random.choice(user.plannedProfitBoardsList)
@@ -145,11 +145,11 @@ class Schedule(object):
                                     (200, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
                                     ( 10, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
                             ])
-                            if 'pinterest' in board.sourcesList:  # репостим с пинтереста по заданным кейвордам
+                            if 'pinterest' in board.sourcesList:
                                 itemsList.extend([
                                     ( 30, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
                                 ])
-                            if 'amazon' in board.sourcesList:  # постим с амазона по заданным кейвордам
+                            if 'amazon' in board.sourcesList:
                                 itemsList.extend([
                                     ( 50, '--user=%s --action=post-amazon --count=%d --keywords="%s" --boards="%s:%s" --department=%s' % (userLogin, random.randint(1, 3), keywords, board.name, board.category, board.department)),
                                 ])
