@@ -1,7 +1,7 @@
 # coding=utf8
 from __future__ import print_function
 import os, sys, re, time, datetime, random, pycurl, cStringIO, urllib, ConfigParser, yaml
-import amazon, common
+import amazon, captcha, common
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -69,18 +69,16 @@ class PinterestUser(object):
             self.password = data['password']
             self.proxyHost = data['proxyHost']
             self.proxyPassword = data['proxyPassword']
-
             '''... и загружаем дальнейшие данные о юзере из файлов юзера'''
             systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
             editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
             try:
-                if not os.path.exists(systemDataFileName):
-                    return False
-                data = yaml.load(open(systemDataFileName).read())
-                self.id = data['id']
-                self.authToken1 = data['authToken1']
-                self.authToken2 = data['authToken2']
-                self.boardsList = data['boardsList']
+                if os.path.exists(systemDataFileName):
+                    data = yaml.load(open(systemDataFileName).read())
+                    self.id = data['id']
+                    self.authToken1 = data['authToken1']
+                    self.authToken2 = data['authToken2']
+                    self.boardsList = data['boardsList']
                 if os.path.exists(editableDataFileName):
                     data = yaml.load(open(editableDataFileName).read())
                     if 'plannedCommonBoardsList' in data:
@@ -89,13 +87,13 @@ class PinterestUser(object):
                         self.plannedProfitBoardsList = data['plannedProfitBoardsList']
                     if 'amazonPostedItemsList' in data:
                         self.amazonPostedItemsList = data['amazonPostedItemsList']
-                return True
             except Exception as error:
                 self._Print('### Error loading user data: %s' % error)
                 return False
         else:
             self._Print('Username "%s" unknown, please fill its details in "%s"' % (login, self.usersFileName))
             return False
+        return True
     
     def SaveData(self):
         '''Сохраняем данные о юзере в файлы'''
@@ -242,6 +240,19 @@ class PinterestBot(object):
         except Exception as error:
             self._Print('### Error writing to log: %s' % error)
     
+    def _SolveCaptcha(self):
+        '''Запрашиваем капчу, решаем ее, отправляем в пинтерест и т.д. до положительного результата'''
+        while True:
+            try:
+                self._Print('solving captcha ... ', '')
+                imageUrl, challenge = captcha.GetRecaptcha(captcha.pinterestRecaptchaPublicKey)
+                captchaText, captchaId = captcha.SolveCaptcha(imageUrl)
+                if self._Request('verifying captcha', 'POST', 'http://pinterest.com/verify_captcha/', urllib.urlencode({'challenge': challenge, 'response': captchaText}), '"status": "success"', None, None):
+                    break
+                captcha.ReportCaptcha(captchaId)
+            except Exception as error:
+                self._Print('### Error: %s' % error)
+    
     def _Request(self, printText, requestType, url, postData=None, checkToken=None, printOk='ok', printError='error'):
         '''Выдерживаем таймаут, выводим текст, отправляем запрос, проверям содержимое ответа, выводим текст в зависимости от наличия заданного токена.
         requestType: 'GET', 'GET-X', 'POST', 'POST-MULTIPART'.'''
@@ -300,17 +311,32 @@ class PinterestBot(object):
             curl.perform()
             self.lastRequestTime = datetime.datetime.now()  # второй раз
             
+            '''Проверяем на запрос капчи'''
+            captchaSolved = False
+            if bufBody.getvalue().find('"captcha": true') >= 0:
+                self._SolveCaptcha()
+                captchaSolved = True
+            
             '''Читаем ответ'''
             self.lastRequestUrl = url
             self.lastResponseHeaders = bufHeaders.getvalue()
             self.lastResponseBody = bufBody.getvalue()
+            
+            '''Определяем основные ошибки и выводим о них информацию'''
+            statusCode = curl.getinfo(pycurl.HTTP_CODE)
+            if statusCode not in [200, 302]:
+                self._Print('error %d ' % statusCode, '')
+            if (self.lastResponseBody.find('"status": "fail"') >= 0) and (self.lastResponseBody.find('"message":') >= 0):
+                message = self._GetToken(r'"message": "([^"]*)"').strip()
+                if message != '':
+                    self._Print('%s ' % message, '')
             
             '''Проверям токен и выводим текст'''
             if checkToken != None:
                 self.lastResponseSuccess = self.lastResponseBody.find(checkToken) >= 0
                 if not self.lastResponseSuccess:
                     self.lastResponseSuccess = self.lastResponseHeaders.find(checkToken) >= 0
-                if self.lastResponseSuccess:
+                if self.lastResponseSuccess or captchaSolved:  # если решали капчу, считаем, что действие совершено успешно
                     if printOk:
                         self._Print(printOk)
                 else:
@@ -440,7 +466,7 @@ class PinterestBot(object):
     def _ScrapeUsersByKeywords(self, keywordsList, pageNum):
         '''Ищем юзеров по заданным кеям на заданной странице'''
         usersList = []
-        for keyword in keywordsList:
+        for keyword in keywordsList: #TODO: все параметры в запросах get - через urllib.urlencode
             if self._Request('Searching for users by keyword "%s" on page %d' % (keyword, pageNum), 'GET', 'http://pinterest.com/search/people/?q=%s&page=%d' % (keyword, pageNum), None, 'Logout', None, 'error'):
                 newUsersList = self._GetTokensList(r'"/([a-zA-Z0-9-/]*)/follow/"')
                 self._Print('%d found' % len(newUsersList))
@@ -544,7 +570,7 @@ class PinterestBot(object):
             else:
                 self._Print('error')
         if failsCount >= self.maxFailsCount:
-            self._Print('action cancelled, max fails count exceeded')
+            self._Print('Action cancelled, max fails count exceeded')
     
     def UnfollowUsers(self, actionsCount):
         '''Анфолловим юзеров'''
@@ -570,7 +596,7 @@ class PinterestBot(object):
                     else:
                         self._Print('error')
             if failsCount >= self.maxFailsCount:
-                self._Print('action cancelled, max fails count exceeded')
+                self._Print('Action cancelled, max fails count exceeded')
     
     def FollowBoards(self, keywordsList, category, actionsCount):
         '''Ищем и фолловим доски'''
@@ -600,7 +626,7 @@ class PinterestBot(object):
             else:
                 self._Print('error')
         if failsCount >= self.maxFailsCount:
-            self._Print('action cancelled, max fails count exceeded')
+            self._Print('Action cancelled, max fails count exceeded')
     
     def _LikePin(self, pinId):
         '''Лайкаем заданный пин'''
@@ -652,7 +678,7 @@ class PinterestBot(object):
                 else:
                     failsCount += 1
         if failsCount >= self.maxFailsCount:
-            self._Print('action cancelled, max fails count exceeded')
+            self._Print('Action cancelled, max fails count exceeded')
     
     def LikePins(self, keywordsList, category, actionsCount):
         '''Лайкаем пины'''
@@ -706,7 +732,7 @@ class PinterestBot(object):
                 else:
                     failsCount += 1
         if failsCount >= self.maxFailsCount:
-            self._Print('action cancelled, max fails count exceeded')
+            self._Print('Action cancelled, max fails count exceeded')
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

@@ -46,7 +46,7 @@ departmentsSort = {'All': [''],
     'PCHardware': ['psrank','salesrank'],
     'PetSupplies': ['+pmrank','salesrank','relevancerank','reviewrank'],
     'Photo': ['pmrank','salesrank'],
-    'Shoes': ['pmrank','relevancerank','reviewrank'],
+    'Shoes': ['pmrank','xsrelevancerank','reviewrank'],
     'Software': ['pmrank','salesrank'],
     'SportingGoods': ['relevancerank','salesrank'],
     'Tools': ['pmrank','salesrank'],
@@ -87,6 +87,8 @@ class Amazon(object):
         signature = base64.b64encode(hmac.new(self.secretAccessKey, stringToSign, hashlib.sha256).digest())
         signedUrl = 'http://webservices.amazon.com/onca/xml?' + paramsString + '&Signature=' + urllib.quote(signature)
         response = urllib.urlopen(signedUrl).read()
+        if response.find('<Error') >= 0:
+            raise Exception(re.findall(r'<Message>([^<]*)<', response, re.U)[0])
         return response
     
     def BrowseNodeLookup(self, parentNodeId):
@@ -133,7 +135,7 @@ class Amazon(object):
                     self._Print('### Error: %s' % error)
         except Exception as error:
             self._Print('### Error: %s' % error)
-        self._Print('%d found' % len(itemsList))
+        self._Print('%d found' % len(result))
         random.shuffle(result)
         return result
 
