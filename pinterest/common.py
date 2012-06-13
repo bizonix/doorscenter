@@ -14,6 +14,12 @@ if not os.path.exists(LOG_FOLDER):
 sessionLogFileName = 'session-' + str(int(time.time() * 100)) + '.txt'
 sessionLogFileName = os.path.join(LOG_FOLDER, sessionLogFileName)
 
+def ThreadSafePrint(text, end=None):
+    '''Thread-safe print function'''
+    threadLock.acquire()
+    print(text, end=end)
+    threadLock.release()
+
 def CommandsListFromText(text):
     '''Разбиваем строку на список команд'''
     return [item.strip() for item in text.splitlines() if (item.strip() != '') and not item.strip().startswith('#')]

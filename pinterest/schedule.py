@@ -1,9 +1,9 @@
 # coding=utf8
 import os, sys, glob, random, datetime, ConfigParser
 import pinterest, common
+from pinterest import PinterestBoard, PlannedCommonBoard, PlannedProfitBoard  # workaround for unserialization
 
 '''
-
     Стратегия работы
 
 Каждому юзеру планируется набор из 10-20 досок общего назначения (plannedCommonBoardsList), на которые он будет 
@@ -34,29 +34,38 @@ import pinterest, common
 SCHEDULE_FOLDER = 'schedule'
 
 class Schedule(object):
-    '''Расписание работы ботов'''
-    
+    '''Расписание'''
+
     def __init__(self):
         '''Инициализация'''
-        self.timeStampFormat = '%Y-%m-%d-%H-%M'
+        self.timeStampFormat = '%Y-%m-%d %H-%M'
+        self.timeStampLength = 16
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
         self.hoursCorrection = int(config.get('Schedule', 'HoursCorrection'))
     
-    def _Save(self, timeStamp, commandsList):
-        '''Сохраняем расписание'''
-        if not os.path.exists(SCHEDULE_FOLDER):
-            os.makedirs(SCHEDULE_FOLDER)
-        fileName = os.path.join(SCHEDULE_FOLDER, timeStamp + '.txt')
-        open(fileName, 'w').write('\n'.join(commandsList))
-        print(timeStamp + '\n' + '\n'.join(commandsList))
+    def _GetFilesList(self):
+        '''Возвращаем список файлов с расписаниями'''
+        return sorted(glob.glob(os.path.join(SCHEDULE_FOLDER, '201*.txt')))
+    
+    def _FileNameToDateTime(self, fileName):
+        '''Имя файла -> дата и время его выполнения'''
+        timeStamp = os.path.basename(fileName)[:self.timeStampLength]
+        return datetime.datetime.strptime(timeStamp, self.timeStampFormat)
+    
+    def _DateTimeCorrect(self, dateTime):
+        '''Корректировка часового пояса'''
+        return dateTime + datetime.timedelta(0, self.hoursCorrection * 60 * 60)
+
+
+class ScheduleGenerator(Schedule):
+    '''Создание расписания работы ботов'''
     
     def _GetUserLoginsList(self):
         '''Получаем список логинов юзеров для генерации расписания'''
         user = pinterest.PinterestUser()
         return user.usersDict.keys()
     
-    @classmethod
     def _SelectItem(self, itemsList):
         '''Делаем выбор из списка с заданными вероятностями: [(propapilityA, itemA), (propapilityB, itemB), ...]'''
         total = 0
@@ -73,7 +82,7 @@ class Schedule(object):
         while True:
             timeStampsList = []
             for _ in range(count):
-                timeStamp = (datetime.datetime.today() + datetime.timedelta(dayOffset)).strftime('%Y-%m-%d') + '-%02d-%02d' % (random.randint(7, 22), random.randint(0, 59))
+                timeStamp = (datetime.datetime.today() + datetime.timedelta(dayOffset)).strftime('%Y-%m-%d') + ' %02d-%02d' % (random.randint(7, 22), random.randint(0, 59))
                 timeStampsList.append(timeStamp)
             timeStampsList = sorted(timeStampsList)
             
@@ -98,9 +107,17 @@ class Schedule(object):
         commonBoardsList = []
         for category in random.sample(commonBoardsDict.keys(), random.randint(10, 20)):
             boardName = random.choice(commonBoardsDict[category])
-            board = pinterest.PlannedCommonBoard(boardName, category, [])
+            board = pinterest.PlannedCommonBoard(boardName, category)
             commonBoardsList.append(board)
         return commonBoardsList
+    
+    def _Save(self, userLogin, timeStamp, commandsList):
+        '''Сохраняем расписание'''
+        if not os.path.exists(SCHEDULE_FOLDER):
+            os.makedirs(SCHEDULE_FOLDER)
+        fileName = os.path.join(SCHEDULE_FOLDER, '%s %s.txt' % (timeStamp, userLogin))
+        open(fileName, 'w').write('\n'.join(commandsList))
+        #print(timeStamp + '\n' + '\n'.join(commandsList))
     
     def Generate(self, usersCount=1, daysCount=1):
         '''Генерируем расписание для заданного числа юзеров на заданное число дней'''
@@ -154,19 +171,41 @@ class Schedule(object):
                                     ( 50, '--user=%s --action=post-amazon --count=%d --keywords="%s" --boards="%s:%s" --department=%s' % (userLogin, random.randint(1, 3), keywords, board.name, board.category, board.department)),
                                 ])
                         commandsList.append(self._SelectItem(itemsList))
-                    self._Save(timeStamp, commandsList)
+                    self._Save(userLogin, timeStamp, commandsList)
+        self.Clear(datetime.datetime.now())
     
-    def FindNext(self):
-        '''Находим следующее расписание, которое пора выполнить. Возвращаем файл с расписанием'''
-        dateTimeNow = datetime.datetime.now() + datetime.timedelta(0, self.hoursCorrection * 60 * 60)  # текущее время с корректировкой часового пояса
-        for fileName in glob.glob(os.path.join(SCHEDULE_FOLDER, '201*.txt')):
-            fileName = os.path.basename(fileName)
-            dateTimePlanned = datetime.datetime.strptime(fileName.replace('.txt', ''), self.timeStampFormat)
-            if dateTimeNow >= dateTimePlanned:
-                return fileName
+    def Clear(self, dateTime):
+        '''Удаляем расписания по заданную дату/время'''
+        dateTime = self._DateTimeCorrect(dateTime)
+        for fileName in self._GetFilesList():
+            if dateTime >= self._FileNameToDateTime(fileName):
+                os.unlink(fileName)
+    
+    def ClearAll(self):
+        '''Удаляем все расписания'''
+        for fileName in self._GetFilesList():
+            os.unlink(fileName)
+
+
+class ScheduleIterator(Schedule):
+    '''Обход расписания работы ботов'''
+    
+    def Next(self):
+        '''Находим следующее расписание, которое пора выполнить. Возвращаем имя файла с расписанием'''
+        dateTimeNow = self._DateTimeCorrect(datetime.datetime.now())
+        for fileName in self._GetFilesList():
+            if dateTimeNow >= self._FileNameToDateTime(fileName):
+                commandsList = common.CommandsListFromText(open(fileName).read())
+                os.unlink(fileName)
+                return commandsList, fileName
+        return None, None
+    
+    def Empty(self):
+        '''Есть ли еще расписания'''
+        return len(self._GetFilesList()) == 0
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():
-    schedule = Schedule()
-    #print(schedule._GenerateCommonBoardsList())
-    schedule.Generate()
+    schedule = ScheduleGenerator()
+    schedule.ClearAll()
+    schedule.Generate(1000, 2)
