@@ -190,9 +190,9 @@ class PlannedProfitBoard(object):
 class PinterestBot(object):
     '''Private Pinterest Bot'''
     
-    def __init__(self, printPrefix=None):
+    def __init__(self, screenSlot=0):
         '''Инициализация'''
-        self.printPrefix = printPrefix
+        self.screenSlot = screenSlot
         self.user = PinterestUser(self)
         self.lastRequestUrl = 'http://pinterest.com/'
         self.lastRequestTime = datetime.datetime.now() - datetime.timedelta(0, 43200)
@@ -213,17 +213,12 @@ class PinterestBot(object):
     
     def _Print(self, text, end=None):
         '''Выводим текст на консоль'''
-        if self.printPrefix == None:  # однопоточный режим
-            common.ThreadSafePrint(text, end)
-            if end == None:
-                text += '\n'
-            self._WriteLogSession(text)
-        else:  # многопоточный режим, всегда выводим конец строки
-            if (self.lastPrintEnd == '') and (text.strip() != '...'):
-                text = '... ' + text
-            text = self.printPrefix + text
-            common.ThreadSafePrint(text)
-            self._WriteLogSession(text + '\n')
+        printPrefix = 'Thread #%3d: %-30s: %s' % (self.screenSlot + 1, self.user.id, ' ' * self.screenSlot * 4)
+        if (self.lastPrintEnd == '') and (text.strip() != '...'):
+            text = '... ' + text
+        text = printPrefix + text
+        common.ThreadSafePrint(text)
+        common.WriteLogSession(text + '\n')
         self.lastPrintEnd = end
     
     def _WriteLogFile(self, data):
@@ -236,21 +231,13 @@ class PinterestBot(object):
         if self.user.id != '':
             logFileName = self.user.id + '-' + logFileName
         else:
-            logFileName = 'unlogged-' + logFileName
+            logFileName = 'unknown-' + logFileName
         logFileName = os.path.join(common.LOG_FOLDER, logFileName)
         try:
             open(logFileName, 'w').write(data)
         except Exception as error:
             self._Print('### Error writing to log: %s' % error)
     
-    def _WriteLogSession(self, data):
-        '''Дописываем data в сессионный файл'''
-        if common.LOG_LEVEL <= 0:
-            return
-        common.threadLock.acquire()
-        open(common.sessionLogFileName, 'a').write(data)
-        common.threadLock.release()
-        
     def _SolveCaptcha(self):
         '''Запрашиваем капчу, решаем ее, отправляем в пинтерест и т.д. до положительного результата'''
         while True:
@@ -448,24 +435,20 @@ class PinterestBot(object):
             text = 'Creating new board "%s"' % boardName
         else:
             text = 'Creating new board "%s" in category "%s"' % (boardName, category)
-        board = self.user.FindBoardByName([boardName])
-        if board == None:
-            if (category != '') and (category not in boardCategoriesList):
-                self._Print('incorrect category, ignoring', end='')
-                category = ''
-            if category == '':
-                result = self._Request(text, 'POST', 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName}), '"status": "success"')
-            else:
-                result = self._Request(text, 'POST', 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName, 'category': category}), '"status": "success"')
-            if result:
-                boardId = self._GetToken(r'"id": "([^"]*)"')
-                boardLink = self._GetToken(r'"url": "/(.*?)/"')
-                board = PinterestBoard(boardId, boardLink, boardName, category)
-                self.user.boardsList.append(board)
-                self.user.SaveData()
+        if (category != '') and (category not in boardCategoriesList):
+            self._Print('incorrect category, ignoring', end='')
+            category = ''
+        if category == '':
+            result = self._Request(text, 'POST', 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName}), '"status": "success"')
         else:
-            self._Print('already exists, skipped')
-        return board
+            result = self._Request(text, 'POST', 'http://pinterest.com/board/create/', urllib.urlencode({'name': boardName, 'category': category}), '"status": "success"')
+        if result:
+            boardId = self._GetToken(r'"id": "([^"]*)"')
+            boardLink = self._GetToken(r'"url": "/(.*?)/"')
+            board = PinterestBoard(boardId, boardLink, boardName, category)
+            self.user.boardsList.append(board)
+            self.user.SaveData()
+            return board
     
     def _FindOrCreateBoard(self, boardsList):
         '''Находим или создаем доску'''
@@ -746,6 +729,10 @@ class PinterestBot(object):
                     failsCount += 1
         if failsCount >= self.maxFailsCount:
             self._Print('Action cancelled, max fails count exceeded')
+    
+    def UsersReport(self, usersList=None):
+        '''Отчет по заданным, либо всем юзерам'''
+        pass #TODO: сделать отчет
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

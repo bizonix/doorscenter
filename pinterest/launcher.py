@@ -6,52 +6,85 @@ from pinterest import PinterestBoard, PlannedCommonBoard, PlannedProfitBoard  # 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
-proxyCondition = threading.Condition()
-proxyUsingSet = set()
+proxiesCondition = threading.Condition()
+proxiesUsingSet = set()
+
+screenSlotsCondition = threading.Condition()
+screenSlotsList = range(20)  # также ограничение общего числа работающих потоков
 
 class LauncherSingle(object):
     '''Запускаем бота - одна команда'''
     
-    def __init__(self, printPrefix=None):
+    def __init__(self):
         '''Инициализация'''
-        self.bot = pinterest.PinterestBot(printPrefix)
+        self.screenSlotAcquired = None
+        self._AcquireScreenSlot()
         self.loggedIn = False
         self.proxyHostAcquired = None
+        self.bot = pinterest.PinterestBot(self.screenSlotAcquired)
     
     def __del__(self):
-        '''Деструктор, освобождаем прокси'''
+        '''Деструктор, освобождаем прокси и слот'''
         try:
-            self.ReleaseProxy()
+            self._ReleaseProxy()
+        except Exception:
+            pass
+        try:
+            self._ReleaseScreenSlot()
         except Exception:
             pass
     
-    def AcquireProxy(self, proxyHost):
+    def _AcquireScreenSlot(self):
+        '''Захватываем слот вывода на экран'''
+        if self.screenSlotAcquired != None:
+            return
+        screenSlotsCondition.acquire()
+        try:
+            while len(screenSlotsList) == 0:
+                screenSlotsCondition.wait()
+            self.screenSlotAcquired = screenSlotsList.pop(0)
+        finally:
+            screenSlotsCondition.release()
+    
+    def _ReleaseScreenSlot(self):
+        '''Освобождаем захваченный слот'''
+        if self.screenSlotAcquired == None:
+            return
+        screenSlotsCondition.acquire()
+        try:
+            screenSlotsList.append(self.screenSlotAcquired)
+            screenSlotsList.sort()
+            screenSlotsCondition.notifyAll()
+        finally:
+            screenSlotsCondition.release()
+    
+    def _AcquireProxy(self, proxyHost):
         '''Ждем освобожения требуемого прокси и захватываем его'''
         if proxyHost == self.proxyHostAcquired:
             return
-        proxyCondition.acquire()
+        proxiesCondition.acquire()
         try:
-            if proxyHost in proxyUsingSet:
+            if proxyHost in proxiesUsingSet:
                 self.bot._Print('Proxy "%s" is already used in another thread, waiting ...' % proxyHost)
-            while proxyHost in proxyUsingSet:
-                proxyCondition.wait()
-            proxyUsingSet.add(proxyHost)
+            while proxyHost in proxiesUsingSet:
+                proxiesCondition.wait()
+            proxiesUsingSet.add(proxyHost)
             self.proxyHostAcquired = proxyHost
         finally:
-            proxyCondition.release()
+            proxiesCondition.release()
         self.bot._Print('Proxy "%s" acquired' % proxyHost)
     
-    def ReleaseProxy(self):
+    def _ReleaseProxy(self):
         '''Освобождаем захваченный прокси'''
         if self.proxyHostAcquired == None:
             return
         self.bot._Print('Proxy "%s" released' % self.proxyHostAcquired)
-        proxyCondition.acquire()
+        proxiesCondition.acquire()
         try:
-            proxyUsingSet.remove(self.proxyHostAcquired)
-            proxyCondition.notifyAll()
+            proxiesUsingSet.remove(self.proxyHostAcquired)
+            proxiesCondition.notifyAll()
         finally:
-            proxyCondition.release()
+            proxiesCondition.release()
     
     def Execute(self, argumentsList):
         '''Парсим команду'''
@@ -84,9 +117,9 @@ class LauncherSingle(object):
             '''Логинимся, а также операции с прокси. Блокируем и освобождаем прокси только при смене юзера, освобождаем также в деструкторе'''
             userProxy = self.bot.user.GetProxyHostByLogin(userLogin)
             if self.bot.user.login != userLogin:
-                self.ReleaseProxy()
+                self._ReleaseProxy()
                 self.loggedIn = False
-            self.AcquireProxy(userProxy)
+            self._AcquireProxy(userProxy)
             if not self.loggedIn:
                 if self.bot.Login(userLogin):
                     self.loggedIn = True
@@ -119,12 +152,12 @@ class LauncherSingle(object):
 class LauncherSingleThreaded(threading.Thread):
     '''Запускаем бота - одна команда в потоке'''
     
-    def __init__(self, parent, commandsQueue, printPrefix):
+    def __init__(self, parent, commandsQueue):
         '''Инициализация'''
         threading.Thread.__init__(self)
         self.parent = parent
         self.commandsQueue = commandsQueue
-        self.launcher = LauncherSingle(printPrefix)
+        self.launcher = LauncherSingle()
     
     def run(self):
         '''Главный метод'''
@@ -155,10 +188,6 @@ class LauncherListThreadedWait(threading.Thread):
 class LauncherListThreaded(object):
     '''Запускаем список команд в несколько потоков'''
     
-    def __init__(self):
-        '''Инициализация'''
-        self.threadsCount = 0
-    
     def Launch(self, description, commandsList, threadsCount, wait):
         '''Запускаем команды в несколько потоков, в дополнение к уже существующим потокам'''
         if (len(commandsList) == 0) or (threadsCount <= 0):
@@ -171,9 +200,7 @@ class LauncherListThreaded(object):
         for command in commandsList:
             commandsQueue.put(command)
         for _ in range(threadsCount):
-            self.threadsCount += 1
-            printPrefix = 'Thread #%3d: ' % self.threadsCount + (' ' * ((self.threadsCount - 1) * 4))
-            LauncherSingleThreaded(self, commandsQueue, printPrefix).start()
+            LauncherSingleThreaded(self, commandsQueue).start()
         if wait:
             commandsQueue.join()
             common.ThreadSafePrint(textFinish)

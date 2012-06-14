@@ -43,6 +43,23 @@ class Schedule(object):
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
         self.hoursCorrection = int(config.get('Schedule', 'HoursCorrection'))
+        self.commonFollowUsersByCategory = int(config.get('Schedule', 'CommonFollowUsersByCategory'))
+        self.commonFollowUsersByKeywords = int(config.get('Schedule', 'CommonFollowUsersByKeywords'))
+        self.commonFollowBoardsByCategory = int(config.get('Schedule', 'CommonFollowBoardsByCategory'))
+        self.commonFollowBoardsByKeywords = int(config.get('Schedule', 'CommonFollowBoardsByKeywords'))
+        self.commonLikePinsByCategory = int(config.get('Schedule', 'CommonLikePinsByCategory'))
+        self.commonLikePinsByKeywords = int(config.get('Schedule', 'CommonLikePinsByKeywords'))
+        self.commonRepostPinsByCategory = int(config.get('Schedule', 'CommonRepostPinsByCategory'))
+        self.commonRepostPinsByKeywords = int(config.get('Schedule', 'CommonRepostPinsByKeywords'))
+        self.commonCommentPinsByCategory = int(config.get('Schedule', 'CommonCommentPinsByCategory'))
+        self.commonCommentPinsByKeywords = int(config.get('Schedule', 'CommonCommentPinsByKeywords'))
+        self.commonUnfollowUsers = int(config.get('Schedule', 'CommonUnfollowUsers'))
+        self.profitFollowUsersByKeywords = int(config.get('Schedule', 'ProfitFollowUsersByKeywords'))
+        self.profitFollowBoardsByKeywords = int(config.get('Schedule', 'ProfitFollowBoardsByKeywords'))
+        self.profitLikePinsByKeywords = int(config.get('Schedule', 'ProfitLikePinsByKeywords'))
+        self.profitRepostPinsByKeywords = int(config.get('Schedule', 'ProfitRepostPinsByKeywords'))
+        self.profitCommentPinsByKeywords = int(config.get('Schedule', 'ProfitCommentPinsByKeywords'))
+        self.profitPostFromAmazon = int(config.get('Schedule', 'ProfitPostFromAmazon'))
     
     def _GetFilesList(self):
         '''Возвращаем список файлов с расписаниями'''
@@ -137,38 +154,38 @@ class ScheduleGenerator(Schedule):
                         board = random.choice(user.plannedCommonBoardsList)
                         keywords = board.GetKeywords()
                         itemsList = [
-                                    (100, '--user=%s --action=follow-users --count=%d --category=%s' % (userLogin, random.randint(1, 5), board.category)),
-                                    (  5, '--user=%s --action=unfollow-users --count=%d' % (userLogin, random.randint(1, 2))),
-                                    ( 20, '--user=%s --action=follow-boards --count=%d --category=%s' % (userLogin, random.randint(1, 2), board.category)),
-                                    (100, '--user=%s --action=like-pins --count=%d --category=%s' % (userLogin, random.randint(1, 5), random.choice(pinterest.boardCategoriesList))),
-                                    ( 30, '--user=%s --action=repost-pins --count=%d --category=%s --boards="%s:%s"' % (userLogin, random.randint(1, 5), board.category, board.name, board.category)),
-                                    ( 10, '--user=%s --action=comment-pins --count=%d --category=%s' % (userLogin, random.randint(1, 2), random.choice(pinterest.boardCategoriesList))),
+                                    (self.commonFollowUsersByCategory, '--user=%s --action=follow-users --count=%d --category=%s' % (userLogin, random.randint(1, 5), board.category)),
+                                    (self.commonUnfollowUsers, '--user=%s --action=unfollow-users --count=%d' % (userLogin, random.randint(1, 2))),
+                                    (self.commonFollowBoardsByCategory, '--user=%s --action=follow-boards --count=%d --category=%s' % (userLogin, random.randint(1, 2), board.category)),
+                                    (self.commonLikePinsByCategory, '--user=%s --action=like-pins --count=%d --category=%s' % (userLogin, random.randint(1, 5), random.choice(pinterest.boardCategoriesList))),
+                                    (self.commonRepostPinsByCategory, '--user=%s --action=repost-pins --count=%d --category=%s --boards="%s:%s"' % (userLogin, random.randint(1, 5), board.category, board.name, board.category)),
+                                    (self.commonCommentPinsByCategory, '--user=%s --action=comment-pins --count=%d --category=%s' % (userLogin, random.randint(1, 2), random.choice(pinterest.boardCategoriesList))),
                         ]
                         if keywords != '':
                             itemsList.extend([
-                                    ( 50, '--user=%s --action=follow-users --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
-                                    ( 10, '--user=%s --action=follow-boards --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
-                                    ( 50, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
-                                    ( 10, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
-                                    (  5, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                                    (self.commonFollowUsersByKeywords, '--user=%s --action=follow-users --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    (self.commonFollowBoardsByKeywords, '--user=%s --action=follow-boards --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                                    (self.commonLikePinsByKeywords, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    (self.commonRepostPinsByKeywords, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
+                                    (self.commonCommentPinsByKeywords, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
                             ])
                         '''Доски для продвижения товаров'''
                         if len(user.plannedProfitBoardsList) > 0:
                             board = random.choice(user.plannedProfitBoardsList)
                             keywords = board.GetKeywords()
                             itemsList.extend([
-                                    (200, '--user=%s --action=follow-users --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
-                                    ( 50, '--user=%s --action=follow-boards --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
-                                    (200, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
-                                    ( 10, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                                    (self.profitFollowUsersByKeywords, '--user=%s --action=follow-users --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    (self.profitFollowBoardsByKeywords, '--user=%s --action=follow-boards --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
+                                    (self.profitLikePinsByKeywords, '--user=%s --action=like-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 5), keywords)),
+                                    (self.profitCommentPinsByKeywords, '--user=%s --action=comment-pins --count=%d --keywords="%s"' % (userLogin, random.randint(1, 2), keywords)),
                             ])
                             if 'pinterest' in board.sourcesList:
                                 itemsList.extend([
-                                    ( 30, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
+                                    (self.profitRepostPinsByKeywords, '--user=%s --action=repost-pins --count=%d --keywords="%s" --boards="%s:%s"' % (userLogin, random.randint(1, 2), keywords, board.name, board.category)),
                                 ])
                             if 'amazon' in board.sourcesList:
                                 itemsList.extend([
-                                    ( 50, '--user=%s --action=post-amazon --count=%d --keywords="%s" --boards="%s:%s" --department=%s' % (userLogin, random.randint(1, 3), keywords, board.name, board.category, board.department)),
+                                    (self.profitPostFromAmazon, '--user=%s --action=post-amazon --count=%d --keywords="%s" --boards="%s:%s" --department=%s' % (userLogin, random.randint(1, 3), keywords, board.name, board.category, board.department)),
                                 ])
                         commandsList.append(self._SelectItem(itemsList))
                     self._Save(userLogin, timeStamp, commandsList)
@@ -207,5 +224,5 @@ class ScheduleIterator(Schedule):
 
 if (__name__ == '__main__') and common.DevelopmentMode():
     schedule = ScheduleGenerator()
-    schedule.ClearAll()
-    schedule.Generate(1000, 2)
+    #schedule.ClearAll()
+    #schedule.Generate(1000, 2)
