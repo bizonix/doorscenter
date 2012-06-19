@@ -1,72 +1,7 @@
 # coding=utf8
 from __future__ import print_function
-import os, sys, re, time, datetime, random, pycurl, cStringIO, ConfigParser
-import common
-
-if __name__ == '__main__':
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
-
-class SocialUser(object):
-    '''Абстрактный юзер социалки'''
-    
-    def __init__(self, bot=None):
-        '''Инициализация'''
-        self.bot = bot
-        self._Clear()
-        self.usersDict = None
-        self.usersFileName = 'users.txt'
-    
-    def _Print(self, text, end=None):
-        '''Выводим текст на консоль'''
-        if self.bot:
-            self.bot._Print(text, end)
-        else:
-            print(text, end=end)
-    
-    def _Clear(self):
-        '''Очищаем данные юзера'''
-        self.id = ''
-        self.email = ''
-        self.login = ''
-        self.password = ''
-        self.proxyHost = ''
-        self.proxyPassword = ''
-
-    def _LoadUsersList(self):
-        '''Загружаем список юзеров из файла'''
-        self.usersDict = {}
-        for line in open(self.usersFileName).read().splitlines():
-            if line.strip() == '':
-                continue
-            data = (line.strip() + ':' * 6).split(':')
-            login = data[0]
-            password = data[1]
-            proxyHost = data[2] + ':' + data[3]
-            if proxyHost == ':':
-                proxyHost = ''
-            proxyPassword = data[4] + ':' + data[5]
-            if proxyPassword == ':':
-                proxyPassword = ''
-            self.usersDict[login] = {'password': password, 'proxyHost': proxyHost, 'proxyPassword': proxyPassword}
-
-    def Load(self, login):
-        '''Находим данные о юзере в списке юзеров'''
-        self._Clear()
-        if self.usersDict == None:
-            self._LoadUsersList()
-        if login not in self.usersDict:
-            return False
-        data = self.usersDict[login]
-        self.login = login
-        self.password = data['password']
-        self.proxyHost = data['proxyHost']
-        self.proxyPassword = data['proxyPassword']
-        return True
-    
-    def Save(self):
-        '''Сохраняем данные о юзере'''
-        pass
-
+import os, re, time, datetime, random, pycurl, cStringIO, ConfigParser
+import botuser, common
 
 class SocialBot(object):
     '''Абстрактный бот социалки'''
@@ -74,7 +9,7 @@ class SocialBot(object):
     def __init__(self):
         '''Инициализация'''
         self.screenSlot = common.ScreenSlot.Acquire()
-        self.user = SocialUser(self)
+        self.user = botuser.SocialUser(self)
         self.referer = ''
         self.lastRequestUrl = ''
         self.lastRequestTime = datetime.datetime.now() - datetime.timedelta(0, 43200)
@@ -82,10 +17,12 @@ class SocialBot(object):
         self.lastResponseBody = ''
         self.lastResponseSuccess = True
         self.lastPrintEnd = None
+        self.cookieFileName = os.path.join(common.TEMP_FOLDER, 'cookie-%d.txt' % random.randint(100000, 999999))
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
         self.requestTimeoutMin = int(config.get('Bot', 'RequestTimeoutMin'))
         self.requestTimeoutMax = int(config.get('Bot', 'RequestTimeoutMax'))
+        self.maxFailsCount = int(config.get('Bot', 'MaxFailsCount'))
         self.timeout = 60
     
     def __del__(self):
@@ -165,8 +102,12 @@ class SocialBot(object):
                 curl.setopt(pycurl.HTTPPOST, postData)
             curl.setopt(pycurl.HTTPHEADER, headersList)
             curl.setopt(pycurl.USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0')
-            curl.setopt(pycurl.COOKIEJAR, 'cookie.txt')  # TODO: файл с куками в зависимости от юзера
-            curl.setopt(pycurl.COOKIEFILE, 'cookie.txt')
+            if self.user.cookieFileName == '':
+                curl.setopt(pycurl.COOKIEJAR, self.cookieFileName)
+                curl.setopt(pycurl.COOKIEFILE, self.cookieFileName)
+            else:
+                curl.setopt(pycurl.COOKIEJAR, self.user.cookieFileName)
+                curl.setopt(pycurl.COOKIEFILE, self.user.cookieFileName)
             curl.setopt(pycurl.SSL_VERIFYPEER, 0)
             curl.setopt(pycurl.SSL_VERIFYHOST, 0)
             curl.setopt(pycurl.FOLLOWLOCATION, 0)
@@ -196,7 +137,7 @@ class SocialBot(object):
             '''Определяем основные ошибки и выводим о них информацию'''
             statusCode = curl.getinfo(pycurl.HTTP_CODE)
             if statusCode not in [200, 302]:
-                self._Print('error %d ' % statusCode, '')
+                self._Print('HTTP error #%d ' % statusCode, '')
             self._PrintExtendedErrorInfo()
             
             '''Проверям токен и выводим текст'''
@@ -244,8 +185,35 @@ class SocialBot(object):
         except Exception as error:
             self._Print('### Error getting tokens list: %s' % error)
             return []
+    
+    def _NeedLogin(self, userLogin):
+        '''Проверяем, залогинены ли в социалку. Абстрактный метод.'''
+        raise NotImplementedError()
+    
+    def _MakeLogin(self, userLogin):
+        '''Логинимся в социалку. Абстрактный метод.'''
+        raise NotImplementedError()
+    
+    def _Login(self, userLogin):
+        '''Комплексный метод логина'''
+        if (self.user.login == userLogin) and self.user.loggedIn:  # проверяем, не загружен ли уже этот юзер
+            return True
+        if not self.user.Load(userLogin):  # ищем юзера в списке
+            self._Print('User "%s" not found in the users list' % userLogin)
+            return False
+        if not self._NeedLogin(userLogin):  # проверяем, не залогинен ли уже этот юзер через куки
+            return True
+        self.user.loggedIn = self._MakeLogin(userLogin)  # логинимся и получаем результат
+        return self.user.loggedIn
+    
+    def _MakeLogout(self):
+        '''Разлогиниваемся в социалке. Абстрактный метод.'''
+        raise NotImplementedError()
+    
+    def _Logout(self):
+        '''Очищаем текущего юзера'''
+        self.user.Clear()
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():
-    bot = SocialBot()
-    bot.Login('searchxxx')
+    pass

@@ -1,4 +1,7 @@
 /logs/
+/schedule/
+/temp/
+/userdata/
+/*.ini
 /*.pyc
 /*.txt
-/*.ini

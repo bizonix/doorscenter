@@ -1,38 +1,69 @@
 # coding=utf8
-import threading
+import os, random, threading
 import common
 
-proxiesCondition = threading.Condition()
-proxiesUsingSet = set()
+'''
+Формат файла со списоком прокси "proxies.txt": 
+proxy_host:proxy_port[:proxy_login:proxy_password]
+'''
 
 class ProxiesHolder(object):
     '''Класс работы с прокси'''
     
+    _proxiesCondition = threading.Condition()
+    _proxiesUsingSet = set()
+    
+    def __init__(self, proxiesFileName='proxies.txt'):
+        '''Инициализация'''
+        self.proxiesSet = set()
+        self.proxiesDict = {}
+        if not proxiesFileName:
+            return
+        if not os.path.exists(proxiesFileName):
+            return
+        for line in open(proxiesFileName).read().splitlines():
+            if line.strip() == '':
+                continue
+            data = (line.strip() + ':' * 6).split(':')
+            proxyHost = data[0] + ':' + data[1]
+            proxyPassword = data[2] + ':' + data[3]
+            if proxyPassword == ':':
+                proxyPassword = ''
+            self.proxiesSet.add(proxyHost)
+            self.proxiesDict[proxyHost] = proxyPassword
+    
     @classmethod
     def Acquire(self, proxyHost):
         '''Ждем освобожения требуемого прокси и захватываем его'''
-        proxiesCondition.acquire()
+        ProxiesHolder._proxiesCondition.acquire()
         try:
-            while proxyHost in proxiesUsingSet:
-                proxiesCondition.wait(common.WAIT_TIMEOUT)
-            proxiesUsingSet.add(proxyHost)
+            while proxyHost in ProxiesHolder._proxiesUsingSet:
+                ProxiesHolder._proxiesCondition.wait(common.WAIT_TIMEOUT)
+            ProxiesHolder._proxiesUsingSet.add(proxyHost)
         finally:
-            proxiesCondition.release()
+            ProxiesHolder._proxiesCondition.release()
     
-    @classmethod
     def AcquireRandom(self):
-        '''Возвращаем рандомный прокси'''
-        pass  # TODO: реализовать
+        '''Возвращаем незанятый рандомный прокси из файла'''
+        ProxiesHolder._proxiesCondition.acquire()
+        try:
+            while len(self.proxiesSet - ProxiesHolder._proxiesUsingSet) == 0:  # TODO: захватывать локальный адрес
+                ProxiesHolder._proxiesCondition.wait(common.WAIT_TIMEOUT)
+            proxyHost = random.choice(self.proxiesSet - ProxiesHolder._proxiesUsingSet)
+            ProxiesHolder._proxiesUsingSet.add(proxyHost)
+        finally:
+            ProxiesHolder._proxiesCondition.release()
+        return proxyHost, self.proxiesDict[proxyHost]
     
     @classmethod
     def Release(self, proxyHost):
         '''Освобождаем захваченный прокси'''
-        proxiesCondition.acquire()
+        ProxiesHolder._proxiesCondition.acquire()
         try:
-            proxiesUsingSet.remove(proxyHost)
-            proxiesCondition.notifyAll()
+            ProxiesHolder._proxiesUsingSet.remove(proxyHost)
+            ProxiesHolder._proxiesCondition.notifyAll()
         finally:
-            proxiesCondition.release()
+            ProxiesHolder._proxiesCondition.release()
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

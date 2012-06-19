@@ -1,7 +1,7 @@
 # coding=utf8
 from __future__ import print_function
-import os, sys, random, urllib, ConfigParser, json
-import bot, captcha, common
+import os, sys, random, string, time, urllib, ConfigParser, json
+import bot, botuser, captcha, proxy, common
 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
@@ -17,7 +17,7 @@ interestsDict = {'Action Movies': 256, 'Alternative News': 16, 'Ancient History'
     'Technology': 1526, 'Television': 380, 'Travel': 393, 'UFOs': 395, 'Video Games': 399}
 
 
-class StumbleUponUser(bot.SocialUser):
+class StumbleUponUser(botuser.SocialUser):
     '''StumbleUpon User'''
     
     def __init__(self, bot=None):
@@ -35,7 +35,8 @@ class StumbleUponBot(bot.SocialBot):
         self.recaptchaPublicKey = '6LfUNgAAAAAAAIb7Hs8kxh2HR-J77fb0dVT5PYxy'
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
-        self.maxFailsCount = int(config.get('StumbleUpon', 'MaxFailsCount'))
+        self.accountCreationGenderRatio = float(config.get('StumbleUpon', 'AccountCreationGenderRatio'))
+        self.accountCreationMainInterests = config.get('StumbleUpon', 'AccountCreationMainInterests')
     
     def _PrintExtendedErrorInfo(self):
         '''Выводим расширенную информацию о полученной ошибке'''
@@ -48,8 +49,25 @@ class StumbleUponBot(bot.SocialBot):
             if errorText != '':
                 self._Print('%s ' % errorText, '')
     
-    def _CreateAccount(self, email, username, password, gender, birthday):
+    def _NeedLogin(self, userLogin):
+        '''Проверяем, залогинены ли в социалку'''
+        return not self._Request('Checking if "%s" is logged in' % self.user.login, 'GET', 'http://www.stumbleupon.com/', None, 'Location: /home', 'yes', 'no')
+    
+    def _MakeLogin(self, userLogin):
+        '''Логинимся. В качестве логина можно задавать ник или email'''
+        if not self._Request('Logging in with "%s"' % self.user.login, 'GET', 'https://www.stumbleupon.com/login', None, 'Sign In', None, 'error opening the login page'):
+            return False
+        tokenLogin = self._GetToken(r'id="token" value="([^"]*)"')
+        dataLogin = {'_output': 'Json', 'user': self.user.login, 'pass': self.user.password, 'remember': 'true', 'nativeSubmit': '0', '_action': 'auth', '_token': tokenLogin, '_method': 'create'}
+        if not self._Request('', 'POST-X', 'https://www.stumbleupon.com/login', urllib.urlencode(dataLogin), '"_success":true', None, 'error logging in'):
+            return False
+        return self._Request('', 'GET', 'http://www.stumbleupon.com/home', None, 'Hi,', 'done', 'error opening the home page')
+    
+    def _CreateAccount(self, email, username, password, gender, birthdate, interestsList, proxyHost='', proxyPassword=''):
         '''Регаем аккаунт. Gender: 1 - man, 2 - woman. Birthday: YYYY-MM-DD.'''
+        self._Logout()
+        self.user.proxyHost = proxyHost
+        self.user.proxyPassword = proxyPassword
         if not self._Request('Creating account', 'GET', 'http://www.stumbleupon.com/', None, 'Join for Free', None, 'error opening the main page'):
             return False
         '''Открываем страницу регистрации'''
@@ -78,37 +96,48 @@ class StumbleUponBot(bot.SocialBot):
                 break
             captcha.ReportCaptcha(captchaId)
         '''Регистрируемся'''
-        dataSignup = {'_output': 'Json', 'email': email, 'username': username, 'password': password, 'gender': gender, 'date-hack': 'true', 'bmonth': int(birthday[5:7]), 'bday': int(birthday[8:]), 'byear': int(birthday[:4]), 'findfriends': 'true', 'access_token': '', '_token': tokenSignup, '_action': 'page', 'nativeSubmit': '0', '_method': 'update'}
+        dataSignup = {'_output': 'Json', 'email': email, 'username': username, 'password': password, 'gender': gender, 'date-hack': 'true', 'bmonth': int(birthdate[5:7]), 'bday': int(birthdate[8:]), 'byear': int(birthdate[:4]), 'findfriends': 'true', 'access_token': '', '_token': tokenSignup, '_action': 'page', 'nativeSubmit': '0', '_method': 'update'}
         if not self._Request('', 'POST-X', 'https://www.stumbleupon.com/signup', urllib.urlencode(dataSignup), '"_success":true', None, 'error registering'):
             return False
         '''Открываем страницу с интересами и выбираем их'''
         self._Request('', 'GET', 'https://www.stumbleupon.com/signup/choose-interests')
         tokenInterests = self._GetToken(r'id="token" value="([^"]*)"')
-        interestsList = random.sample(interestsDict.values(), random.randint(3, 7))
         dataInterests = {'displayed_interests[]': interestsDict.values(), 'interests[]': interestsList, '_action': 'submitInterests', '_token': tokenInterests}
         if not self._Request('', 'POST', 'https://www.stumbleupon.com/signup/choose-interests', urllib.urlencode(dataInterests, True), 'Location: /signup/tour', None, 'error setting interests'):  # note the True
             return False
         '''Открываем страницу с туром'''
         return self._Request('', 'GET', 'https://www.stumbleupon.com/signup/tour', None, 'Click "Stumble!" to get started', 'done', 'error opening the tour page')
     
-    def Login(self, userLogin):
-        '''Логинимся. В качестве логина можно задавать ник или email'''
-        if not self.user.Load(userLogin):
-            self._Print('User "%s" not found in the users list' % userLogin)
-            return False
-        '''Проверяем существующий логин'''
-        if self._Request('Checking if "%s" is logged in' % self.user.login, 'GET', 'http://www.stumbleupon.com/', None, 'Location: /home', 'yes', 'no'):
-            return True
-        '''Открываем страницу логина'''
-        if not self._Request('Logging in with "%s"' % self.user.login, 'GET', 'https://www.stumbleupon.com/login', None, 'Sign In', None, 'error opening the login page'):
-            return False
-        '''Логинимся'''
-        tokenLogin = self._GetToken(r'id="token" value="([^"]*)"')
-        dataLogin = {'_output': 'Json', 'user': self.user.login, 'pass': self.user.password, 'remember': 'true', 'nativeSubmit': '0', '_action': 'auth', '_token': tokenLogin, '_method': 'create'}
-        if not self._Request('', 'POST-X', 'https://www.stumbleupon.com/login', urllib.urlencode(dataLogin), '"_success":true', None, 'error logging in'):
-            return False
-        '''Открываем домашнюю страницу'''
-        return self._Request('', 'GET', 'http://www.stumbleupon.com/home', None, 'Hi,', 'done', 'error opening the home page')
+    def _GeneratePassword(self, length=-1):
+        '''Генерация случайного набора букв и цифр заданной длины'''
+        if length == -1:
+            length = random.randint(7, 11)
+        return ''.join(random.choice(string.letters + string.digits) for _ in xrange(length))
+    
+    def _GenerateBirthdate(self, dateStart='1949-01-01', dateEnd='1994-12-31', dateFormat='%Y-%m-%d'):  # TODO: доделать
+        '''Генерируем дату рождения'''
+        stime = time.mktime(time.strptime(dateStart, dateFormat))
+        etime = time.mktime(time.strptime(dateEnd, dateFormat))
+        ptime = stime + random.random() * (etime - stime)
+        return time.strftime(dateFormat, time.localtime(ptime))
+    
+    def CreateAccount(self, email, username, outputFileName):
+        '''Генерируем параметры, создаем аккаунт и пишем результат в файл'''
+        self._Logout()  # создаем аккаунт без каких-либо кук
+        password = self._GeneratePassword()
+        gender = 1 if random.random() < self.accountCreationGenderRatio else 2
+        birthdate = self._GenerateBirthdate()
+        interestsList = random.sample(interestsDict.values(), random.randint(3, 7))  # TODO: добавлять обязательные
+        proxyHost, proxyPassword = proxy.AcquireRandom()
+        if self._CreateAccount(email, username, password, gender, birthdate, interestsList, proxyHost, proxyPassword):
+            line = username + ':' + password
+            if proxyHost != '':
+                line += ':' + proxyHost
+                if proxyPassword != '':
+                    line += ':' + proxyPassword
+            common.threadLock.acquire()
+            open(outputFileName, 'a').write(line + '\n')
+            common.threadLock.release()
     
     def _UserFollowAction(self, userLogin, action):
         '''Фолловим заданного юзера'''
@@ -123,20 +152,21 @@ class StumbleUponBot(bot.SocialBot):
             dataFollow.update({'status': 'unfollow', '_method': 'update'})
         return self._Request('', 'POST-X', 'http://www.stumbleupon.com/follow/stumbler', urllib.urlencode(dataFollow), '"_success":true')
     
-    def FollowUser(self, userLogin):
+    def FollowUser(self, userLoginWho, userLoginWhom):
         '''Фолловим заданного юзера'''
-        return self._UserFollowAction(userLogin, 'follow')
+        self._Login(userLoginWho)
+        return self._UserFollowAction(userLoginWhom, 'follow')
     
-    def UnfollowUser(self, userLogin):
+    def UnfollowUser(self, userLoginWho, userLoginWhom):
         '''Анфолловим заданного юзера'''
-        return self._UserFollowAction(userLogin, 'unfollow')
+        self._Login(userLoginWho)
+        return self._UserFollowAction(userLoginWhom, 'unfollow')
 
 
 ''' it should have account creation, follow mode and stumble mass like mode '''
 
 if (__name__ == '__main__') and common.DevelopmentMode():
     bot = StumbleUponBot()
-    os.unlink('cookie.txt')
     #bot._CreateAccount('sasch5@altstone.com', 'searchxxx5', 'kernel32', 1, '1977-06-25')
-    bot.Login('searchxxx5')
+    bot._Login('searchxxx5')
     #bot.UnfollowUser('ChrisMonty')
