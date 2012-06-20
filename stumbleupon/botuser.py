@@ -1,6 +1,6 @@
 # coding=utf8
 from __future__ import print_function
-import os
+import os, time, random, string
 import common
 
 '''
@@ -58,6 +58,26 @@ class SocialUser(object):
     def Save(self):
         '''Сохраняем данные о юзере'''
         pass
+    
+    @classmethod
+    def GenerateLogin(self):
+        '''Генерируем логин'''
+        pass  # TODO: реализовать
+    
+    @classmethod
+    def GeneratePassword(self, length=-1):
+        '''Генерируем пароль'''
+        if length == -1:
+            length = random.randint(7, 11)
+        return ''.join(random.choice(string.letters + string.digits) for _ in xrange(length))
+    
+    @classmethod
+    def GenerateBirthdate(self, dateStart='1949-01-01', dateEnd='1994-12-31', dateFormat='%Y-%m-%d'):  # TODO: доделать
+        '''Генерируем дату рождения'''
+        stime = time.mktime(time.strptime(dateStart, dateFormat))
+        etime = time.mktime(time.strptime(dateEnd, dateFormat))
+        ptime = stime + random.random() * (etime - stime)
+        return time.strftime(dateFormat, time.localtime(ptime))
 
 
 class SocialUsersList(object):
@@ -97,7 +117,7 @@ class SocialUsersList(object):
         '''Отдаем полный список логинов'''
         return self.usersDict.keys()
 
-usersList = SocialUsersList()  # TODO: сделать синглтоном
+usersList = SocialUsersList()
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

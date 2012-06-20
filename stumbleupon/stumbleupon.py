@@ -108,25 +108,13 @@ class StumbleUponBot(bot.SocialBot):
         '''Открываем страницу с туром'''
         return self._Request('', 'GET', 'https://www.stumbleupon.com/signup/tour', None, 'Click "Stumble!" to get started', 'done', 'error opening the tour page')
     
-    def _GeneratePassword(self, length=-1):
-        '''Генерация случайного набора букв и цифр заданной длины'''
-        if length == -1:
-            length = random.randint(7, 11)
-        return ''.join(random.choice(string.letters + string.digits) for _ in xrange(length))
-    
-    def _GenerateBirthdate(self, dateStart='1949-01-01', dateEnd='1994-12-31', dateFormat='%Y-%m-%d'):  # TODO: доделать
-        '''Генерируем дату рождения'''
-        stime = time.mktime(time.strptime(dateStart, dateFormat))
-        etime = time.mktime(time.strptime(dateEnd, dateFormat))
-        ptime = stime + random.random() * (etime - stime)
-        return time.strftime(dateFormat, time.localtime(ptime))
-    
-    def CreateAccount(self, email, username, outputFileName):
+    def CreateAccount(self, email, outputFileName):  #  TODO: выводить результат на консоль
         '''Генерируем параметры, создаем аккаунт и пишем результат в файл'''
         self._Logout()  # создаем аккаунт без каких-либо кук
-        password = self._GeneratePassword()
+        username = StumbleUponUser().GenerateLogin()
+        password = StumbleUponUser().GeneratePassword()
         gender = 1 if random.random() < self.accountCreationGenderRatio else 2
-        birthdate = self._GenerateBirthdate()
+        birthdate = StumbleUponUser().GenerateBirthdate()
         interestsList = random.sample(interestsDict.values(), random.randint(3, 7))  # TODO: добавлять обязательные
         proxyHost, proxyPassword = proxy.AcquireRandom()
         if self._CreateAccount(email, username, password, gender, birthdate, interestsList, proxyHost, proxyPassword):
@@ -161,9 +149,14 @@ class StumbleUponBot(bot.SocialBot):
         '''Анфолловим заданного юзера'''
         self._Login(userLoginWho)
         return self._UserFollowAction(userLoginWhom, 'unfollow')
+    
+    def Like(self, userLogin, pageUrl):
+        '''Лайкаем'''
+        self._Login(userLogin)
+        pass  # TODO: реализовать
 
 
-''' it should have account creation, follow mode and stumble mass like mode '''
+''' ... it should have account creation, follow mode and stumble mass like mode ... '''
 
 if (__name__ == '__main__') and common.DevelopmentMode():
     bot = StumbleUponBot()

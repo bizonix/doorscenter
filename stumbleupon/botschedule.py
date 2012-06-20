@@ -71,7 +71,7 @@ class SocialBotScheduleGenerator(SocialBotSchedule):
             return []
         return [os.path.basename(fileName)[:self.timeStampLength] for fileName in sorted(fileNamesList)]
     
-    def _SaveSchedule(self, userLogin, timeStamp, commandsList):
+    def _SaveSchedule(self, userLogin, timeStamp, commandsList):  # TODO: сохранение расписания без имени юзера
         '''Сохраняем расписание'''
         fileName = os.path.join(SCHEDULE_NEW_FOLDER, '%s %s.txt' % (timeStamp, userLogin))
         open(fileName, 'a').write('\n'.join(commandsList) + '\n')
@@ -127,11 +127,13 @@ class SocialBotScheduleGenerator(SocialBotSchedule):
         '''Замечания: 
         1. По умолчанию генерим действия на следующий день, чтобы в случае генерации в середине текущего дня боты не стали выполнять действия один за другим.
         2. Не очищаем расписание по текущее время, чтобы в случае генерации действия на текущий день не уменьшить количество действий.
-        3. Каждый юзер выполняет действие один раз.'''
+        3. Каждый юзер выполняет действие один раз.
         
-        userLoginsList = botuser.usersList.GetLoginsList()
-        for userLogin in random.sample(userLoginsList, usersCount):
-            timeStamp = self._GenerateTimeStamps(userLogin, dayOffset, 1)[0]
+        Макросы в команде: %USER% - заменяется на имя юзера, %ITEM% - берется из переданного списка.'''
+        
+        userLoginsList = botuser.usersList.GetLoginsList()  # TODO: анонимная генерация расписания - другой метод
+        for userLogin in random.sample(userLoginsList, usersCount):  # TODO: модифицировать команду
+            timeStamp = self._GenerateTimeStamps(userLogin, dayOffset, 1, 45)[0]
             self._SaveSchedule(userLogin, timeStamp, [command])
     
     def ClearByDateTime(self, dateTime):

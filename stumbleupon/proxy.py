@@ -15,8 +15,8 @@ class ProxiesHolder(object):
     
     def __init__(self, proxiesFileName='proxies.txt'):
         '''Инициализация'''
-        self.proxiesSet = set()
-        self.proxiesDict = {}
+        self.proxiesSet = {''}  # по умолчанию в списке прокси есть только локальный адрес
+        self.proxiesDict = {'': ''}
         if not proxiesFileName:
             return
         if not os.path.exists(proxiesFileName):
@@ -44,10 +44,10 @@ class ProxiesHolder(object):
             ProxiesHolder._proxiesCondition.release()
     
     def AcquireRandom(self):
-        '''Возвращаем незанятый рандомный прокси из файла'''
+        '''Возвращаем незанятый рандомный прокси из файла, либо локальный адрес'''
         ProxiesHolder._proxiesCondition.acquire()
         try:
-            while len(self.proxiesSet - ProxiesHolder._proxiesUsingSet) == 0:  # TODO: захватывать локальный адрес
+            while len(self.proxiesSet - ProxiesHolder._proxiesUsingSet) == 0:
                 ProxiesHolder._proxiesCondition.wait(common.WAIT_TIMEOUT)
             proxyHost = random.choice(self.proxiesSet - ProxiesHolder._proxiesUsingSet)
             ProxiesHolder._proxiesUsingSet.add(proxyHost)
