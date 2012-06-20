@@ -1,6 +1,6 @@
 # coding=utf8
 from __future__ import print_function
-import os, time, platform, threading, ConfigParser
+import os, datetime, signal, platform, threading, ConfigParser
 
 threadLock = threading.Lock()
 
@@ -11,21 +11,26 @@ LOG_FOLDER = 'logs'
 
 if not os.path.exists(LOG_FOLDER):
     os.makedirs(LOG_FOLDER)
-sessionLogFileName = 'session-' + str(int(time.time() * 100)) + '.txt'
+sessionLogFileName = '# session ' + datetime.datetime.now().strftime('%Y-%m-%d %H-%m') + '.txt'
 sessionLogFileName = os.path.join(LOG_FOLDER, sessionLogFileName)
 
+''' Для возможности прерывания скрипта по Ctrl+C введены следующие особенности:
+1. Задан обработчик прерывания (см. ниже).
+2. Задан таймаут для всех threading.Condition.wait().
+3. Потоки сделаны демонами.
+'''
+
+def KeyboardInterruptHandler(signal, frame):
+    ThreadSafePrint('\n=== Interrupted')
+    raise SystemExit
+signal.signal(signal.SIGINT, KeyboardInterruptHandler)
+
 def ThreadSafePrint(text):
-    '''Thread-safe print function'''
+    '''Thread-safe print function + пишем текст в сессионный файл'''
     threadLock.acquire()
     print(text)
-    threadLock.release()
-
-def WriteLogSession(data):
-    '''Дописываем data в сессионный файл'''
-    if LOG_LEVEL <= 0:
-        return
-    threadLock.acquire()
-    open(sessionLogFileName, 'a').write(data)
+    if LOG_LEVEL > 0:
+        open(sessionLogFileName, 'a').write(text + '\n')
     threadLock.release()
     
 def CommandsListFromText(text):

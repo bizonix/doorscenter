@@ -1,5 +1,5 @@
 # coding=utf8
-import os, sys, glob, random, datetime, ConfigParser
+import os, glob, random, datetime, ConfigParser
 import pinterest, common
 from pinterest import PinterestBoard, PlannedCommonBoard, PlannedProfitBoard  # workaround for unserialization
 
@@ -31,7 +31,13 @@ from pinterest import PinterestBoard, PlannedCommonBoard, PlannedProfitBoard  # 
 
 '''
 
-SCHEDULE_FOLDER = 'schedule'
+SCHEDULE_NEW_FOLDER = 'schedule'
+SCHEDULE_DONE_FOLDER = 'schedule/done'
+
+if not os.path.exists(SCHEDULE_NEW_FOLDER):
+    os.makedirs(SCHEDULE_NEW_FOLDER)
+if not os.path.exists(SCHEDULE_DONE_FOLDER):
+    os.makedirs(SCHEDULE_DONE_FOLDER)
 
 class Schedule(object):
     '''Расписание'''
@@ -43,14 +49,19 @@ class Schedule(object):
         config = ConfigParser.RawConfigParser()
         config.read('config.ini')
         self.hoursCorrection = int(config.get('Schedule', 'HoursCorrection'))
+        self.commonFollowUsersPopular = int(config.get('Schedule', 'CommonFollowUsersPopular'))
         self.commonFollowUsersByCategory = int(config.get('Schedule', 'CommonFollowUsersByCategory'))
         self.commonFollowUsersByKeywords = int(config.get('Schedule', 'CommonFollowUsersByKeywords'))
+        self.commonFollowBoardsPopular = int(config.get('Schedule', 'CommonFollowBoardsPopular'))
         self.commonFollowBoardsByCategory = int(config.get('Schedule', 'CommonFollowBoardsByCategory'))
         self.commonFollowBoardsByKeywords = int(config.get('Schedule', 'CommonFollowBoardsByKeywords'))
+        self.commonLikePinsPopular = int(config.get('Schedule', 'CommonLikePinsPopular'))
         self.commonLikePinsByCategory = int(config.get('Schedule', 'CommonLikePinsByCategory'))
         self.commonLikePinsByKeywords = int(config.get('Schedule', 'CommonLikePinsByKeywords'))
+        self.commonRepostPinsPopular = int(config.get('Schedule', 'CommonRepostPinsPopular'))
         self.commonRepostPinsByCategory = int(config.get('Schedule', 'CommonRepostPinsByCategory'))
         self.commonRepostPinsByKeywords = int(config.get('Schedule', 'CommonRepostPinsByKeywords'))
+        self.commonCommentPinsPopular = int(config.get('Schedule', 'CommonCommentPinsPopular'))
         self.commonCommentPinsByCategory = int(config.get('Schedule', 'CommonCommentPinsByCategory'))
         self.commonCommentPinsByKeywords = int(config.get('Schedule', 'CommonCommentPinsByKeywords'))
         self.commonUnfollowUsers = int(config.get('Schedule', 'CommonUnfollowUsers'))
@@ -61,9 +72,9 @@ class Schedule(object):
         self.profitCommentPinsByKeywords = int(config.get('Schedule', 'ProfitCommentPinsByKeywords'))
         self.profitPostFromAmazon = int(config.get('Schedule', 'ProfitPostFromAmazon'))
     
-    def _GetFilesList(self):
+    def _GetScheduleFilesList(self):
         '''Возвращаем список файлов с расписаниями'''
-        return sorted(glob.glob(os.path.join(SCHEDULE_FOLDER, '201*.txt')))
+        return sorted(glob.glob(os.path.join(SCHEDULE_NEW_FOLDER, '201*.txt')))
     
     def _FileNameToDateTime(self, fileName):
         '''Имя файла -> дата и время его выполнения'''
@@ -117,22 +128,20 @@ class ScheduleGenerator(Schedule):
     def _GenerateCommonBoardsList(self):
         '''Генерируем список названий досок общего назначения с указанием категорий'''
         commonBoardsDict = {}
-        for line in open('categories.txt'):
+        for line in open('boards.txt'):
             if line.strip() != '':
                 category, _, boards = line.strip().partition(':')
                 commonBoardsDict[category] = boards.split(',')
         commonBoardsList = []
         for category in random.sample(commonBoardsDict.keys(), random.randint(10, 20)):
             boardName = random.choice(commonBoardsDict[category])
-            board = pinterest.PlannedCommonBoard(boardName, category)
+            board = pinterest.PlannedCommonBoard(boardName, category, ['', ''])  # два пустых кея для примера
             commonBoardsList.append(board)
         return commonBoardsList
     
     def _Save(self, userLogin, timeStamp, commandsList):
         '''Сохраняем расписание'''
-        if not os.path.exists(SCHEDULE_FOLDER):
-            os.makedirs(SCHEDULE_FOLDER)
-        fileName = os.path.join(SCHEDULE_FOLDER, '%s %s.txt' % (timeStamp, userLogin))
+        fileName = os.path.join(SCHEDULE_NEW_FOLDER, '%s %s.txt' % (timeStamp, userLogin))
         open(fileName, 'w').write('\n'.join(commandsList))
         #print(timeStamp + '\n' + '\n'.join(commandsList))
     
@@ -154,12 +163,19 @@ class ScheduleGenerator(Schedule):
                         board = random.choice(user.plannedCommonBoardsList)
                         keywords = board.GetKeywords()
                         itemsList = [
+                                    #(self.commonFollowUsersPopular, '--user=%s --action=follow-users --count=%d --category=popular' % (userLogin, random.randint(1, 5))),  # TODO: реализовать
+                                    #(self.commonFollowBoardsPopular, '--user=%s --action=follow-boards --count=%d --category=popular' % (userLogin, random.randint(1, 2))),  # TODO: реализовать
+                                    (self.commonLikePinsPopular, '--user=%s --action=like-pins --count=%d --category=popular' % (userLogin, random.randint(1, 5))),
+                                    #(self.commonRepostPinsPopular, '--user=%s --action=repost-pins --count=%d --category=popular --boards="%s:%s"' % (userLogin, random.randint(1, 5), board.name, board.category)),  # TODO: выбор доски
+                                    (self.commonCommentPinsPopular, '--user=%s --action=comment-pins --count=%d --category=popular' % (userLogin, random.randint(1, 2))),
+                                    
                                     (self.commonFollowUsersByCategory, '--user=%s --action=follow-users --count=%d --category=%s' % (userLogin, random.randint(1, 5), board.category)),
-                                    (self.commonUnfollowUsers, '--user=%s --action=unfollow-users --count=%d' % (userLogin, random.randint(1, 2))),
                                     (self.commonFollowBoardsByCategory, '--user=%s --action=follow-boards --count=%d --category=%s' % (userLogin, random.randint(1, 2), board.category)),
                                     (self.commonLikePinsByCategory, '--user=%s --action=like-pins --count=%d --category=%s' % (userLogin, random.randint(1, 5), random.choice(pinterest.boardCategoriesList))),
                                     (self.commonRepostPinsByCategory, '--user=%s --action=repost-pins --count=%d --category=%s --boards="%s:%s"' % (userLogin, random.randint(1, 5), board.category, board.name, board.category)),
                                     (self.commonCommentPinsByCategory, '--user=%s --action=comment-pins --count=%d --category=%s' % (userLogin, random.randint(1, 2), random.choice(pinterest.boardCategoriesList))),
+                                    
+                                    (self.commonUnfollowUsers, '--user=%s --action=unfollow-users --count=%d' % (userLogin, random.randint(1, 2))),
                         ]
                         if keywords != '':
                             itemsList.extend([
@@ -194,13 +210,13 @@ class ScheduleGenerator(Schedule):
     def Clear(self, dateTime):
         '''Удаляем расписания по заданную дату/время'''
         dateTime = self._DateTimeCorrect(dateTime)
-        for fileName in self._GetFilesList():
+        for fileName in self._GetScheduleFilesList():
             if dateTime >= self._FileNameToDateTime(fileName):
                 os.unlink(fileName)
     
     def ClearAll(self):
         '''Удаляем все расписания'''
-        for fileName in self._GetFilesList():
+        for fileName in self._GetScheduleFilesList():
             os.unlink(fileName)
 
 
@@ -208,18 +224,17 @@ class ScheduleIterator(Schedule):
     '''Обход расписания работы ботов'''
     
     def Next(self):
-        '''Находим следующее расписание, которое пора выполнить. Возвращаем имя файла с расписанием'''
+        '''Находим следующее расписание, которое пора выполнить. Возвращаем список команд и имя файла с расписанием'''
         dateTimeNow = self._DateTimeCorrect(datetime.datetime.now())
-        for fileName in self._GetFilesList():
+        for fileName in self._GetScheduleFilesList():
             if dateTimeNow >= self._FileNameToDateTime(fileName):
-                commandsList = common.CommandsListFromText(open(fileName).read())
-                os.unlink(fileName)
-                return commandsList, fileName
-        return None, None
+                newFileName = fileName.replace(SCHEDULE_NEW_FOLDER, SCHEDULE_DONE_FOLDER)
+                os.rename(fileName, newFileName)
+                return newFileName
     
     def Empty(self):
         '''Есть ли еще расписания'''
-        return len(self._GetFilesList()) == 0
+        return len(self._GetScheduleFilesList()) == 0
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

@@ -11,6 +11,11 @@ boardCategoriesList = ['architecture','art','cars_motorcycles','design','diy_cra
     'humor','kids','mylife','women_apparel','men_apparel','outdoors','people','pets','photography',
     'prints_posters','products','science','sports','technology','travel_places','wedding_events','other']
 
+USERDATA_FOLDER = 'userdata'
+
+if not os.path.exists(USERDATA_FOLDER):
+    os.makedirs(USERDATA_FOLDER)
+
 class PinterestUser(object):
     '''Юзер пинтереста'''
     
@@ -19,7 +24,6 @@ class PinterestUser(object):
         self.bot = bot
         self.usersFileName = 'users.txt'
         self.usersDict = {}
-        self.usersDataFolder = 'userdata'
         self.Clear()
         self._LoadUsers()
     
@@ -75,8 +79,8 @@ class PinterestUser(object):
             self.proxyHost = data['proxyHost']
             self.proxyPassword = data['proxyPassword']
             '''... и загружаем дальнейшие данные о юзере из файлов юзера'''
-            systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
-            editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
+            systemDataFileName = os.path.join(USERDATA_FOLDER, 'system-%s.txt' % self.login)
+            editableDataFileName = os.path.join(USERDATA_FOLDER, 'editable-%s.txt' % self.login)
             try:
                 if os.path.exists(systemDataFileName):
                     data = yaml.load(open(systemDataFileName).read())
@@ -102,11 +106,9 @@ class PinterestUser(object):
     
     def SaveData(self):
         '''Сохраняем данные о юзере в файлы'''
-        systemDataFileName = os.path.join(self.usersDataFolder, 'system-%s.txt' % self.login)
-        editableDataFileName = os.path.join(self.usersDataFolder, 'editable-%s.txt' % self.login)
+        systemDataFileName = os.path.join(USERDATA_FOLDER, 'system-%s.txt' % self.login)
+        editableDataFileName = os.path.join(USERDATA_FOLDER, 'editable-%s.txt' % self.login)
         try:
-            if not os.path.exists(self.usersDataFolder):
-                os.makedirs(self.usersDataFolder)
             data = {'id': self.id, 'authToken1': self.authToken1, 'authToken2': self.authToken2, 'boardsList': self.boardsList}
             open(systemDataFileName, 'w').write(yaml.dump(data, default_flow_style=False))
             data = {'plannedCommonBoardsList': self.plannedCommonBoardsList, 'plannedProfitBoardsList': self.plannedProfitBoardsList, 'amazonPostedItems': self.amazonPostedItemsList}
@@ -168,7 +170,7 @@ class PlannedCommonBoard(object):
     
     def GetKeywords(self):
         '''Возвращаем кейворды одной строкой'''
-        return ','.join(self.keywordsList)
+        return ','.join([item for item in self.keywordsList if item.strip() != ''])
 
 
 class PlannedProfitBoard(object):
@@ -204,6 +206,8 @@ class PinterestBot(object):
         config.read('config.ini')
         self.requestTimeoutMin = int(config.get('Pinterest', 'RequestTimeoutMin'))
         self.requestTimeoutMax = int(config.get('Pinterest', 'RequestTimeoutMax'))
+        self.followPeopleMinFollowersCount = int(config.get('Pinterest', 'FollowPeopleMinFollowersCount'))
+        self.followPeopleMinFollowersRatio = float(config.get('Pinterest', 'FollowPeopleMinFollowersRatio'))
         self.maxFailsCount = int(config.get('Pinterest', 'MaxFailsCount'))
         self.timeout = 60
         self.commentsList = []
@@ -213,12 +217,11 @@ class PinterestBot(object):
     
     def _Print(self, text, end=None):
         '''Выводим текст на консоль'''
-        printPrefix = 'Thread #%3d: %-30s: %s' % (self.screenSlot + 1, self.user.id, ' ' * self.screenSlot * 4)
+        printPrefix = 'Thr.%3d : %s : %-20s : %s' % (self.screenSlot + 1, datetime.datetime.now().strftime('%Y-%m-%d %H:%m'), self.user.id, ' ' * self.screenSlot * 4)
         if (self.lastPrintEnd == '') and (text.strip() != '...'):
             text = '... ' + text
         text = printPrefix + text
         common.ThreadSafePrint(text)
-        common.WriteLogSession(text + '\n')
         self.lastPrintEnd = end
     
     def _WriteLogFile(self, data):
@@ -227,11 +230,11 @@ class PinterestBot(object):
             return
         if (common.LOG_LEVEL <= 1) and self.lastResponseSuccess:
             return
-        logFileName = str(int(time.time() * 100)) + '.txt'
+        logFileName = datetime.datetime.now().strftime('%Y-%m-%d %H-%m') + '.txt'
         if self.user.id != '':
-            logFileName = self.user.id + '-' + logFileName
+            logFileName = self.user.id + ' ' + logFileName
         else:
-            logFileName = 'unknown-' + logFileName
+            logFileName = '# unknown ' + logFileName
         logFileName = os.path.join(common.LOG_FOLDER, logFileName)
         try:
             open(logFileName, 'w').write(data)
@@ -552,13 +555,16 @@ class PinterestBot(object):
             if self._Request('Following user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'GET', 'http://pinterest.com/%s/?d' % userId, None, 'Follow', None, None):
                 userReport = self._GetUserReport()
                 if userReport:
-                    if userReport['followers'] >= userReport['following']:
+                    ratio = 0.0
+                    if userReport['following'] != 0:
+                        ratio = userReport['followers'] * 1.0 / userReport['following']
+                    if (userReport['followers'] >= self.followPeopleMinFollowersCount) and (ratio >= self.followPeopleMinFollowersRatio):
                         if self._Request('', 'POST', 'http://pinterest.com/%s/follow/' % userId, '', '"status": "success"'):
                             actionNum += 1
                         else:
                             failsCount += 1
                     else:
-                        self._Print('followers less than following, skipped')
+                        self._Print('followers count or ratio not fit (%d / %d = %.2f), skipped' % (userReport['followers'], userReport['following'], ratio))
                 else:
                     self._Print('error')
             elif self.lastResponseBody.find('Unfollow') >= 0:
@@ -580,17 +586,10 @@ class PinterestBot(object):
             while (actionNum <= actionsCount) and (failsCount < self.maxFailsCount):
                 userId = usersList.pop(0)
                 if self._Request('Unfollowing user "%s" (%d/%d)' % (userId, actionNum, actionsCount), 'GET', 'http://pinterest.com/%s/?d' % userId, None, 'Follow', None, None):
-                    userReport = self._GetUserReport()
-                    if userReport:
-                        if userReport['followers'] < userReport['following']:
-                            if self._Request('', 'POST', 'http://pinterest.com/%s/follow/' % userId, urllib.urlencode({'unfollow': '1'}), '"status": "success"'):
-                                actionNum += 1
-                            else:
-                                failsCount += 1
-                        else:
-                            self._Print('followers greater than following, skipped')
+                    if self._Request('', 'POST', 'http://pinterest.com/%s/follow/' % userId, urllib.urlencode({'unfollow': '1'}), '"status": "success"'):
+                        actionNum += 1
                     else:
-                        self._Print('error')
+                        failsCount += 1
             if failsCount >= self.maxFailsCount:
                 self._Print('Action cancelled, max fails count exceeded')
     
@@ -732,7 +731,9 @@ class PinterestBot(object):
     
     def UsersReport(self, usersList=None):
         '''Отчет по заданным, либо всем юзерам'''
-        pass #TODO: сделать отчет
+        pass  # TODO: сделать отчет
+    
+    # TODO: массовые действия
 
 
 if (__name__ == '__main__') and common.DevelopmentMode():

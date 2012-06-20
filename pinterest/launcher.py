@@ -6,6 +6,8 @@ from pinterest import PinterestBoard, PlannedCommonBoard, PlannedProfitBoard  # 
 if __name__ == '__main__':
     sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
 
+WAIT_TIMEOUT = 60 * 60 * 24 * 7  # cм. комментарий в common
+
 proxiesCondition = threading.Condition()
 proxiesUsingSet = set()
 
@@ -41,7 +43,7 @@ class LauncherSingle(object):
         screenSlotsCondition.acquire()
         try:
             while len(screenSlotsList) == 0:
-                screenSlotsCondition.wait()
+                screenSlotsCondition.wait(WAIT_TIMEOUT)
             self.screenSlotAcquired = screenSlotsList.pop(0)
         finally:
             screenSlotsCondition.release()
@@ -67,7 +69,7 @@ class LauncherSingle(object):
             if proxyHost in proxiesUsingSet:
                 self.bot._Print('Proxy "%s" is already used in another thread, waiting ...' % proxyHost)
             while proxyHost in proxiesUsingSet:
-                proxiesCondition.wait()
+                proxiesCondition.wait(WAIT_TIMEOUT)
             proxiesUsingSet.add(proxyHost)
             self.proxyHostAcquired = proxyHost
         finally:
@@ -155,6 +157,7 @@ class LauncherSingleThreaded(threading.Thread):
     def __init__(self, parent, commandsQueue):
         '''Инициализация'''
         threading.Thread.__init__(self)
+        self.daemon = True  # cм. комментарий в common
         self.parent = parent
         self.commandsQueue = commandsQueue
         self.launcher = LauncherSingle()
@@ -176,6 +179,7 @@ class LauncherListThreadedWait(threading.Thread):
     def __init__(self, queue, text):
         '''Инициализация'''
         threading.Thread.__init__(self)
+        self.daemon = True  # cм. комментарий в common
         self.queue = queue
         self.text = text
     
@@ -303,14 +307,14 @@ class LauncherSchedule(object):
         elif scheduleExecute:
             scheduleObj = schedule.ScheduleIterator()
             launcher = LauncherListThreaded()
-            while not scheduleObj.Empty():
-                commandsList, fileName = scheduleObj.Next()
-                if commandsList:
+            while True:  # в любом случае необходимо дать завершиться потокам-демонам, cм. комментарий в common
+                fileName = scheduleObj.Next()
+                if fileName:
+                    commandsList = common.CommandsListFromText(open(fileName).read())
                     launcher.Launch('schedule "%s"' % os.path.basename(fileName), commandsList, 1, False)
                 else:
                     common.ThreadSafePrint('=== Waiting for a schedule ...')
                     time.sleep(60)
-            common.ThreadSafePrint('=== All schedules done')
 
 
 def Dispatcher(command=None):
